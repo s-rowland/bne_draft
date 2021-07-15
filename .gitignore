@@ -37,3 +37,10 @@ vignettes/*.pdf
 
 # R Environment Variables
 .Renviron
+
+# data 
+data_input_models/*
+data_ground_truth/*
+data_training/*
+examine_MERRA/*
+data_ancillary/*
