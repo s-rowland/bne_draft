@@ -38,7 +38,7 @@ set.seed(1234)
 
 # 1a Readin training data 
 readinAqs <- function(YYYY){
-  read_csv(here::here('BNE_inputs', 'groundTruth', 'formatted',
+  read_csv(here::here('data_ground_truth', 'formatted',
                       paste0('aqs_annual_',YYYY, '_formatted.csv')))
 }
 aqs <- map(2010:2015, readinAqs) %>%
@@ -63,7 +63,7 @@ mon.point.sf  <- mon.point.sf  %>%
 ####*******************************
 
 # 2a Readin JS
-js <- read_fst(here::here('BNE_inputs', 'inputModels', 'formatted', 'JS_annual_formatted',
+js <- read_fst(here::here('data_input_models', 'formatted', 'JS_annual_formatted',
                           paste0('JS_annual_', 2010, '_formatted.fst'))) %>% 
   mutate(cellIndex = row_number()) %>% 
   mutate(lat2 = lat, lon2 = lon)
@@ -121,5 +121,5 @@ refGrid %>%
   distinct() %>%
   mutate(cellID = row_number())%>% 
   dplyr::select(lon, lat) %>% 
-  write_fst(here::here('BNE_inputs', 'referenceGrid', 
+  write_fst(here::here('data_ancillary', 'final', 
                        'refGrid_JS_1percent.fst'))

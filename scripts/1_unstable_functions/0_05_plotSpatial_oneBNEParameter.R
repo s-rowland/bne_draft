@@ -16,7 +16,7 @@
 
 # 0a Load package required for this script
 if(!exists("Ran_a_00")){
-  here::i_am("README.rtf")
+  here::i_am("README.md")
   source(here::here('scripts', 'a_set_up', "a_00_setUp_env.R"))
 }
 
@@ -24,13 +24,13 @@ if(!exists("Ran_a_00")){
 #### 1: Function ####
 ####*****************
 
-plotSpatial_oneBNEParameter <- function(YYYY, InputStr, ScaleK, ParameterName,
+plotSpatial_oneBNEParameter <- function(RunID, ParameterName,
                                         Input, Subtitle, LegYN){
 
 # 1a Begin function
   #YYYY <- 2010;  InputStr <- 'AVGSCMJSCC';
-   #ScaleK <- 3.5
-  # ParameterName <- 'bias_mean'; InputStr <- ''
+   #ScaleK <- 3.5; activeFold <- 'all
+  # ParameterName <- 'w_mean'; Input <- 'AV'
    #ParameterName <- 'pred_sd'; Input <- ''; Subtitle <- ''; LegYN <- 'LegY'
   # 
   
@@ -47,12 +47,12 @@ plotSpatial_oneBNEParameter <- function(YYYY, InputStr, ScaleK, ParameterName,
   
   # 1A.d Rename the parameter of interest 
   VarName <- paste0(ParameterName2, Input)
-  BNEout <- BNEout %>% 
+  dta <- output %>% 
     rename(activeVar := !!VarName)
   
   # curate outputs
-  dta <- BNEout %>% 
-    filter(RunID == !!paste0(YYYY, '_', InputStr, '_', ScaleK, '_all_all'))
+  dta <- dta %>% 
+    filter(RunID == !!RunID)
     
   # 1A.e Convert to  simple feature
   dta <- st_as_sf(dta, coords = c("lon", "lat"), 
@@ -63,8 +63,8 @@ plotSpatial_oneBNEParameter <- function(YYYY, InputStr, ScaleK, ParameterName,
   
   # 1A.g Keep only observations within conus
   if(!exists("conus")){
-    conus <- st_read(here::here('Data', 'general', 'spatial_outlines', 'conus.shp'),
-                    crs = projString)}
+    conus <- st_read(here::here('data_ancillary', 'formatted', 'spatial_outlines', 
+                                'conus.shp'))}
   #dta <- dta %>% 
    # st_join(conus, st_intersects) %>% 
     #filter(!is.na(g))

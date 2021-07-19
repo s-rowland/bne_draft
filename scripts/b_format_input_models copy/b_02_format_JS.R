@@ -29,7 +29,7 @@ if(!exists("Ran_a_00")){
 ####*******************************
 
 # 1a Readin locations
-js.loc <- readr::read_rds(here::here('BNE_inputs', 'inputModels', 'raw', 'JS_annual_raw', 
+js.loc <- readr::read_rds(here::here('data_input_models', 'raw', 'JS_annual_raw', 
              'USGridSite.rds'))
 
 # 1b Remove unnecesary column
@@ -100,6 +100,6 @@ for(YYYY in 2010:2015){
   js$lat <- st_coordinates(js.point.sf)[,2]
   
   js %>% 
-    write_fst(here::here('BNE_inputs', 'inputModels', 'formatted', 'JS_annual_formatted',
+    write_fst(here::here('data_input_models', 'formatted', 'JS_annual_formatted',
                          paste0('JS_annual_', YYYY, '_formatted.fst')))
 }

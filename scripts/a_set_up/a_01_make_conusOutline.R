@@ -50,7 +50,7 @@ conus <- st_transform(conus, crs=st_crs(projString))
 
 # 1f Save conus shapefile 
 conus %>% 
-  st_write(here::here('data_ancillary', 'formatted', 'spatial_outlines', 
+  st_write(here::here('ancillary_data', 'formatted', 'spatial_outlines', 
                       'conus.shp'))
 
 # 1g Remove usa file 

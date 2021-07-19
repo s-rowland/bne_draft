@@ -33,7 +33,7 @@ if(!exists("Ran_a_00")){
 
 # 1a Read dataset 
 # note that this is not actually the raw data - these models have already been combined
-avgscm  <- read_csv(here::here('BNE_inputs', 'inputModels', 'AVGSCM_annual_raw',
+avgscm  <- read_csv(here::here('data_input_models', 'raw', 'AVGSCM_annual_raw',
                                'avgscm_annual_2010_2016_raw.csv')) 
 
 # 1b Rename columns 
@@ -47,6 +47,6 @@ for(YYYY in 2010:2016){
   # 1c.i Keep only predictions for the relevant year
   avgscm %>% 
     filter(time == !!YYYY) %>% 
-    write_csv(here::here('BNE_inputs', 'inputModels','formatted', 'AVGSCM_annual_formatted',
+    write_csv(here::here('data_input_models', 'formatted', 'AVGSCM_annual_formatted',
                                 paste0('avgscm_', YYYY, '.fst')))
 }

@@ -39,6 +39,11 @@ vignettes/*.pdf
 .Renviron
 
 # data 
+BNE_inputs/*
+BNE_outputs/*
+ancillary_data/*
+externalValidation_data/*
+
 data_input_models/*
 data_ground_truth/*
 data_training/*

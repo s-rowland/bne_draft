@@ -41,67 +41,40 @@
 
 # 0a Load package required for this script
 if(!exists("Ran_a_00")){
-  here::i_am("README.rtf")
+  here::i_am("README.md")
   source(here::here('scripts', 'a_set_up', "a_00_setUp_env.R"))
 }
 
-# 0b Set Year 
-#YYYY <- 2011
+# 0b Set Time Step 
+#timeStep <- 2011
 
-####****************************
-#### 1: Read Reference Grid ####
-####****************************
-
-# 1a Read Reference grid file
-refGrid <- read_fst(here::here('data_ancillary', 'final', 
-                               'refGrid_JS_1percent.fst'))
-
-# 1b Convert to simple features 
-# note: the st_nn() takes much much longer if you use lat/lon instead of projected points. 
-refGrid <- refGrid %>% 
-  st_as_sf(., coords = c("lon", "lat"), crs=st_crs('epsg:4326')) %>% 
-  st_transform(crs= st_crs(projString))
+####********************
+#### 1: Rename Grid ####
+####*******************
+predGrid <- refGrid %>% 
+  st_transform(crs= st_crs('epsg:4326')) 
+predGrid <- predGrid %>%
+  as.data.frame() %>% 
+  mutate(lon = st_coordinates(predGrid)[,1], 
+         lat = st_coordinates(predGrid)[,2]) %>%
+  dplyr::select(-geometry)
 
 ####***********************************
 #### 2: Wrangle AVGSCM Predictions ####
 ####***********************************
 
 # 2a Readin predictions dataset
-avgscm  <- read_csv(here::here('data_input_models', 'formatted', 'AVGSCM_annual_formatted',
-                               paste0('avgscm_', YYYY, '.fst'))) 
+avgscm  <- read_csv(here::here('BNE_inputs', 'inputModels', 'formatted', 'AVGSCM_annual_formatted',
+                               paste0('avgscm_', timeStep, '.fst'))) 
 
 # 2b Rename columns 
 avgscm <- avgscm %>% 
   mutate(cellIndex = row_number())
 
-# 2c Convert avgscm to simple features
-avgscm.point.sf <- st_as_sf(avgscm, coords = c("lon", "lat"), 
-                            crs=st_crs('epsg:4326')) %>% 
-  st_transform(crs= st_crs(projString))
-
-# 2d Restrict to conus
-# only removes 5 obs ... not worth it
-#avgscm.point.sf <- avgscm.point.sf %>% 
-#  st_join(conus, st_intersects) %>% 
-  #filter(!is.na(g)) %>% 
-  #dplyr::select(-g, -m)
-
-# 2e Assign to Reference grid 
-# 2e.i For each Reference grid cell, identify the nearest avgscm point. 
-refGrid$cellIndex <- unlist(st_nn(refGrid, avgscm.point.sf, k=1))
-
-# make non-spatial version
-avgscm <- avgscm.point.sf %>%
-  as.data.frame() %>% 
-  dplyr::select(-geometry) %>% 
-  mutate(cellIndex = row_number())
-# 2e.iii Combine 
-refGrid <- refGrid %>% 
-  inner_join(avgscm, by = 'cellIndex') %>% 
+# 2c Combine 
+predGrid <- predGrid%>% 
+  inner_join(avgscm, by = c('AVGSCMcellIndex'= 'cellIndex')) %>% 
   dplyr::select(-cellIndex)
-
-# 2f Clean up 
-rm(avgscm)
 
 ####**********************************
 #### 3: Link JS to Reference Grid ####
@@ -109,23 +82,20 @@ rm(avgscm)
 
 # 3a Read JS 
 js <- read_fst(here::here('data_input_models', 'formatted', 'JS_annual_formatted',
-                          paste0('JS_annual_', YYYY, '_formatted.fst')))
+                          paste0('JS_annual_', timeStep, '_formatted.fst')))
 
-# 3b Convert to simple features
-js.sf <- js %>% 
-  st_as_sf(., coords = c("lon", "lat"), crs=st_crs('epsg:4326')) %>% 
-  st_transform(crs= st_crs(projString))
+# 3b Rename columns 
+js <- js %>% 
+  mutate(cellIndex = row_number())
 
-# 3c Combine
-refGrid$cellIndex <- unlist(st_nn(refGrid, js.sf, k=1))
-js <- js.sf %>% 
-  mutate(cellIndex = row_number()) %>% 
-  as.data.frame() %>% 
-  dplyr::select(-geometry)
+# 3c Combine 
+predGrid <- predGrid%>% 
+  inner_join(js, by = c('JScellIndex'= 'cellIndex')) %>% 
+  dplyr::select(-cellIndex)
 
-refGrid <- refGrid %>% 
-  inner_join(js, by = 'cellIndex')
+# 3d Clean  
 rm(js)
+
 ####*************************************
 #### 4: Link CACES to Reference Grid ####
 ####*************************************
@@ -133,45 +103,19 @@ rm(js)
 # 5a Readin CACES
 # so while we are doing extra tasks, we will not create any bad data
 caces <- readr::read_csv(here::here('data_input_models', 'raw', 'CC_annual_raw',
-             paste0('CACES_annual_', YYYY, '_blockGrp_raw.csv')))
+             paste0('CACES_annual_', timeStep, '_blockGrp_raw.csv')))
 
 # 5b Rename columns 
 caces <- caces %>% 
-  rename(CC = pred_wght) 
+  rename(CC = pred_wght) %>% 
+  mutate(cellIndex = row_number())
 
-# 5c Keep only columns of interest 
-caces <- caces %>% 
-  dplyr::select(lat, lon, CC)
+# 3c Combine 
+predGrid <- predGrid%>% 
+  inner_join(caces, by = c('CCcellIndex'= 'cellIndex')) %>% 
+  dplyr::select(-cellIndex)
 
-# 5d Convert caces to simple features
-caces.sf <- st_as_sf(caces, coords = c("lon", "lat"), 
-                            crs=st_crs('epsg:4326')) %>% 
-  st_transform(crs= st_crs(projString))
-
-# 5e Restrict to conus
-#caces.point.sf <- caces.point.sf %>% 
- # st_join(conus, st_intersects) %>% 
-  #filter(!is.na(g)) %>% 
-  #dplyr::select(-g, -m)
-
-# 5f Assign to Reference grid 
-# again we will use nearest neighbor, which isn't exactly the best, but okay for now 
-# 3c Combine
-refGrid$cellIndex <- unlist(st_nn(refGrid, caces.sf, k=1))
-caces <- caces.sf %>% 
-  mutate(cellIndex = row_number()) %>% 
-  as.data.frame() %>% 
-  dplyr::select(-geometry)
-
-refGrid <- refGrid %>% 
-  inner_join(caces, by = 'cellIndex')
-
-#a <- Sys.time()
-#caces.vor.sp <- voronoi(as_Spatial(caces.point.sf))
-#caces.vor.sf <- st_as_sf(caces.vor.sp)
-#refGrid <- st_intersection(caces.vor.sf, refGrid, join = st_intersects)
-#cacestime <-  Sys.time()-a
-
+# 3d Clean 
 rm(caces)
 
 ####**********************************
@@ -179,18 +123,13 @@ rm(caces)
 ####**********************************
 
 # 9a Save prediction dataset
-refGrid <- refGrid %>% 
-  st_transform(crs= st_crs('epsg:4326')) 
 refGrid %>%
-  as.data.frame() %>% 
-  mutate(lon = st_coordinates(refGrid)[,1], 
-         lat = st_coordinates(refGrid)[,2]) %>%
-  mutate(time = YYYY) %>%
+  mutate(time = timeStep) %>%
   dplyr::select(lon, lat, time, AV, GS, CM, JS, CC) %>%
   write_csv(here::here('data_input_models', 'combined', 'annual',
-                       paste0('Predictions_', YYYY, '_' , 'avgscmjscc', '_all.csv')))
+                       paste0('Predictions_', timeStep, '_' , 'AVGSCMJSCC', '_all.csv')))
 
 # 9b Save the number of observations
 data.frame(Count = nrow(refGrid)) %>%
   write_csv(here::here('data_input_models', 'combined', 'annual',
-                       paste0('PredCount_', YYYY, '_' , 'avgscmjscc', '_all.csv')))
+                       paste0('PredCount_', timeStep, '_' , 'AVGSCMJSCC', '_all.csv')))

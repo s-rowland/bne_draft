@@ -169,4 +169,4 @@ train.point %>%
   mutate(cellID = row_number()) %>%
   dplyr::select(lat, lon, time, aqs, AV, GS, CM, JS, CC, cellID) %>%
   write_csv(here::here('data_training', 'combined', 
-                       paste0('Training_annual_', YYYY, '_','avgscmjscc', '_all', '.csv')))
+                       paste0('Training_annual_', YYYY, '_','AVGSCMJSCC', '_all', '.csv')))
