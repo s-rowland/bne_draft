@@ -5,6 +5,7 @@ date: "7/9/2021"
 output: 
   html_document:
     toc: true 
+    toc_float: TRUE
     toc_depth: 2
     number_sections: true
 ---
@@ -132,54 +133,56 @@ once you put them back together.
     + Literature
     + Data Tracker
         + Spreadsheet of models, relevant references and contacts 
-        + literature references for each input model, ground truth, and external 
-        validation dataset
-    + Input Models 
-        + Raw
-            + Descriptions of Data Sources 
-            + [Input Model Name]_daily_raw
-            + [Input Model Name]_annual_raw
-        + Formatted
-            + [Input Model Name]_daily_formatted
-            + [Input Model Name]_annual_formatted
-        + Combined
-            + InputModels_daily_combined
-            + InputModels_annual_combined
-    +Ground Truth
-        + Raw
-            + Descriptions of Data Sources 
-            + [Input Model Name]_daily_raw
-            + [Input Model Name]_annual_raw
-        + Formatted
-            + [Input Model Name]_daily_formatted
-            + [Input Model Name]_annual_formatted
-    +Training Data 
-        + Combined
-    +External Validation Data 
-        + Raw
+        + literature references for each input model, ground truth, and external validation datasets
+    + BNE_inputs 
+      + input_models 
+          + raw
+              + Descriptions of Data Sources 
+              + [Input Model Name]_daily_raw
+              + [Input Model Name]_annual_raw
+          + formatted
+              + [Input Model Name]_daily_formatted
+              + [Input Model Name]_annual_formatted
+          + combined
+              + InputModels_daily_combined
+              + InputModels_annual_combined
+      + ground_truth
+          + raw
+              + Descriptions of Data Sources 
+              + [Input Model Name]_daily_raw
+              + [Input Model Name]_annual_raw
+          + formatted
+              + [Input Model Name]_daily_formatted
+              + [Input Model Name]_annual_formatted
+      + training_data 
+          + Combined
+      + reference_grid 
+          + Combined
+    + external_validation_data 
+        + raw
             + Descriptions of Data Sources 
             + [EVl Name]_daily_raw
             + [EV Name]_annual_raw
-        + Formatted
+        + formatted
             + [EV Name]_daily_formatted
             + [EV Name]_annual_formatted
-    +BNE Outputs
+    +BNE_outputs
         + name of the run 
         + log files describing the run 
-    +Ancillary Data
-    +Scripts 
-        a) Set up 
-        b) Format Input Models 
-        c) Format Ground-Truth 
-        d) Format Training Data
-        e) Format External Validation Data 
-        f) Run BNE 
-        g) Summarize BNE Results
-        h) Calculate Performance Metrics 
-        i) Perform Cross-Validation (Internal Validation)
-        j) Compare BNE Predictions and External Data (External Validation)
-        k) Common Functions
-        l) Common Functions Under Development
+    +ancillary_data
+    +scripts 
+        0) functions
+        1) unstable_functions
+        a) set_up 
+        b) format_input_models 
+        c) format_ground_truth 
+        d) format_training_data
+        e) format_external_validation_data 
+        f) run_BNE 
+        g) summarize_BNE_outputs
+        h) perform_cross_validation 
+        i) perform_external_validation
+        j) create_documentation
     + Researcher-Specific Folders
         i) Project-Specific Scripts 
         ii) Project-Specific Data 
@@ -189,129 +192,105 @@ once you put them back together.
 * For the CONUS application we will use the US National Atlas Equal Area projection. 
 
 ## Github
-* We will share our code over GitHub, and push updates regularly. If multiple researchers 
-are working on common scripts (i.e., in the Scripts folders), they should communicate 
-to coordinate updating the code
+* We will share our code over GitHub, and push updates regularly. If multiple researchers are working on common scripts (i.e., in the Scripts folders), they should communicate to coordinate updating the code
+* At the start of the work day, pull in the most recent version of the whole repo. 
+* At the end of the day, push that version to GitHub. 
+* If you create a file and you are still working on it, and you do not want anyone else to modify it, you have three options: a) exclude the file when you push, b) put the file in a personal project folder, or c) begin the file with your initials (this option is most useful for functions) 
+* If you are working on a file and you do not want anyone to modify it, either put it in a personal project folder, or begin the file with your initials. 
+
 
 # Conventions for Storing Data 
 
 ## Folder Names
-* Ideally folder names and path names are short, and do not contain the same information 
-as the file names. Folder names should be modular and follow parallel prefix and suffix conventions
+* Ideally folder names and path names are short, and do not contain the same information as the file names. Folder names should be modular and follow parallel prefix and suffix conventions
 
-## File Names 
-* File names should contain as much information as necesary so that any researcher 
-in the project could know its contents. For the time being, while we still do not have a server and the 
-sometimes researchers email each other data, we should err on the side of putting 
-extra information in the file names. Once we are on the server, potentially file names 
-could get shorter. 
-* For now, input model names will follow the convention of [Model Initials] _ 
-[Temporal Resolution] _ [Time Step] _ [Processing Stage]. For example, JS_daily_01012010_raw.csv 
-* For the BNE runs, so far, I store the outputs as a single file, with the 
-naming convention: [Input Model Initials] _ [Temporal Resolution] _ [Year(s) Covered] _
-[Spatial Kernel Size] _ [Temporal Kernel Size] _ [cluster]. For example, 
-AVGSCM_annual_20102015_3.5_0.5_all.csv. IF the kernel sizes get established, we
-can drop them from the name.
+## Dataset File Names 
+* Dataset File names should contain as much information as necesary so that any researcher in the project could know its contents. For the time being, while we still do not have a server and the sometimes researchers email each other data, we should err on the side of putting extra information in the file names. Once we are on the server, potentially file names could get shorter. 
+* For now, input model names will follow the convention of [Model Initials] _ [Temporal Resolution] _ [Time Step] _ [Processing Stage]. For example, JS_daily_01012010_raw.csv 
+* For the BNE runs, so far, I store the outputs as a single file, with the naming convention: [Input Model Initials] _ [Temporal Resolution] _ [Year(s) Covered] _ [Spatial Kernel Size] _ [Temporal Kernel Size] _ [cluster]. For example, AVGSCM_annual_20102015_3.5_0.5_all.csv. IF the kernel sizes get established, we can drop them from the name.
   <span style="color: purple;"> Maybe the raw data files should keep their original names? </span> 
 
 ## Variable Names 
-* Variables should contain the minimum amount of information necessary to distinguish 
-columns within the dataframe. Given the file name and folder, it should be clear what
-each variable represents.
-* Variable names can be modular, with suffixes and prefixes that designate the differences
-between the columns
+* Variables should contain the minimum amount of information necessary to distinguish columns within the dataframe. Given the file name and folder, it should be clear what each variable represents.
+* Variable names can be modular, with suffixes and prefixes that designate the differences between the columns, separated by underscores
 
 ## Formats
 * Dates should be stored as stringes to avoid Excel mangling dates. 
-* If using a date-time variable format, store as UTC. (For BNE itself, the dates are 
-just an index and we do not need Posit.x format or similar. When wrangling the data, 
-we might need such formats) For health analyses, use local time zones, as the local 
-time is generally more relevant for health risks (e.g., during local daylight savings time 
-diurnal patterns will shift relative to UTC)
-* Large datasets should be saved as fst, <span style="color: purple;">though MatLab might not
-be able to open or save fsts. </span> When we have the server, this is less important. 
-* Although raw data might include multiple timesteps,  we will 
-first split the input model predictions  by timestep to facilitate combining the 
+* If using a date-time variable format, store as UTC. (For BNE itself, the dates arejust an index and we do not need Posit.x format or similar. When wrangling the data, we might need such formats) For health analyses, use local time zones, as the local time is generally more relevant for health risks (e.g., during local daylight savings time diurnal patterns will shift relative to UTC)
+* Large datasets should be saved as fst, <span style="color: purple;">though MatLab might not be able to open or save fsts. </span> When we have the server, this is less important. 
+* Although raw data might include multiple timesteps,  we will first split the input model predictions  by timestep to facilitate combining the 
 predictions later. 
 
 ## Units
-* We should agree on a common set of units, and then one step in processing the 
-input models in converting them to the common units 
+* We should agree on a common set of units, and then one step in processing the input models in converting them to the common units 
 * PM_2.5_ should be stored as μg/m^3
 * Other environmental data should be in SI units
 
 ## Coordinate System
-* Since pretty much all of the original models are trained using latitude-longitude 
-coordinates, when training BNE we should also use location information stored as 
-latitude-longitude coordinates. 
-* <span style="color: purple;"> While doing area-weighted averaging would be slightly
-more accurate if we projected to a meter-based coordinate system, it is more sensible 
-to use the same coordiante system for preparing the data as we use for running BNE. </span> 
+* Since pretty much all of the original models are trained using latitude-longitude coordinates, when training BNE we should also use location information stored as latitude-longitude coordinates. 
+* <span style="color: purple;"> While doing area-weighted averaging would be slightly more accurate if we projected to a meter-based coordinate system, it is more sensible to use the same coordiante system for preparing the data as we use for running BNE. </span> 
 
 # Conventions for Coding 
 
 ## Programming Languages
 * Python, R, and Matlab 
-* <span style="color: purple;"> Will the published package be only in R (aka will we 
-need a version of BNE in R?  </span> 
+* <span style="color: purple;"> Will the published package be only in R (aka will we need a version of BNE in R?  </span> 
 
 ## Style
-* Do not use dots in variable names, to avoid conflicts with Python 
-* Use with camelCase or underscores for prefixes and suffixes. 
+* **Code Files**
+  * We have different rules for naming function files and non-function files 
+  * *Function Code Files*
+    * (initials_) [directory-number] _ [file-name] .R
+    * the directory number is either 1 for unstable functions still under development or 0 for a stable function whose development is mostly finalized
+    * the file name should use camelCase. The file name should align with the name of the function; should be informative and begin with a verb. 
+  
+  * *Non-Function Code Files*
+    * (initials_) [directory-letter] _ [step-number] _ [file-name] .R
+    * initials. Use your initials if you do not want anyone to modify the code (eg LGC_)
+    * directory designates the section. Lower case letters. 
+    * step indicates the order of running code. Paded to have two digits. 
+    * file name describes the code, should begin with a verb. Use lower case letters and underscores.
+
+* for objects: everything should be camelCase, can add a punctuation-based extension (period in R; underscore in Python) to denote slight differences in objects, e.g. monitorLocations and monitorLocations.sf to distinguish betweer the dataframe and simple features versions of the object. 
+* for column names: all lower case letters, with underscores to separate words, to avoid conflicts with Python
+
 * Be consistent with similar types of objects. 
 * Object names should align with the terminology used in the manuscript (and vice-versa)
 * Section names should align with the subsections of the Methods section 
-* Write code (eg path names) such that Windows and Macs can handle the code without modifications 
+* Write code (eg path names) such that Windows and Macs can handle the code without modifications (akak use here package)
 * In general, I (Sebastian) try to follow Hadley Wickham's style guide: 
 
 ## General 
-* Include a mega script that sources all of the scripts, in order, to go from raw
-data to final product
+* Include a mega script that sources all of the scripts, in order, to go from raw data to final product
 * Predictions should be treated as areal units, because predictions represent the 
 estimate of the average concentration across the grid, not the point estimate at 
 the centroid of the grid. 
-* Monitor readings (like AQS) should be treated as points because they just capture 
-what is happening at the location of the monitor. 
-* This implies that nearest-neighbor or spatial overlap are appropriate for combining 
-the input model predictions and the ground truth data, but area-weighted averaging 
-is more appropriate for combining the input models into the combined input dataset 
-that we use to generate BNE predictions. Since nearest neighbor is more efficient 
-(especially with the JS model), for now we will use nearest neighbors. 
+* Monitor readings (like AQS) should be treated as points because they just capture what is happening at the location of the monitor. 
+* This implies that nearest-neighbor or spatial overlap are appropriate for combining the input model predictions and the ground truth data, but area-weighted averaging is more appropriate for combining the input models into the combined input dataset that we use to generate BNE predictions. Since nearest neighbor is more efficient (especially with the JS model), for now we will use nearest neighbors. 
 
 # Best Practices for Reproducibility 
 
 ## Documentation of Data Sources
 * Each input model should be recorded in the Input Model Spreadsheet
-* For each input model, we should have at least one manuscript describing the 
-model. If the version of the model we have differs in any way from the version in the paper 
-the differences should be noted. 
-* For each raw data file, whether input model, ground truth data, or other data, there
-should be a .txt file (a readme) describing how the data was collected and when. Writing 
-this file at the time of data collection will minimize errors. 
+* For each input model, we should have at least one manuscript describing the model. If the version of the model we have differs in any way from the version in the paper the differences should be noted. 
+* For each raw data file, whether input model, ground truth data, or other data, thereshould be a .txt file (a readme) describing how the data was collected and when. Writing this file at the time of data collection will minimize errors. 
 * Description of the steps for processing the data
 
 ## Commenting in Code 
-* At a minimum, significant chunks of code should be commented so that someone 
-familiar with the project could follow the logic. Include data dictionaries for
-the first time you read in a dataset. 
+* At a minimum, significant chunks of code should be commented so that someone familiar with the project could follow the logic. Include data dictionaries for the first time you read in a dataset. 
 
 ## Language Alignment
 * We should use the same terms in the manuscript, code, figures, and documentation. 
 * When possible, avoid using interchangeable terms - just use one term per concept.
-* <span style="color: purple;"> Although in principle this consistency is very 
-valuable, in the real world it could be a detriment as different fields (ML, 
-atmospheric chemistry, epidemiology) use different terms for the same concept. 
-How do we strike a balance? </span> 
+* <span style="color: purple;"> Although in principle this consistency is very  valuable, in the real world it could be a detriment as different fields (ML, atmospheric chemistry, epidemiology) use different terms for the same concept. How do we strike a balance? </span> 
 
 ## Code Review 
 * Prior to publication, all code contributing to the manuscript should undergo code review by a peer. Specifics of the code review can be decided by main analyst and the reviewer. Code reviewer will become a co-author on the paper.
 
 ## Start-to-Finish Principle
-* Raw data should be as close to the original, for reproducibility
-* Code should be organized such that the user can go from the start to the end of 
-the project if all the intermediate products were deleted. The data downloads & gathering
-should be described such that if the raw data were deleted, the user could re-collect 
-the data (barring input models that were directly emailed to the user). Due to the 
-nature of the project, some sections or pre-processing may only occur on certain 
-computers; researchers can clearly identify where the missing steps took place.
-* Readmes and bash scripts can help keep track of the code runs
+* Raw data should be as close to the original as possible, and documented so that someone else could collect that data.
+* Code should be organized such that the user can go from the start to the end of the project if all the intermediate products were deleted. The data downloads & gathering should be described such that if the raw data were deleted, the user could re-collect the data (barring input models that were directly emailed to the user). Due to the nature of the project, some sections or pre-processing may only occur on certain computers; researchers can clearly identify where the missing steps took place.
+* ReadMe's and bash scripts can help keep track of the BNE runs
+
+## To-Do List 
+* This is just a list of tasks to eventually do, as we think of them. 

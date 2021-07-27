@@ -14,18 +14,12 @@
 #### 0: Preparation ####
 ####********************
 
-# 0a Load package required for this script
-if(!exists("Ran_a_00")){
-  here::i_am("README.rtf")
-  source(here::here('scripts', 'a_set_up', "a_00_setUp_env.R"))
-}
-
 ####*****************
 #### 1: Function ####
 ####*****************
 
 # 1a Begin function
-plotHist_oneParameter <- function(dta, VarName){
+plotHistOneParameter <- function(dta, VarName){
 
   # VarName <-'AV'; Subtitle <- 'test'
 
@@ -48,7 +42,7 @@ plotHist_oneParameter <- function(dta, VarName){
   #if(ParameterName == 'bias_std'){ParameterTitle <- 'SD of Bias Term'}
   #if(ParameterName == 'y_mean'){ParameterTitle <- 'Mean of Prediction'}
   #if(ParameterName == 'y_std'){ParameterTitle <- 'SD of Prediction'}
-  if(VarName %in% set_AllInputSet(2010)){ParameterTitle <- 'Input Prediction'}
+  if(VarName %in% c('AV', 'GS', 'CM', 'JS', 'CC')){ParameterTitle <- 'Input Prediction'}
   if(VarName == 'aqs'){ParameterTitle <- 'AQS'}
   if(VarName == 'pred_uncert'){ParameterTitle <- 'Prediction Uncertainty'}
   

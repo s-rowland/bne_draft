@@ -18,7 +18,7 @@
 # 0a Load package required for this script
 if(!exists("Ran_a_00")){
   here::i_am("README.md")
-  source(here::here('scripts', 'a_set_up', "a_00_setUp_env.R"))
+  source(here::here('scripts', 'a_set_up', "a_00_set_up_env.R"))
 }
 
 ####***************************
@@ -36,10 +36,10 @@ usa <- st_read(here::here('data_ancillary', 'raw', 'Census', 'cb_2015_us_state_5
 
 # 1c Remove regions that will most likely not be included in the 
 # contiguous nationwide application 
-conus_states <- usa[!usa$NAME%in%excludedAreas,]
+conusStates <- usa[!usa$NAME%in%excludedAreas,]
 
 # 1d Merge the states into a single polygon
-conus <- conus_states %>% 
+conus <- conusStates %>% 
   mutate(g = 'conus', q = 5) %>%
   group_by(g) %>% 
   summarise(m = mean(q)) %>% 
@@ -54,4 +54,4 @@ conus %>%
                       'conus.shp'))
 
 # 1g Remove usa file 
-rm(usa, conus_states, conus)
+rm(usa, conusStates, conus)

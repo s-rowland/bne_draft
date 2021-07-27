@@ -19,6 +19,8 @@
 ####**************
 
 
+# This need to get totally re-written
+
 ####********************
 #### 0: Preparation ####
 ####********************
@@ -26,7 +28,7 @@
 # 0a Load package required for this script
 if(!exists("Ran_a_00")){
   here::i_am("README.md")
-  source(here::here('scripts', 'a_set_up', "a_00_setUp_env.R"))
+  source(here::here('scripts', 'a_set_up', "a_00_set_up_env.R"))
 }
 
 ####********************************************
@@ -153,7 +155,7 @@ dev.off()
 YYYY <- 2010
 
 # 2b Readin training dataset
-Train.df <- read_csv(here::here('data_training', 'combined', 
+Train.df <- read_csv(here::here('BNE_inputs', 'training_data', 'combined', 
                                 paste0('Training_annual_', YYYY, '_','avgscmjscc', '_', activeFold, '.csv')))
 
 # 2c Create aqs dataset 

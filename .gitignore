@@ -38,14 +38,15 @@ vignettes/*.pdf
 # R Environment Variables
 .Renviron
 
+.DS_Store
+
 # data 
 BNE_inputs/*
 BNE_outputs/*
+BNE_plots/*
 ancillary_data/*
 externalValidation_data/*
 
-data_input_models/*
-data_ground_truth/*
-data_training/*
+# projects
 examine_MERRA/*
-data_ancillary/*
+uncertaintyFactorAnalysis_ISEE/*

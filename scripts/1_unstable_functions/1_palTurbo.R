@@ -17,18 +17,13 @@
 #### 0: Preparation ####
 ####********************
 
-# 0a Load package required for this script
-if(!exists("Ran_a_00")){
-  here::i_am("README.rtf")
-  source(here::here('scripts', 'a_set_up', "a_00_setUp_env.R"))
-}
 
 ####*****************
 #### 1: Function ####
 ####*****************
 
 # 1a Name all the points of the turbo rainbow
-A<-c(
+turboListPart1 <- c(
   (0.18995),(0.19483),(0.19956),(0.20415),(0.2086), (0.21291),(0.21708),
   (0.22111),(0.225),(0.22875),(0.23236),(0.23582),(0.23915),(0.24234),(0.24539),
   (0.2483),(0.25107),(0.25369),(0.25618),(0.25853),(0.26074),(0.2628),(0.26473),
@@ -61,7 +56,7 @@ A<-c(
   (0.7068),(0.6965),(0.68602),(0.67535),(0.66449),(0.65345),(0.64223),(0.63082),(0.61923),
   (0.60746),(0.5955),(0.58336),(0.57103),(0.55852),(0.54583),(0.53295),(0.51989),(0.50664),
   (0.49321),(0.4796))
-B<-c((0.07176),(0.08339),(0.09498),(0.10652),(0.11802),(0.12947),(0.14087),(0.15223),
+turboListPart2 <- c((0.07176),(0.08339),(0.09498),(0.10652),(0.11802),(0.12947),(0.14087),(0.15223),
      (0.16354),(0.17481),(0.18603),(0.1972),(0.20833),(0.21941),(0.23044),(0.24143),
      (0.25237),(0.26327),(0.27412),(0.28492),(0.29568),(0.30639),(0.31706),(0.32768),
      (0.33825),(0.34878),(0.35926),(0.3697),(0.38008),(0.39043),(0.40072),(0.41097),
@@ -94,7 +89,7 @@ B<-c((0.07176),(0.08339),(0.09498),(0.10652),(0.11802),(0.12947),(0.14087),(0.15
      (0.11268),(0.1068),(0.10102),(0.09536),(0.0898),(0.08436),(0.07902),(0.0738),
      (0.06868),(0.06367),(0.05878),(0.05399),(0.04931),(0.04474),(0.04028),(0.03593),
      (0.03169),(0.02756),(0.02354),(0.01963),(0.01583))
-C<-c((0.23217),(0.26149),(0.29024),(0.31844),(0.34607),(0.37314),(0.39964),(0.42558),
+turboListPart3 <- c((0.23217),(0.26149),(0.29024),(0.31844),(0.34607),(0.37314),(0.39964),(0.42558),
      (0.45096),(0.47578),(0.50004),(0.52373),(0.54686),(0.56942),(0.59142),(0.61286),
      (0.63374),(0.65406),(0.67381),(0.693),(0.71162),(0.72968),(0.74718),(0.76412),
      (0.7805),(0.79631),(0.81156),(0.82624),(0.84037),(0.85393),(0.86692),(0.87936),
@@ -128,20 +123,20 @@ C<-c((0.23217),(0.26149),(0.29024),(0.31844),(0.34607),(0.37314),(0.39964),(0.42
      (0.0078),(0.00863),(0.00955),(0.01055))
 
 # 1b Combine
-turbo_colormap_data <- cbind(A,B,C) 
+turboColorMap.numeric <- cbind(turboListPart1, turboListPart2, turboListPart3) 
 
 # 1c Convert to hex codings, which ggplot uses
-turbo_colormap_data_sRGB <- sRGB(turbo_colormap_data)
-turbo_colormap_data_HEX = hex(turbo_colormap_data_sRGB)
+turboColorMap.sRGB <- sRGB(turboColorMap.numeric)
+turboColorMap.HEX = hex(turboColorMap.sRGB)
 
 # 1d Make turbo a palette
-TurboPalette <- colorRampPalette(colors = turbo_colormap_data_HEX ,space="rgb",
+TurboPalette <- colorRampPalette(colors = turboColorMap.HEX ,space="rgb",
                                  interpolate = "spline")
 
 
 #pal.test(TurboPalette)
 
-# mnake function 
+# make function 
 palTurbo <- function(pal.min = 0,pal.max = 1,out.colors = NULL,
                      pal = turbo_colormap_data_HEX,reverse = F) {
   # pal.min = lower bound of the palette to use [0,1]
@@ -164,4 +159,4 @@ palTurbo <- function(pal.min = 0,pal.max = 1,out.colors = NULL,
 }  
 
 # 1e Clean up 
-rm(A, B, C, turbo_colormap_data, turbo_colormap_data_sRGB)
+rm(turboListPart1, turboListPart2, turboListPart3, turbo_colormap_data, turbo_colormap_data_sRGB)

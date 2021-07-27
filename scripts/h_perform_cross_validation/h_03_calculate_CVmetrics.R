@@ -24,11 +24,11 @@
 # 0a Load package required for this script
 if(!exists("Ran_a_00")){
   here::i_am("README.md")
-  source(here::here('scripts', 'a_set_up', "a_00_setUp_env.R"))
+  source(here::here('scripts', 'a_set_up', "a_00_set_up_env.R"))
 }
 
 ####***************************************
 #### 1: Calculate CV Metrics for a Run ####
 ####***************************************
 
-averageMetrics_acrossFolds(2010, 3.5)
+averageMetricsAcrossFolds(2010, 3.5)

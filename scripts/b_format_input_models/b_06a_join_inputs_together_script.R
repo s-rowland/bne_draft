@@ -42,7 +42,7 @@
 # 0a Load package required for this script
 if(!exists("Ran_a_00")){
   here::i_am("README.md")
-  source(here::here('scripts', 'a_set_up', "a_00_setUp_env.R"))
+  source(here::here('scripts', 'a_set_up', "a_00_set_up_env.R"))
 }
 
 # 0b Set Time Step 
@@ -64,34 +64,34 @@ predGrid <- predGrid %>%
 ####***********************************
 
 # 2a Readin predictions dataset
-avgscm  <- read_csv(here::here('BNE_inputs', 'inputModels', 'formatted', 'AVGSCM_annual_formatted',
+avgscm  <- read_csv(here::here('BNE_inputs', 'input_models', 'formatted', 'AVGSCM_annual_formatted',
                                paste0('avgscm_', timeStep, '.fst'))) 
 
 # 2b Rename columns 
 avgscm <- avgscm %>% 
-  mutate(cellIndex = row_number())
+  mutate(cell_index = row_number()) %>% 
+  dplyr::select(-lat, -lon)
 
 # 2c Combine 
 predGrid <- predGrid%>% 
-  inner_join(avgscm, by = c('AVGSCMcellIndex'= 'cellIndex')) %>% 
-  dplyr::select(-cellIndex)
+  inner_join(avgscm, by = c('AVGSCM_cell_index'= 'cell_index')) 
 
 ####**********************************
 #### 3: Link JS to Reference Grid ####
 ####**********************************
 
 # 3a Read JS 
-js <- read_fst(here::here('BNE_inputs', 'inputModels', 'formatted', 'JS_annual_formatted',
+js <- read_fst(here::here('BNE_inputs', 'input_models', 'formatted', 'JS_annual_formatted',
                           paste0('JS_annual_', timeStep, '_formatted.fst')))
 
 # 3b Rename columns 
 js <- js %>% 
-  mutate(cellIndex = row_number())
+  mutate(cell_index = row_number()) %>% 
+  dplyr::select(-lat, -lon)
 
 # 3c Combine 
 predGrid <- predGrid%>% 
-  inner_join(js, by = c('JScellIndex'= 'cellIndex')) %>% 
-  dplyr::select(-cellIndex)
+  inner_join(js, by = c('JS_cell_index'= 'cell_index')) 
 
 # 3d Clean  
 rm(js)
@@ -102,18 +102,18 @@ rm(js)
 
 # 5a Readin CACES
 # so while we are doing extra tasks, we will not create any bad data
-caces <- readr::read_csv(here::here('BNE_inputs', 'inputModels', 'raw', 'CC_annual_raw',
+caces <- readr::read_csv(here::here('BNE_inputs', 'input_models', 'raw', 'CC_annual_raw',
              paste0('CACES_annual_', timeStep, '_blockGrp_raw.csv')))
 
 # 5b Rename columns 
 caces <- caces %>% 
   rename(CC = pred_wght) %>% 
-  mutate(cellIndex = row_number())
+  mutate(cell_index = row_number()) %>% 
+  dplyr::select(-lat, -lon)
 
 # 3c Combine 
 predGrid <- predGrid%>% 
-  inner_join(caces, by = c('CCcellIndex'= 'cellIndex')) %>% 
-  dplyr::select(-cellIndex)
+  inner_join(caces, by = c('CC_cell_index'= 'cell_index')) 
 
 # 3d Clean 
 rm(caces)
@@ -123,13 +123,13 @@ rm(caces)
 ####**********************************
 
 # 9a Save prediction dataset
-refGrid %>%
+predGrid %>%
   mutate(time = timeStep) %>%
   dplyr::select(lon, lat, time, AV, GS, CM, JS, CC) %>%
-  write_csv(here::here('BNE_inputs', 'inputModels', 'combined', 'annual',
+  write_csv(here::here('BNE_inputs', 'input_models', 'combined', 'annual',
                        paste0('Predictions_', timeStep, '_' , 'AVGSCMJSCC', '_all.csv')))
 
 # 9b Save the number of observations
 data.frame(Count = nrow(refGrid)) %>%
-  write_csv(here::here('BNE_inputs', 'inputModels', 'combined', 'annual',
+  write_csv(here::here('BNE_inputs', 'input_models', 'combined', 'annual',
                        paste0('PredCount_', timeStep, '_' , 'AVGSCMJSCC', '_all.csv')))

@@ -19,17 +19,11 @@
 #### 0: Preparation ####
 ####********************
 
-# 0a Load package required for this script
-if(!exists("Ran_a_00")){
-  here::i_am("README.rtf")
-  source(here::here('scripts', 'a_set_up', "a_00_setUp_env.R"))
-}
-
 ####********************************************
 #### 1: Define Functions for Plotting Folds ####
 ####********************************************
 
-plot_spatialRoles <- function(foldNum, Location){
+plotSpatialRoles <- function(foldNum, Location){
   # foldNum <- 1; Location <- 'NYC'
   activeFold <- paste0('fold', str_pad(foldNum, 2, 'left', '0'))
   aqsFoldsOutSubset <- aqsFolds.rmN %>% 

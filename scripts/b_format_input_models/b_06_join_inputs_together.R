@@ -42,7 +42,7 @@
 # 0a Load package required for this script
 if(!exists("Ran_a_00")){
   here::i_am("README.md")
-  source(here::here('scripts', 'a_set_up', "a_00_setUp_env.R"))
+  source(here::here('scripts', 'a_set_up', "a_00_set_up_env.R"))
 }
 
 # here I would add code where we do the same sort of join as in 
@@ -57,7 +57,7 @@ refTime <- 2010
 ####****************************
 
 # 1a Read Reference grid file
-refGrid <- read_fst(here::here('BNE_inputs', 'referenceGrid', 
+refGrid <- read_fst(here::here('BNE_inputs', 'reference_grid', 
                                'refGrid_JS_1percent.fst'))
 
 # 1b Convert to simple features 
@@ -71,12 +71,12 @@ refGrid <- refGrid %>%
 ####**************************************
 
 # 2a Readin predictions dataset
-avgscm  <- read_csv(here::here('BNE_inputs', 'inputModels', 'formatted', 'AVGSCM_annual_formatted',
+avgscm  <- read_csv(here::here('BNE_inputs', 'input_models', 'formatted', 'AVGSCM_annual_formatted',
                                paste0('avgscm_', refTime, '.fst'))) 
 
 # 2b Rename columns 
 avgscm <- avgscm %>% 
-  mutate(cellIndex = row_number())
+  mutate(cell_index = row_number())
 
 # 2c Convert avgscm to simple features
 avgscm <- st_as_sf(avgscm, coords = c("lon", "lat"), 
@@ -85,7 +85,7 @@ avgscm <- st_as_sf(avgscm, coords = c("lon", "lat"),
 
 # 2d Assign to Reference grid 
 # 2d.i For each Reference grid cell, identify the nearest avgscm point. 
-refGrid$AVGSCMcellIndex <- unlist(st_nn(refGrid, avgscm, k=1))
+refGrid$AVGSCM_cell_index <- unlist(st_nn(refGrid, avgscm, k=1))
 
 # Clean 
 rm(avgscm)
@@ -95,7 +95,7 @@ rm(avgscm)
 ####**********************************
 
 # 3a Read JS 
-js <- read_fst(here::here('BNE_inputs', 'inputModels', 'formatted', 'JS_annual_formatted',
+js <- read_fst(here::here('BNE_inputs', 'input_models', 'formatted', 'JS_annual_formatted',
                           paste0('JS_annual_', refTime, '_formatted.fst')))
 
 # 3b Convert to simple features
@@ -104,7 +104,7 @@ js <- js %>%
   st_transform(crs= st_crs(projString))
 
 # 3c Combine
-refGrid$JScellIndex <- unlist(st_nn(refGrid, js, k=1))
+refGrid$JS_cell_index <- unlist(st_nn(refGrid, js, k=1))
 
 # 3d Clean 
 rm(js)
@@ -114,12 +114,12 @@ rm(js)
 ####*************************************
 
 # 4a Readin CACES
-caces <- readr::read_csv(here::here('BNE_inputs', 'inputModels', 'raw', 'CC_annual_raw',
+caces <- readr::read_csv(here::here('BNE_inputs', 'input_models', 'raw', 'CC_annual_raw',
                                     paste0('CACES_annual_', refTime, '_blockGrp_raw.csv')))
 
 # 4b Rename columns 
 caces <- caces %>% 
-  mutate(cellIndex = row_number())
+  mutate(cell_index = row_number())
 
 # 4c Convert caces to simple features
 caces <- st_as_sf(caces, coords = c("lon", "lat"), 
@@ -128,7 +128,7 @@ caces <- st_as_sf(caces, coords = c("lon", "lat"),
 
 # 4d Assign to Reference grid 
 # 4d.i For each Reference grid cell, identify the nearest avgscm point. 
-refGrid$CCcellIndex <- unlist(st_nn(refGrid, caces, k=1))
+refGrid$CC_cell_index <- unlist(st_nn(refGrid, caces, k=1))
 
 # 4e Clean 
 rm(caces)
@@ -140,7 +140,7 @@ rm(caces)
 # 5a 
 for(timeStep in 2010:2015){
   source(here::here('scripts', 'b_format_input_models', 
-                    "b_04a_join_inputs_together_script.R"))
+                    "b_06a_join_inputs_together_script.R"))
 }
 
 rm(refTime)

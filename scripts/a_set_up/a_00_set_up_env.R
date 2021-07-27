@@ -89,5 +89,5 @@ rm(a, source_myFunction, myFunctions, myStableFunctions, myUnstableFunctions)
 # 4a Make the CONUS outline shapefile 
 #if it has not already been made
 if(!file.exists(here::here('ancillary_data', 'formatted', 'spatial_outlines', 'conus.shp'))){
-        source(here::here('scripts', 'a_set_up', 'a_01_make_conusOutline.R'))
+        source(here::here('scripts', 'a_set_up', 'a_01_make_conus_outline.R'))
 }

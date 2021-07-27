@@ -24,16 +24,16 @@ if(!exists("Ran_a_00")){
 #### 1: Function ####
 ####*****************
 
-plotSpatial_oneBNEParameter <- function(BNEoutput, RunID, ParameterName,
-                                        Input, Subtitle, LegYN){
+plotSpatialOneBNEParameter <- function(BNEoutput, runID, parameterName,
+                                        input, subtitle, legYN){
 
 # 1a Begin function
   # BNEoutput <- BNEoutputs
-  #YYYY <- 2010;  InputSet <- 'AVGSCMJSCC';
+  #YYYY <- 2010;  inputSet <- 'AVGSCMJSCC';
   #kScale <- 3.5; activeFold <- 'all'
-  # RunID <- paste0(YYYY, '_', paste(InputSet, collapse =''), '_', kScale, '_', activeFold)
-  #ParameterName <- 'bias_mean'; Input <- ''
-  #ParameterName <- 'pred_sd'; Input <- ''; Subtitle <- ''; LegYN <- 'LegY'
+  # runID <- paste0(YYYY, '_', paste(inputSet, collapse =''), '_', kScale, '_', activeFold)
+  #parameterName <- 'bias_mean'; input <- ''
+  #parameterName <- 'pred_sd'; input <- ''; subtitle <- ''; legYN <- 'LegY'
   # 
   
   ####**********************
@@ -41,20 +41,20 @@ plotSpatial_oneBNEParameter <- function(BNEoutput, RunID, ParameterName,
   ####**********************
   
   # 1A.b Set columns Names 
-  if(str_sub(ParameterName, 0, 1) == 'w'){
-    ParameterName2 <- paste0(ParameterName, '_')
+  if(str_sub(parameterName, 0, 1) == 'w'){
+    parameterName2 <- paste0(parameterName, '_')
   }else{
-    ParameterName2 <- ParameterName
+    parameterName2 <- parameterName
     }
   
   # 1A.d Rename the parameter of interest 
-  VarName <- paste0(ParameterName2, Input)
+  VarName <- paste0(parameterName2, input)
   BNEoutput <- BNEoutput %>% 
     rename(activeVar := !!VarName)
   
   # curate outputs
   dta <- BNEoutput %>% 
-    filter(RunID == !!RunID)
+    filter(run_id == !!runID)
     
   # 1A.e Convert to  simple feature
   dta <- st_as_sf(dta, coords = c("lon", "lat"), 
@@ -76,32 +76,32 @@ plotSpatial_oneBNEParameter <- function(BNEoutput, RunID, ParameterName,
   ####************************
   
   # 1B.a Create ParameterTitle 
-  if(ParameterName == 'w_mean'){
+  if(parameterName == 'w_mean'){
     ParameterTitle <- 'Weight'
-    PlotTitle <- paste0('Weight of ', Input)
+    PlotTitle <- paste0('Weight of ', input)
   }
-  if(ParameterName == 'w_sd'){ParameterTitle <- paste0('SD of ', Input, ' Weight')}
-  if(ParameterName == 'bias_mean'){ParameterTitle <- 'Mean of Bias Term'}
-  if(ParameterName == 'bias_sd'){
+  if(parameterName == 'w_sd'){ParameterTitle <- paste0('SD of ', input, ' Weight')}
+  if(parameterName == 'bias_mean'){ParameterTitle <- 'Mean of Bias Term'}
+  if(parameterName == 'bias_sd'){
     ParameterTitle <- 'SD of Bias Term'; PlotTitle <- 'SD of Bias Term'}
-  if(ParameterName == 'pred_mean'){
+  if(parameterName == 'pred_mean'){
     ParameterTitle <- expression(atop(atop(' ', 'Predicted'),
                                  atop('PM'[2.5], '('*mu*g/m^3*')')))
     PlotTitle <- expression('Predicted'~'Concentration'~'of'~'PM'[2.5])
         }
     #ParameterTitle <- TeX(r'(PM_{2.5} Mean ($\mu g/ m^3)$)')}
-  if(ParameterName == 'pred_sd'){
+  if(parameterName == 'pred_sd'){
     ParameterTitle <- expression(atop(atop(' ', 'PM'[2.5]),
                                       atop('SD', '('*mu*g/m^3*')')))
     PlotTitle <- expression('SD'~'of'~'PM'[2.5]~'Predictions')
     }
-  if(ParameterName == 'HighWI'){
+  if(parameterName == 'HighWI'){
     ParameterTitle <- 'Most-Weighted'
-    PlotTitle <- 'Highest-Weighted Inputs'
+    PlotTitle <- 'Highest-Weighted inputs'
     }
   
   # 1B.c Set range
-  if(ParameterName == 'bias_mean'){
+  if(parameterName == 'bias_mean'){
     Parameter.min <- min(BNEoutput$activeVar); Parameter.midneg <- min(BNEoutput$activeVar)/2
     Parameter.midpos <- max(BNEoutput$activeVar)/2; Parameter.max <- max(BNEoutput$activeVar)
     PlotTitle <- 'Mean of Spatial Offset'
@@ -109,7 +109,7 @@ plotSpatial_oneBNEParameter <- function(BNEoutput, RunID, ParameterName,
   
   # 1B.a Set the aesthetic schemes 
   # 1B.a.i for weights' expected value
-  if(ParameterName == 'w_mean' | ParameterName == 'w_sd' ){
+  if(parameterName == 'w_mean' | parameterName == 'w_sd' ){
     fillScheme <- viridis::scale_fill_viridis(
       direction = -1, 
       breaks = c(0, 0.25, 0.5, 0.75, 1),
@@ -118,7 +118,7 @@ plotSpatial_oneBNEParameter <- function(BNEoutput, RunID, ParameterName,
       direction = -1, 
       breaks = c(0, 0.25, 0.5, 0.75, 1),
       limits = c(0, 1))
-  } else if(ParameterName == 'bias_mean'){
+  } else if(parameterName == 'bias_mean'){
     fillScheme <- scale_fill_gradient2(
       low = "red", mid = "white",high = "blue", midpoint = 0, 
       breaks = c(round(Parameter.min, 2), round(Parameter.midneg,2),0,
@@ -129,12 +129,12 @@ plotSpatial_oneBNEParameter <- function(BNEoutput, RunID, ParameterName,
       breaks = c(round(Parameter.min, 2), round(Parameter.midneg,2),0,
                  round(Parameter.midpos,2), round(Parameter.max,2)),   
       limits = c(Parameter.min, Parameter.max)) 
-  }  else if(ParameterName == 'HighWI'){
+  }  else if(parameterName == 'HighWI'){
     cbp1 <- c("#E69F00", "#56B4E9", "#009E73",
               "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
     fillScheme <- scale_fill_manual(values=cbp1) 
     colorScheme <- scale_color_manual(values=cbp1) 
-  } else if(ParameterName == 'pred_mean'){
+  } else if(parameterName == 'pred_mean'){
     fillScheme <- scale_fill_scico(
       direction = -1, palette = 'hawaii',
       breaks = c(0, round(max(BNEoutput$activeVar)*0.25,2), 
@@ -167,9 +167,9 @@ plotSpatial_oneBNEParameter <- function(BNEoutput, RunID, ParameterName,
   } 
   
   # Set legend position
-  if(LegYN == 'LegY'){LegPos <- 'right'}
-  #if(LegYN == 'LegY'){LegPos <- c(0.94, 0.4)}
-  if(LegYN == 'LegN'){LegPos <- 'none'}
+  if(legYN == 'LegY'){legPos <- 'right'}
+  #if(legYN == 'LegY'){legPos <- c(0.94, 0.4)}
+  if(legYN == 'LegN'){legPos <- 'none'}
   
   # Make the plot
   #ggplot(conus)
@@ -184,7 +184,7 @@ plotSpatial_oneBNEParameter <- function(BNEoutput, RunID, ParameterName,
     theme(plot.title = element_text(size = 18)) + 
     theme(plot.margin = unit(c(0, 0, 0, 0), "cm")) + 
     theme_void() + 
-    theme(#legend.position = LegPos, 
+    theme(#legend.position = legPos, 
           legend.title  = element_text(size = 15)) 
   
   # 3i Output plot
@@ -193,9 +193,9 @@ plotSpatial_oneBNEParameter <- function(BNEoutput, RunID, ParameterName,
 
 
 # test
-#YYYY <- 2012;  InputSet <- c('AV', 'GS', 'CM', 'JS',  'CC');
-# ParameterName <- 'bias_mean'; Input <- ''
-# ParameterName <- 'w_mean'; Input <- 'AV'
+#YYYY <- 2012;  inputSet <- c('AV', 'GS', 'CM', 'JS',  'CC');
+# parameterName <- 'bias_mean'; input <- ''
+# parameterName <- 'w_mean'; input <- 'AV'
 #png('~/Desktop/test.png')
 
 #plotSpatial_oneBNEParameter(2012, 'AVGSCMJSCC', 

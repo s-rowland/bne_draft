@@ -14,18 +14,12 @@
 #### 0: Preparation ####
 ####********************
 
-# 0a Load package required for this script
-if(!exists("Ran_a_00")){
-  here::i_am("README.rtf")
-  source(here::here('scripts', 'a_set_up', "a_00_setUp_env.R"))
-}
-
 ####*****************
 #### 1: Function ####
 ####*****************
 
 # 1a Begin function
-plotSpatial_oneParameter <- function(dta, VarName, Subtitle, LegYN){
+plotSpatialOneParameter <- function(dta, VarName, Subtitle, LegYN){
 
   # dta <- dtaPred; VarName <-'inputSD'; Subtitle <- ''; LegYN <- 'LegY'
 

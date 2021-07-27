@@ -247,268 +247,53 @@ div.tocify {
 </div>
 
 
-<div id="overview" class="section level1" number="1">
-<h1 number="1"><span class="header-section-number">1</span> Overview</h1>
-<div id="bne-overview" class="section level2" number="1.1">
-<h2 number="1.1"><span class="header-section-number">1.1</span> BNE Overview</h2>
-<p>Bayesian Non-parametric Ensemble (BNE) is an ensemble approach in which the weights vary smoothly over space and time according to a Gaussian kernel. In other words, for a particular point in space-time, the weight of an input model is informed by the model’s performance at nearby points. This approach is particularly well-suited for modeling environmental factors that vary smoothly over space, such as temperature and air pollution, as individual models have been have accuracy that varies over time and space. For example, if a model has relatively high performance in New England, but not in the Mid-Atlantic region, BNE will assign heigh weights to that model in New England, but not in the Mid-Atlantic. relatively well in New England</p>
+<div id="bne-overview" class="section level1" number="1">
+<h1 number="1"><span class="header-section-number">1</span> BNE Overview</h1>
+<p>Bayesian Non-parametric Ensemble (BNE) is an ensemble approach in which the weights vary smoothly over space and time according to a Gaussian kernel. In other words, for a particular point in space-time, the weight of an input model is informed by the model’s performance at nearby points. This approach is particularly well-suited for modeling environmental factors that vary smoothly over space, such as temperature and air pollution, as individual models have been have accuracy that varies over time and space. For example, if a model has relatively high performance in New England, but not in the Mid-Atlantic region, BNE will assign heigh weights to that model in New England, but not in the Mid-Atlantic. relatively well in New England * lay out the steps of this vignette: gather data, formating, training BNE, generating predictions, visualizing.</p>
 </div>
-<div id="convention-document-overview" class="section level2" number="1.2">
-<h2 number="1.2"><span class="header-section-number">1.2</span> Convention Document Overview</h2>
-<p>During BNE team meetings, it became clear that more documentation would support our collaboration. This documentation would also help us structure our code so that we can make a package for BNE. We have also found that creating this documentation has identified issues for us to discuss and features for us to explicitly choose. For now (summer 2021), this document is an internal document only for researchers actively working on BNE. Once we develop the package, text from this document will probably go into the package’s documentation. Note that some of the structure may need to change when we switch to using a common server. Note that we have two goals: develop the model (and then the package) and apply BNE to the US to create estimates that we can use to answer scientific questions. Note that questions for the group or unsettled points will be in <span style="color: purple;">purple text. </span></p>
+<div id="identify-analysis-goals" class="section level1" number="2">
+<h1 number="2"><span class="header-section-number">2</span> Identify Analysis Goals</h1>
+<p>For this vignette, we will have three goals: 1) Generate (annual/daily) PM2.5 predictions at the ZCTA level, to be used in an time-series epidemiology study 2) Identify the areas with greatest predictive uncertainty as possible candidates for monitor placement</p>
+<p>The Study area is southeaast US (states) and 2010-2015 (or maybe just 1 year if daily)</p>
 </div>
-<div id="glossary" class="section level2" number="1.3">
-<h2 number="1.3"><span class="header-section-number">1.3</span> Glossary</h2>
-<ul>
-<li><em>AQS:</em> Air Quality System. Air pollution monitoring system of the United States Environmental Protection Agency. Considered the ground truth for the US-based application</li>
-<li><em>Base Grid:</em> A set of areal units used as the base layer that all the input models are aggregated to. BNE’s predictions will have the same resolution as the base grid. Note that the base grid is only used to generate predictions - the base grid is not used for training</li>
-<li><em>BNE:</em> Bayesian Non-parametric Ensemble. The likelihood function of the model and the algorithm used to estimate the model parameters. <em>CONUS:</em> Contiguous United States. Also known as the conterminous United States or “the Lower 48.” Refers to the US territory belonging to 48 states (excluding Alaska and Hawa’ii) and Washington, DC. The US-based application is focused only on CONUS because the spatial discontinuity over Canada and the oceans causes issues.</li>
-<li><em>Ground-Truth:</em> The observations considered to be ‘true’, against which the BNE model is trained, also known as empiricial observations. For the CONUS application, the AQS data is used as the ground truth.</li>
-<li><em>Helper functions:</em> functions that help the user go from raw input models to BNE outputs and representations (e.g., plots) of BNE outputs.</li>
-<li><em>Input Models:</em> The individual prediction models that are incorporated into BNE to ultimate generate predictions. For the US-based application, input model names are based on either the first letters of the model, if the model has a formal name, or the initials of the PI of the model. AV: Aaron Von Donkelaar’s model; GS: Global Burden of Disease; CM: CMAQ-AQS fusion; JS: Joel Schwartz’ models; CC: CACES model</li>
-<li><em>Offset:</em> Also known as the ‘bias’, this term is supposed to capture systematic bias present in all of the input models. The offset varies smoothly over time and space according to a Gaussian process.<br />
-<span style="color: purple;"> Does the offset/bias have the same kernel as the weights? </span></li>
-<li><em>Package:</em> Collection of BNE-related functions. Includes BNE itself, functions to process input models, functions to process the BNE outputs, documentation, and a vignette.</li>
-<li><em>PPD: Posterior Predictive Distribution:</em> The probability distribution of the values of a parameter, as estimated by a Bayesian model. The PPD represents our understanding of the plausible values of a parameter, after we have updated our knowledge using the evidence we collected. As a Bayesian model, BNE yields a PPD for each parameter of interest.</li>
-<li><em>Prediction:</em> Our estimate of a value. Generally refers to the predicted value<br />
-of a pollutant at some location and time. Note that for BNE, prediction does not refer to future values, but values within our study period + location.</li>
-<li><em>Predictive Uncertainty:</em> How wide is the range of plausible values for the concentration at a particular location at a given time? The wider the range, the high the uncertainty, as there are more possible values for the concentration. So far predictive uncertainty has been measured as the standard deviation of the PPD of the concentration. Note that predictive uncertainty is given our evidence and our model; if we use a different model, then we very well may have a different amount of uncertainty. For example, we have found that adding low-performing models (such as MERRA) and changing the kernel size can influence uncertainty. This does not mean that the uncertainty is ‘wrong,’ it just means that that is our uncertainty, given our choices. Approaches such as calibration and posterior predictive check can be used to evaluate whether the PPD accurately reflects our uncertainty, e.g., the 95% credible interval should include 95% of observations.</li>
-<li><em>Reproducibility:</em> The ability for another researcher who is not the main analyst to generate the same results using the provided code and manuscript and to re-do the analysis on their own, if they had the same data. Reproducibility is an important principle for developing robust and transparent science and reliable results. Reproducibility supports iterating over code, detecting errors in code, and having the methods section of the manuscript reflect the process.</li>
-<li><em>Run:</em> A single instance of training BNE and generating predictions. In contrast, a test would be running BNE multiple times, with different parameters / conditions, and comparing results</li>
-</ul>
+<div id="set-up-environment" class="section level1" number="3">
+<h1 number="3"><span class="header-section-number">3</span> Set Up Environment</h1>
 </div>
+<div id="gather-required-components" class="section level1" number="4">
+<h1 number="4"><span class="header-section-number">4</span> Gather Required Components</h1>
 </div>
-<div id="workflow" class="section level1" number="2">
-<h1 number="2"><span class="header-section-number">2</span> Workflow</h1>
-<div id="diagram-of-bne" class="section level2" number="2.1">
-<h2 number="2.1"><span class="header-section-number">2.1</span> Diagram of BNE</h2>
-<p>insert diagram</p>
+<div id="process-bne-inputs-and-other-data" class="section level1" number="5">
+<h1 number="5"><span class="header-section-number">5</span> Process BNE Inputs and Other Data</h1>
 </div>
-<div id="diagram-of-data-processing" class="section level2" number="2.2">
-<h2 number="2.2"><span class="header-section-number">2.2</span> Diagram of Data Processing</h2>
-<p>insert diagram</p>
+<div id="choose-bne-parameters" class="section level1" number="6">
+<h1 number="6"><span class="header-section-number">6</span> Choose BNE Parameters</h1>
 </div>
-<div id="components-of-bne-input-and-output" class="section level2" number="2.3">
-<h2 number="2.3"><span class="header-section-number">2.3</span> Components of BNE Input and Output</h2>
-<ul>
-<li>Note that while the predictions themselves represent the estimated average concentration across the grid cell or other areal unit, to fit BNE we use the grid cell’s centroid as the location.</li>
-<li>Training BNE requires: times &amp; locations of ground-truth observations, the ground-truth observations, and the predictions at those times and locations of the input models.</li>
-<li>Generating Predictions with BNE requires: the PPD of the BNE parameters and a a tidy dataset of all of the input model predictions. The input model predictions need to be at the same spatial scale (harmonized), so that the weights can be appropriately estimated. For each point, the weights must sum to 1, however if one tried to multiply each un-harmonized input model with weights at that spatial scale, a more coarse grid would have more constant weights, whereas a more resolved grid would have more varying weights, which would lead to the weights not actually summing to one once you put them back together.</li>
-</ul>
+<div id="fit-final-bne-model" class="section level1" number="7">
+<h1 number="7"><span class="header-section-number">7</span> Fit Final BNE Model</h1>
+</div>
+<div id="check-performance-via-cross-validation" class="section level1" number="8">
+<h1 number="8"><span class="header-section-number">8</span> Check Performance Via Cross Validation</h1>
+</div>
+<div id="visualize-bne-results" class="section level1" number="9">
+<h1 number="9"><span class="header-section-number">9</span> Visualize BNE Results</h1>
+<div id="weights" class="section level2" number="9.1">
+<h2 number="9.1"><span class="header-section-number">9.1</span> Weights</h2>
+</div>
+<div id="offset" class="section level2" number="9.2">
+<h2 number="9.2"><span class="header-section-number">9.2</span> Offset</h2>
+</div>
+<div id="predictions" class="section level2" number="9.3">
+<h2 number="9.3"><span class="header-section-number">9.3</span> Predictions</h2>
+</div>
+<div id="predictive-uncertainty" class="section level2" number="9.4">
+<h2 number="9.4"><span class="header-section-number">9.4</span> Predictive Uncertainty</h2>
 </div>
 </div>
-<div id="conventions-for-sharing-resources" class="section level1" number="3">
-<h1 number="3"><span class="header-section-number">3</span> Conventions for Sharing Resources</h1>
-<div id="folder-structure" class="section level2" number="3.1">
-<h2 number="3.1"><span class="header-section-number">3.1</span> Folder Structure</h2>
-<pre><code>+ Readme file
-+ Literature
-+ Data Tracker
-    + Spreadsheet of models, relevant references and contacts 
-    + literature references for each input model, ground truth, and external 
-    validation dataset
-+ Input Models 
-    + Raw
-        + Descriptions of Data Sources 
-        + [Input Model Name]_daily_raw
-        + [Input Model Name]_annual_raw
-    + Formatted
-        + [Input Model Name]_daily_formatted
-        + [Input Model Name]_annual_formatted
-    + Combined
-        + InputModels_daily_combined
-        + InputModels_annual_combined
-+Ground Truth
-    + Raw
-        + Descriptions of Data Sources 
-        + [Input Model Name]_daily_raw
-        + [Input Model Name]_annual_raw
-    + Formatted
-        + [Input Model Name]_daily_formatted
-        + [Input Model Name]_annual_formatted
-+Training Data 
-    + Combined
-+External Validation Data 
-    + Raw
-        + Descriptions of Data Sources 
-        + [EVl Name]_daily_raw
-        + [EV Name]_annual_raw
-    + Formatted
-        + [EV Name]_daily_formatted
-        + [EV Name]_annual_formatted
-+BNE Outputs
-    + name of the run 
-    + log files describing the run 
-+Ancillary Data
-+Scripts 
-    a) Set up 
-    b) Format Input Models 
-    c) Format Ground-Truth 
-    d) Format Training Data
-    e) Format External Validation Data 
-    f) Run BNE 
-    g) Summarize BNE Results
-    h) Calculate Performance Metrics 
-    i) Perform Cross-Validation (Internal Validation)
-    j) Compare BNE Predictions and External Data (External Validation)
-    k) Common Functions
-    l) Common Functions Under Development
-+ Researcher-Specific Folders
-    i) Project-Specific Scripts 
-    ii) Project-Specific Data 
-    iii) Project-Specific Outputs</code></pre>
+<div id="create-table-of-predictions-by-zcta" class="section level1" number="10">
+<h1 number="10"><span class="header-section-number">10</span> Create Table of Predictions by ZCTA</h1>
 </div>
-<div id="projection-for-conus-application" class="section level2" number="3.2">
-<h2 number="3.2"><span class="header-section-number">3.2</span> Projection for CONUS Application</h2>
-<ul>
-<li>For the CONUS application we will use the US National Atlas Equal Area projection.</li>
-</ul>
-</div>
-<div id="github" class="section level2" number="3.3">
-<h2 number="3.3"><span class="header-section-number">3.3</span> Github</h2>
-<ul>
-<li>We will share our code over GitHub, and push updates regularly. If multiple researchers are working on common scripts (i.e., in the Scripts folders), they should communicate to coordinate updating the code</li>
-<li>At the start of the work day, pull in the most recent version of the whole repo</li>
-<li>If you are working on a file and you do not want anyone to modify it, either put it in a personal project folder, or being the file with your initials.</li>
-</ul>
-</div>
-</div>
-<div id="conventions-for-storing-data" class="section level1" number="4">
-<h1 number="4"><span class="header-section-number">4</span> Conventions for Storing Data</h1>
-<div id="folder-names" class="section level2" number="4.1">
-<h2 number="4.1"><span class="header-section-number">4.1</span> Folder Names</h2>
-<ul>
-<li>Ideally folder names and path names are short, and do not contain the same information as the file names. Folder names should be modular and follow parallel prefix and suffix conventions</li>
-</ul>
-</div>
-<div id="file-names" class="section level2" number="4.2">
-<h2 number="4.2"><span class="header-section-number">4.2</span> File Names</h2>
-<ul>
-<li>File names should contain as much information as necesary so that any researcher in the project could know its contents. For the time being, while we still do not have a server and the sometimes researchers email each other data, we should err on the side of putting extra information in the file names. Once we are on the server, potentially file names could get shorter.</li>
-<li>For now, input model names will follow the convention of [Model Initials] _ [Temporal Resolution] _ [Time Step] _ [Processing Stage]. For example, JS_daily_01012010_raw.csv</li>
-<li>For the BNE runs, so far, I store the outputs as a single file, with the naming convention: [Input Model Initials] _ [Temporal Resolution] _ [Year(s) Covered] <em> [Spatial Kernel Size] </em> [Temporal Kernel Size] _ [cluster]. For example, AVGSCM_annual_20102015_3.5_0.5_all.csv. IF the kernel sizes get established, we can drop them from the name. <span style="color: purple;"> Maybe the raw data files should keep their original names? </span></li>
-</ul>
-</div>
-<div id="variable-names" class="section level2" number="4.3">
-<h2 number="4.3"><span class="header-section-number">4.3</span> Variable Names</h2>
-<ul>
-<li>Variables should contain the minimum amount of information necessary to distinguish columns within the dataframe. Given the file name and folder, it should be clear what each variable represents.</li>
-<li>Variable names can be modular, with suffixes and prefixes that designate the differences between the columns, separated by underscores</li>
-</ul>
-</div>
-<div id="formats" class="section level2" number="4.4">
-<h2 number="4.4"><span class="header-section-number">4.4</span> Formats</h2>
-<ul>
-<li>Dates should be stored as stringes to avoid Excel mangling dates.</li>
-<li>If using a date-time variable format, store as UTC. (For BNE itself, the dates are just an index and we do not need Posit.x format or similar. When wrangling the data, we might need such formats) For health analyses, use local time zones, as the local time is generally more relevant for health risks (e.g., during local daylight savings time diurnal patterns will shift relative to UTC)</li>
-<li>Large datasets should be saved as fst, <span style="color: purple;">though MatLab might not be able to open or save fsts. </span> When we have the server, this is less important.</li>
-<li>Although raw data might include multiple timesteps, we will first split the input model predictions by timestep to facilitate combining the predictions later.</li>
-</ul>
-</div>
-<div id="units" class="section level2" number="4.5">
-<h2 number="4.5"><span class="header-section-number">4.5</span> Units</h2>
-<ul>
-<li>We should agree on a common set of units, and then one step in processing the input models in converting them to the common units</li>
-<li>PM_2.5_ should be stored as μg/m^3</li>
-<li>Other environmental data should be in SI units</li>
-</ul>
-</div>
-<div id="coordinate-system" class="section level2" number="4.6">
-<h2 number="4.6"><span class="header-section-number">4.6</span> Coordinate System</h2>
-<ul>
-<li>Since pretty much all of the original models are trained using latitude-longitude coordinates, when training BNE we should also use location information stored as latitude-longitude coordinates.</li>
-<li><span style="color: purple;"> While doing area-weighted averaging would be slightly more accurate if we projected to a meter-based coordinate system, it is more sensible to use the same coordiante system for preparing the data as we use for running BNE. </span></li>
-</ul>
-</div>
-</div>
-<div id="conventions-for-coding" class="section level1" number="5">
-<h1 number="5"><span class="header-section-number">5</span> Conventions for Coding</h1>
-<div id="programming-languages" class="section level2" number="5.1">
-<h2 number="5.1"><span class="header-section-number">5.1</span> Programming Languages</h2>
-<ul>
-<li>Python, R, and Matlab</li>
-<li><span style="color: purple;"> Will the published package be only in R (aka will we need a version of BNE in R? </span></li>
-</ul>
-</div>
-<div id="style" class="section level2" number="5.2">
-<h2 number="5.2"><span class="header-section-number">5.2</span> Style</h2>
-<ul>
-<li><p><strong>Code Files</strong></p>
-<ul>
-<li>We have different rules for naming function files and non-function files</li>
-<li><em>Function Code Files</em>
-<ul>
-<li>(initials_) [directory-number] _ [file-name] .R</li>
-<li>the directory number is either 1 for unstable functions still under development or 0 for a stable function whose development is mostly finalized</li>
-<li>the file name should use camelCase. The file name should align with the name of the function; should be informative and begin with a verb.</li>
-</ul></li>
-<li><em>Non-Function Code Files</em>
-<ul>
-<li>(initials_) [directory-letter] _ [step-number] _ [file-name] .R</li>
-<li>initials. Use your initials if you do not want anyone to modify the code (eg LGC_)</li>
-<li>directory designates the section. Lower case letters.</li>
-<li>step indicates the order of running code. Paded to have two digits.</li>
-<li>file name describes the code, should begin with a verb. Use lower case letters and underscores.</li>
-</ul></li>
-</ul></li>
-<li><p>for objects: everything should be camelCase, can add a punctuation-based extension (period in R; underscore in Python) to denote slight differences in objects, e.g. monitorLocations and monitorLocations.sf to distinguish betweer the dataframe and simple features versions of the object.</p></li>
-<li><p>for column names: all lower case letters, with underscores to separate words, to avoid conflicts with Python</p></li>
-<li><p>Be consistent with similar types of objects.</p></li>
-<li><p>Object names should align with the terminology used in the manuscript (and vice-versa)</p></li>
-<li><p>Section names should align with the subsections of the Methods section</p></li>
-<li><p>Write code (eg path names) such that Windows and Macs can handle the code without modifications (akak use here package)</p></li>
-<li><p>In general, I (Sebastian) try to follow Hadley Wickham’s style guide:</p></li>
-</ul>
-</div>
-<div id="general" class="section level2" number="5.3">
-<h2 number="5.3"><span class="header-section-number">5.3</span> General</h2>
-<ul>
-<li>Include a mega script that sources all of the scripts, in order, to go from raw data to final product</li>
-<li>Predictions should be treated as areal units, because predictions represent the estimate of the average concentration across the grid, not the point estimate at the centroid of the grid.</li>
-<li>Monitor readings (like AQS) should be treated as points because they just capture what is happening at the location of the monitor.</li>
-<li>This implies that nearest-neighbor or spatial overlap are appropriate for combining the input model predictions and the ground truth data, but area-weighted averaging is more appropriate for combining the input models into the combined input dataset that we use to generate BNE predictions. Since nearest neighbor is more efficient (especially with the JS model), for now we will use nearest neighbors.</li>
-</ul>
-</div>
-</div>
-<div id="best-practices-for-reproducibility" class="section level1" number="6">
-<h1 number="6"><span class="header-section-number">6</span> Best Practices for Reproducibility</h1>
-<div id="documentation-of-data-sources" class="section level2" number="6.1">
-<h2 number="6.1"><span class="header-section-number">6.1</span> Documentation of Data Sources</h2>
-<ul>
-<li>Each input model should be recorded in the Input Model Spreadsheet</li>
-<li>For each input model, we should have at least one manuscript describing the model. If the version of the model we have differs in any way from the version in the paper the differences should be noted.</li>
-<li>For each raw data file, whether input model, ground truth data, or other data, there should be a .txt file (a readme) describing how the data was collected and when. Writing this file at the time of data collection will minimize errors.</li>
-<li>Description of the steps for processing the data</li>
-</ul>
-</div>
-<div id="commenting-in-code" class="section level2" number="6.2">
-<h2 number="6.2"><span class="header-section-number">6.2</span> Commenting in Code</h2>
-<ul>
-<li>At a minimum, significant chunks of code should be commented so that someone familiar with the project could follow the logic. Include data dictionaries for the first time you read in a dataset.</li>
-</ul>
-</div>
-<div id="language-alignment" class="section level2" number="6.3">
-<h2 number="6.3"><span class="header-section-number">6.3</span> Language Alignment</h2>
-<ul>
-<li>We should use the same terms in the manuscript, code, figures, and documentation.</li>
-<li>When possible, avoid using interchangeable terms - just use one term per concept.</li>
-<li><span style="color: purple;"> Although in principle this consistency is very valuable, in the real world it could be a detriment as different fields (ML, atmospheric chemistry, epidemiology) use different terms for the same concept. How do we strike a balance? </span></li>
-</ul>
-</div>
-<div id="code-review" class="section level2" number="6.4">
-<h2 number="6.4"><span class="header-section-number">6.4</span> Code Review</h2>
-<ul>
-<li>Prior to publication, all code contributing to the manuscript should undergo code review by a peer. Specifics of the code review can be decided by main analyst and the reviewer. Code reviewer will become a co-author on the paper.</li>
-</ul>
-</div>
-<div id="start-to-finish-principle" class="section level2" number="6.5">
-<h2 number="6.5"><span class="header-section-number">6.5</span> Start-to-Finish Principle</h2>
-<ul>
-<li>Raw data should be as close to the original, for reproducibility</li>
-<li>Code should be organized such that the user can go from the start to the end of the project if all the intermediate products were deleted. The data downloads &amp; gathering should be described such that if the raw data were deleted, the user could re-collect the data (barring input models that were directly emailed to the user). Due to the nature of the project, some sections or pre-processing may only occur on certain computers; researchers can clearly identify where the missing steps took place.</li>
-<li>Readmes and bash scripts can help keep track of the code runs</li>
-</ul>
-</div>
+<div id="create-map-of-predictive-uncertainty" class="section level1" number="11">
+<h1 number="11"><span class="header-section-number">11</span> Create Map of Predictive Uncertainty</h1>
 </div>
 
 

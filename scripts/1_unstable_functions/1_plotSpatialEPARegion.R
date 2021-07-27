@@ -14,12 +14,6 @@
 #### 0: Preparation ####
 ####********************
 
-# 0a Load package required for this script
-if(!exists("Ran_a_00")){
-  here::i_am("README.rtf")
-  source(here::here('scripts', 'a_set_up', "a_00_setUp_env.R"))
-}
-
 ####*****************
 #### 1: Function ####
 ####*****************
@@ -27,7 +21,7 @@ if(!exists("Ran_a_00")){
 # 2c.i Readin EPA region table
 
 # 1a Begin function
-plotSpatial_epaRegion <- function(activeRegion){
+plotSpatialEPARegion <- function(activeRegion){
 
   # VarName <-'AV'; Subtitle <- 'test'
 

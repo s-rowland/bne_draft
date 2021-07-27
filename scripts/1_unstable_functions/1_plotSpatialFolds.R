@@ -19,17 +19,11 @@
 #### 0: Preparation ####
 ####********************
 
-# 0a Load package required for this script
-if(!exists("Ran_a_00")){
-  here::i_am("README.rtf")
-  source(here::here('scripts', 'a_set_up', "a_00_setUp_env.R"))
-}
-
 ####********************************************
 #### 1: Define Functions for Plotting Folds ####
 ####********************************************
 
-plot_spatialFolds <- function(dta, Location, Description){
+plotSpatialFolds <- function(dta, Location, Description){
   # Description <- paste0('Based on N+1 Removal with a \n',threshold/1000, 'km Distance Threshold')
   # set file name 
   if(str_detect(Description, 'Hierarchial')){

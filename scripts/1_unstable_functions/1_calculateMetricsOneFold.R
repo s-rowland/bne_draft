@@ -22,18 +22,12 @@
 #### 0: Preparation ####
 ####********************
 
-# 0a Load package required for this script
-if(!exists("Ran_a_00")){
-  here::i_am("README.rtf")
-  source(here::here('scripts', 'a_set_up', "a_00_setUp_env.R"))
-}
-
 ####******************************************
 #### 1: Define Function to Create Parcels ####
 ####******************************************
 
 # 1a Name function
-calculateMetrics_oneFold <- function(YYYY, kScale, activeFold){
+calculateMetricsOneFold <- function(YYYY, kScale, activeFold){
   #YYYY <- 2010; kScale <- 3.5; activeFold <- 'fold01'
     
   # 1b First, readin the BNE outputs 
@@ -46,13 +40,13 @@ calculateMetrics_oneFold <- function(YYYY, kScale, activeFold){
   
   # 1c Readin the output of interest
   RunID <- paste0(YYYY, '_avgscmjscc_', kScale, '_', activeFold )
-  output <- read_csv(here::here('BNE_Outputs/annual',
+  output <- read_csv(here::here('BNE_outputs/annual',
                                 paste0(RunID, '.csv')), 
                      col_names = ColNames) %>%
     mutate(RunID = RunID, fold = activeFold)
   
   # 1d Then readin the AQS test dataset (called pred in this case. )
-  truth <- read_csv(here::here('data_input_models', 'combined', 'annual',
+  truth <- read_csv(here::here('BNE_inputs', 'input_models', 'combined', 'annual',
                                paste0('Predictions_', YYYY, '_' , 'avgscmjscc', '_', activeFold, '.csv')))
   
   # 1e Combine predictions and truth

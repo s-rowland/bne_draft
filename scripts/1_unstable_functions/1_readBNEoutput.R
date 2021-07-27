@@ -14,11 +14,6 @@
 #### 0: Preparation ####
 ####********************
 
-# 0a Load package required for this script
-if(!exists("Ran_a_00")){
-  here::i_am("README.rtf")
-  source(here::here('scripts', 'a_set_up', "a_00_setUp_env.R"))
-}
 
 ####*****************
 #### 1: Function ####
@@ -33,14 +28,14 @@ readBNEoutput <- function(YYYY, InputSet, kScale, activeFold){
                 'pred_mean', 'pred_sd', 'pred_05CI', 'pred_95CI', 
                 'pred_min', 'pred_max', 'pred_median')
   
-  # 1c Create the RunID that uniquely identifies this BNE run 
-  RunID <- paste0(YYYY, '_', paste(InputSet, collapse = ''), '_', kScale, '_', activeFold)
+  # 1c Create the runID that uniquely identifies this BNE run 
+  runID <- paste0(YYYY, '_', paste(InputSet, collapse = ''), '_', kScale, '_', activeFold)
   
   # 1d Read the BNE output 
   BNEoutput <- read_csv(here::here('BNE_Outputs/annual',
-                                   paste0(RunID, '.csv')), 
+                                   paste0(runID, '.csv')), 
                         col_names = ColNames) %>%
-    mutate(RunID = RunID)
+    mutate(run_id = runID)
   
   # 1e Return that dataframe of BNE output 
   return(BNEoutput)

@@ -5,6 +5,7 @@ date: "7/9/2021"
 output: 
   html_document:
     toc: true 
+    toc_float: TRUE
     toc_depth: 2
     number_sections: true
 ---
@@ -13,8 +14,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Overview
-## BNE Overview 
+# BNE Overview 
  Bayesian Non-parametric Ensemble (BNE) is an ensemble approach in which the 
  weights vary smoothly over space and time according to a Gaussian kernel. In 
  other words, for a particular point in space-time, the weight of an input model
@@ -25,41 +25,41 @@ knitr::opts_chunk$set(echo = TRUE)
  high performance in New England, but not in the Mid-Atlantic region, BNE will 
  assign heigh weights to that model in New England, but not in the Mid-Atlantic.
  relatively well in New England 
+ * lay out the steps of this vignette: gather data, formating, training BNE, generating predictions, visualizing. 
  
-## Identify Analysis Goals
+# Identify Analysis Goals
 For this vignette, we will have three goals: 
 1) Generate (annual/daily) PM2.5 predictions at the ZCTA level, to be used in 
 an time-series epidemiology study
 2) Identify the areas with greatest predictive uncertainty as possible candidates 
 for monitor placement
-3) Assess whether uncertainty is unevenly distributed across areas, following 
-socio-economic factors (racial composition and percent households in poverty)
 
 The Study area is southeaast US (states) and 2010-2015 (or maybe just 1 year if daily)
 
-## Set Up Environment
+# Set Up Environment
 
-## Gather Required Components
+# Gather Required Components
+* I assume the datasets are already in the correct formats; describe those formats here using LGC's description
 
-## Process BNE Inputs and Other Data
+# Make Training Dataset
 
-## Choose BNE Parameters
+# Make Combined Dataset
 
-## Fit Final BNE Model 
+# Choose BNE Parameters
 
-## Check Performance Via Cross Validation 
+# Fit Final BNE Model 
 
-## Visualize BNE Results 
-### Weights 
-### Offset 
-### Predictions 
-### Predictive Uncertainty
+# Check Performance Via Cross Validation 
 
-## Create Table of Predictions by ZCTA 
+# Visualize BNE Results 
+## Weights 
+## Offset 
+## Predictions 
+## Predictive Uncertainty
 
-## Create Map of Predictive Uncertainty 
+# Create Table of Predictions by ZCTA 
 
-## Assess Distribution of Predictive Uncertainty by ZCTA-level SES Factors
+# Create Map of Predictive Uncertainty by ZCTA
 
 
 

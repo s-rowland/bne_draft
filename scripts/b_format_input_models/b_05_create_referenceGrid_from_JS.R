@@ -26,7 +26,7 @@
 # 0a Load package required for this script
 if(!exists("Ran_a_00")){
   here::i_am("README.md")
-  source(here::here('scripts', 'a_set_up', "a_00_setUp_env.R"))
+  source(here::here('scripts', 'a_set_up', "a_00_set_up_env.R"))
 }
 
 # 0b Set seed 
@@ -38,14 +38,14 @@ set.seed(1234)
 
 # 1a Readin training data 
 readinAqs <- function(YYYY){
-  read_csv(here::here('BNE_inputs', 'groundTruth', 'formatted',
+  read_csv(here::here('BNE_inputs', 'ground_truth', 'formatted',
                       paste0('aqs_annual_',YYYY, '_formatted.csv')))
 }
 aqs <- map(2010:2015, readinAqs) %>%
   bind_rows()
 
 # 1b Create simple features version of training data 
-mon.point.sf <- aqs %>% 
+mon.sf <- aqs %>% 
   dplyr::select(lat, lon) %>%
   distinct() %>% 
   mutate(monID = row_number()) %>%
@@ -53,7 +53,7 @@ mon.point.sf <- aqs %>%
   st_transform(crs=st_crs(projString))
 
 # 1d Restrict to conus
-mon.point.sf  <- mon.point.sf  %>% 
+mon.sf  <- mon.sf  %>% 
   st_join(conus, st_intersects) %>% 
   filter(!is.na(g)) %>% 
   dplyr::select(-g, -m)
@@ -63,35 +63,35 @@ mon.point.sf  <- mon.point.sf  %>%
 ####*******************************
 
 # 2a Readin JS
-js <- read_fst(here::here('BNE_inputs', 'inputModels', 'formatted', 'JS_annual_formatted',
+js <- read_fst(here::here('BNE_inputs', 'input_models', 'formatted', 'JS_annual_formatted',
                           paste0('JS_annual_', 2010, '_formatted.fst'))) %>% 
-  mutate(cellIndex = row_number()) %>% 
+  mutate(cell_index = row_number()) %>% 
   mutate(lat2 = lat, lon2 = lon)
 
 # 2b convert JS to simple features
-js.point.sf <- st_as_sf(js, coords = c("lon", "lat"), 
+js.sf <- st_as_sf(js, coords = c("lon", "lat"), 
                         crs=st_crs('epsg:4326')) %>% 
   st_transform(crs=st_crs(projString))
 
 # 2c Identify which JS prediction pairs to each monitoring location 
-mon.point.sf$cellIndex <- unlist(st_nn(mon.point.sf, js.point.sf, k=1))
+mon.sf$cell_index <- unlist(st_nn(mon.sf, js.sf, k=1))
 
 # 2d Keep only 1% of the locations, plus the locations nearest to the monitors. 
 # first, preserve the grids closes to the monitors
-js.point.sf.atMon <- js.point.sf %>% 
-  filter(cellIndex %in% mon.point.sf$cellIndex)
+js.sf.atMon <- js.sf %>% 
+  filter(cell_index %in% mon.sf$cell_index)
 # then, remove those locations at monitors, 
 # remove 99% of observations (in spatial order)
 # then add back the locations of the monitors
-refGrid.sf <- js.point.sf %>% 
-  filter(!(cellIndex %in% mon.point.sf$cellIndex)) %>% 
+refGrid.sf <- js.sf %>% 
+  filter(!(cell_index %in% mon.sf$cell_index)) %>% 
   #arrange(lon2) %>% 
   arrange(lat2) %>% 
   arrange(lon2) %>% 
   filter(12 == str_sub(row_number(),-2, -1) |
         10 > row_number() | 
            9100980 <  row_number()) %>% 
-  bind_rows(js.point.sf.atMon) %>% 
+  bind_rows(js.sf.atMon) %>% 
   st_transform(crs=st_crs('epsg:4326')) %>% 
     arrange(lat2) %>% 
     arrange(lon2)
@@ -99,10 +99,11 @@ refGrid.sf <- js.point.sf %>%
 refGrid.sf2 <- refGrid.sf2 %>% 
   st_transform(crs=st_crs(projString))
   # plot to confirm that it evenly removed locations. 
-png('~/Desktop/samplefrac.png')
-ggplot(refGrid.sf2) + 
-    geom_sf(aes(fill = JS, color = JS))  
-  dev.off()
+#png('~/Desktop/samplefrac.png')
+#ggplot(refGrid.sf2) + 
+ #   geom_sf(aes(fill = JS, color = JS))  
+#  dev.off()
+  
 ####****************************
 #### 3: Save Reference Grid ####
 ####****************************
@@ -117,9 +118,9 @@ refGrid$lat <- st_coordinates(refGrid.sf)[,2]
 
 # 3b Save data set 
 refGrid %>% 
-  dplyr::select(-cellIndex, -PredIndex) %>% 
+  dplyr::select(-cell_index) %>% 
   distinct() %>%
-  mutate(cellID = row_number())%>% 
+  mutate(cell_index = row_number())%>% 
   dplyr::select(lon, lat) %>% 
-  write_fst(here::here('BNE_inputs', 'referenceGrid', 
+  write_fst(here::here('BNE_inputs', 'reference_grid', 
                        'refGrid_JS_1percent.fst'))

@@ -14,17 +14,11 @@
 #### 0: Preparation ####
 ####********************
 
-# 0a Load package required for this script
-if(!exists("Ran_a_00")){
-  here::i_am("README.rtf")
-  source(here::here('scripts', 'a_set_up', "a_00_setUp_env.R"))
-}
-
 ####***********************************
 #### 1: Load Packages for Analysis ####
 ####***********************************
 
-compute_areaWeightedAverage <- function(AggregationLayer, FeatureLayer, FeatureVar){
+computeAreaWeightedAverage <- function(AggregationLayer, FeatureLayer, FeatureVar){
   #AggregationLayer <- baseGrid;  FeatureLayer <- uncert.sf; FeatureVar <- 'std'
 
   # 1a Assign Gridid 

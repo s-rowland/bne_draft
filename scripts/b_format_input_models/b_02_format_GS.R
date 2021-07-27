@@ -31,6 +31,9 @@ if(!exists("Ran_a_00")){
 #### 1: Separate Inputs by Year ####
 ####********************************
 
+#### Insert proper code ####
+
+
 # 1a Read dataset 
 # note that this is not actually the raw data - these models have already been combined
 avgscm  <- read_csv(here::here('BNE_inputs', 'inputModels', 'AVGSCM_annual_raw',

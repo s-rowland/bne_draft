@@ -24,7 +24,7 @@
 # 0a Load package required for this script
 if(!exists("Ran_a_00")){
   here::i_am("README.md")
-  source(here::here('scripts', 'a_set_up', "a_00_setUp_env.R"))
+  source(here::here('scripts', 'a_set_up', "a_00_set_up_env.R"))
 }
 
 ####***************************
@@ -35,7 +35,7 @@ if(!exists("Ran_a_00")){
 YYYY <- 2010
 
 # 1b Readin training dataset
-train <- read_csv(here::here('BNE_outputs', 'training', 'combined', 
+train <- read_csv(here::here('BNE_inputs', 'training_data', 'combined', 
                                 paste0('Training_annual_', YYYY, '_','avgscmjscc', '_all', '.csv')))
 
 # 2d Convert to simple features
@@ -204,7 +204,7 @@ save_folds <- function(foldNum){
     filter(fold == activeFold) %>% 
     filter(role == 'Train') %>% 
     dplyr::select(lat, lon, time, aqs, AV, GS, CM, JS, CC, cellID) %>%
-    write_csv(here::here('data_training', 'combined', 
+    write_csv(here::here('BNE_inputs', 'training_data', 'combined', 
                          paste0('Training_annual_', YYYY, '_','avgscmjscc', '_', activeFold, '.csv')))
   # 5b.iv First make the testing dataset
   testFold <- trainFolds.hc %>% 
@@ -213,15 +213,16 @@ save_folds <- function(foldNum){
   # 5b.v Then save it 
   testFold %>% 
     dplyr::select(lon, lat, time, AV, GS, CM, JS, CC, aqs) %>%
-    write_csv(here::here('BNE_inputs', 'inputModels', 'combined', 'annual',
+    write_csv(here::here('BNE_inputs', 'input_models', 'combined', 'annual',
                          paste0('Predictions_', YYYY, '_' , 'avgscmjscc', '_', activeFold, '.csv')))
   
   # 5b.vi Then save the number of observations
   data.frame(Count = nrow(testFold)) %>%
-    write_csv(here::here('BNE_inputs', 'inputModels', 'combined', 'annual',
+    write_csv(here::here('BNE_inputs', 'input_models', 'combined', 'annual',
                          paste0('PredCount_', YYYY, '_' , 'avgscmjscc', '_', activeFold, '.csv')))
 }
 
+# now actually make the folds
 map(c(1:10), save_folds)
 
 #check <- trainFolds.hc %>% group_by(foldMethod, fold, role) %>% summarize(count =n())
