@@ -4,7 +4,7 @@ function [W] = runPredictBNE(YYYY,inputset,Kscale, fold)
 %Kscale = 6.5';
 %fold = 'all';
 
-training = readtable(append('data_training/combined/Training_annual_', YYYY, '_AVGSCMJSCC_', fold, '.csv'));
+training = readtable(append('BNE_inputs/training/combined/Training_annual_', YYYY, '_AVGSCMJSCC_', fold, '.csv'));
 
 trainAqs = training{:,4};
 trainLatlon = training{:,1:2};
@@ -15,10 +15,10 @@ trainPred = training{:,5:9};
 
 % A lot of this is specific to the data file we're working with
 
-fid = fopen(append('data_input_models/combined/annual/Predictions_', YYYY, '_AVGSCMJSCC_', fold, '.csv'),'r'); % Creates id for reading in data line by line. A lot of the code below is 
+fid = fopen(append('BNE_inputs/inputModels/combined/annual/Predictions_', YYYY, '_AVGSCMJSCC_', fold, '.csv'),'r'); % Creates id for reading in data line by line. A lot of the code below is 
 line = str2num(fgetl(fid));
 
-predCount = readtable(append('data_input_models/combined/annual/PredCount_', YYYY, '_AVGSCMJSCC_', fold, '.csv'));
+predCount = readtable(append('BNE_inputs/inputModels/combined/annual/PredCount_', YYYY, '_AVGSCMJSCC_', fold, '.csv'));
 
 
 % added things 

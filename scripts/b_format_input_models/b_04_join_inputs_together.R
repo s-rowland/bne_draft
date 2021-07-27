@@ -142,3 +142,5 @@ for(timeStep in 2010:2015){
   source(here::here('scripts', 'b_format_input_models', 
                     "b_04a_join_inputs_together_script.R"))
 }
+
+rm(refTime)

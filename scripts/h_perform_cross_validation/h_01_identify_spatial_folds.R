@@ -23,7 +23,7 @@
 
 # 0a Load package required for this script
 if(!exists("Ran_a_00")){
-  here::i_am("README.rtf")
+  here::i_am("README.md")
   source(here::here('scripts', 'a_set_up', "a_00_setUp_env.R"))
 }
 
@@ -35,7 +35,7 @@ if(!exists("Ran_a_00")){
 YYYY <- 2010
 
 # 1b Readin training dataset
-train <- read_csv(here::here('data_training', 'combined', 
+train <- read_csv(here::here('BNE_outputs', 'training', 'combined', 
                                 paste0('Training_annual_', YYYY, '_','avgscmjscc', '_all', '.csv')))
 
 # 2d Convert to simple features
@@ -47,9 +47,9 @@ train <- train %>%
 
 # 2e Add EPA Regions
 # 2e.i Readin EPA region table
-epaRegion <- read_csv(here::here('data_ancillary', 'final', 'epaRegions.csv'))
+epaRegion <- read_csv(here::here('ancillary_data', 'final', 'epaRegions.csv'))
 # 2e.ii Readin state spatial data
-states <- read_sf(here::here('data_ancillary', 'raw', 'Census','cb_2015_us_state_500k', 
+states <- read_sf(here::here('ancillary_data', 'raw', 'Census','cb_2015_us_state_500k', 
                              'cb_2015_us_state_500k.shp')) %>% 
   st_transform(., crs=st_crs(projString))
 # 2e.iii Calculate area 
@@ -213,12 +213,12 @@ save_folds <- function(foldNum){
   # 5b.v Then save it 
   testFold %>% 
     dplyr::select(lon, lat, time, AV, GS, CM, JS, CC, aqs) %>%
-    write_csv(here::here('data_input_models', 'combined', 'annual',
+    write_csv(here::here('BNE_inputs', 'inputModels', 'combined', 'annual',
                          paste0('Predictions_', YYYY, '_' , 'avgscmjscc', '_', activeFold, '.csv')))
   
   # 5b.vi Then save the number of observations
   data.frame(Count = nrow(testFold)) %>%
-    write_csv(here::here('data_input_models', 'combined', 'annual',
+    write_csv(here::here('BNE_inputs', 'inputModels', 'combined', 'annual',
                          paste0('PredCount_', YYYY, '_' , 'avgscmjscc', '_', activeFold, '.csv')))
 }
 

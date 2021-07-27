@@ -1,0 +1,65 @@
+---
+title: "BNE Conventions"
+author: "Sebastian T. Rowland et. al"
+date: "7/9/2021"
+output: 
+  html_document:
+    toc: true 
+    toc_depth: 2
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Overview
+## BNE Overview 
+ Bayesian Non-parametric Ensemble (BNE) is an ensemble approach in which the 
+ weights vary smoothly over space and time according to a Gaussian kernel. In 
+ other words, for a particular point in space-time, the weight of an input model
+ is informed by the model's performance at nearby points. This approach is 
+ particularly well-suited for modeling environmental factors that vary smoothly
+ over space, such as temperature and air pollution, as individual models have been 
+ have accuracy that varies over time and space. For example, if a model has relatively 
+ high performance in New England, but not in the Mid-Atlantic region, BNE will 
+ assign heigh weights to that model in New England, but not in the Mid-Atlantic.
+ relatively well in New England 
+ 
+## Identify Analysis Goals
+For this vignette, we will have three goals: 
+1) Generate (annual/daily) PM2.5 predictions at the ZCTA level, to be used in 
+an time-series epidemiology study
+2) Identify the areas with greatest predictive uncertainty as possible candidates 
+for monitor placement
+3) Assess whether uncertainty is unevenly distributed across areas, following 
+socio-economic factors (racial composition and percent households in poverty)
+
+The Study area is southeaast US (states) and 2010-2015 (or maybe just 1 year if daily)
+
+## Set Up Environment
+
+## Gather Required Components
+
+## Process BNE Inputs and Other Data
+
+## Choose BNE Parameters
+
+## Fit Final BNE Model 
+
+## Check Performance Via Cross Validation 
+
+## Visualize BNE Results 
+### Weights 
+### Offset 
+### Predictions 
+### Predictive Uncertainty
+
+## Create Table of Predictions by ZCTA 
+
+## Create Map of Predictive Uncertainty 
+
+## Assess Distribution of Predictive Uncertainty by ZCTA-level SES Factors
+
+
+

@@ -42,7 +42,7 @@ if(!exists("Ran_a_00")){
 }
 
 # 0b Set Year 
-#YYYY <- 2010
+#timeStep <- 2010
 
 # 0d Set seed 
 set.seed(1234)
@@ -53,56 +53,35 @@ set.seed(1234)
 
 # 1a Readin training data 
 train <- aqs %>% 
-  filter(time == YYYY)
+  filter(time == timeStep)
 
 # 1b Rename columns 
+# note in future version we drop lines with AV, etc
 train <- train %>% 
   rename(aqs = pm25_obs, 
          AV = pred_AV, GS = pred_GS, SC = pred_SC, CM = pred_CM) %>% 
   dplyr::select(-SC)
 
-# 1c Create simple features version of training data 
-train.point.sf <- train %>% 
-  st_as_sf(., coords = c("lon", "lat"), crs=st_crs('epsg:4326'))  %>% 
-  st_transform(crs=st_crs(projString))
-
-# 1e Restrict to conus
-conus4326 <- conus %>% 
-  st_transform(crs=st_crs(projString))
-
-train.point.sf  <- train.point.sf  %>% 
-  st_join(conus4326, st_intersects) %>% 
-  filter(!is.na(g)) %>% 
-  dplyr::select(-g, -m)
-
-# 1f Project points
-train.point.sf <- train.point.sf %>% 
-  st_transform(crs=st_crs(projString))
+# 1c Restrict to conus
+train <- train %>% 
+  inner_join(monitorLocations, by =c('lat', 'lon'))
 
 ####*******************************
 #### 2: Wrangle JS Predictions ####
 ####*******************************
 
 # 2a Readin JS
-js <- read_fst(here::here('data_input_models', 'formatted', 'JS_annual_formatted',
-                          paste0('JS_annual_', YYYY, '_formatted.fst'))) 
+# ideally here we would only read in the JS based on their position, 
+# but after a quick search I didn't find way to do this in R 
+js <- read_fst(here::here('BNE_inputs', 'inputModels', 'formatted', 'JS_annual_formatted',
+                          paste0('JS_annual_', timeStep, '_formatted.fst'))) 
 
-# 2b convert JS to simple features
-js.point.sf <- js %>% 
-  st_as_sf(coords = c("lon", "lat"), crs=st_crs('epsg:4326')) %>% 
-  st_transform(crs=st_crs(projString))
-
-# 2c Assign JS predictions to training data 
-# 2c.i Identify which JS predict pairs to each monitoring location 
-train.point.sf$cellIndex <- unlist(st_nn(train.point.sf, js.point.sf, k=1))
-js <- js.point.sf %>% 
-  as.data.frame() %>% 
-  dplyr::select(-geometry) %>% 
-  mutate(cellIndex = row_number())
-# 2c.iii Combine 
-train.point.sf <- train.point.sf %>% 
- inner_join(js, by = 'cellIndex') %>% 
-  dplyr::select(-cellIndex)
+js <- js %>% 
+  mutate(cellIndex = row_number()) %>% 
+  dplyr::select(JS, cellIndex)
+# combine
+train <- train %>% 
+  inner_join(js, by = c('JScellIndex' = 'cellIndex'))
 
 # 2d clean up 
 rm(js)
@@ -112,61 +91,32 @@ rm(js)
 ####**********************
 
 # 3a Readin CACES
-caces <- readr::read_csv(here::here('data_input_models', 'raw', 'CC_annual_raw',
-                                    paste0('CACES_annual_', YYYY, '_blockGrp_raw.csv')))
+caces <- readr::read_csv(here::here('BNE_inputs', 'inputModels', 'raw', 'CC_annual_raw',
+                                    paste0('CACES_annual_', timeStep, '_blockGrp_raw.csv')))
 
-# 3b Rename columns 
+
 caces <- caces %>% 
-  rename(CC = pred_wght) 
+  rename(CC = pred_wght) %>% 
+  mutate(cellIndex = row_number()) %>% 
+  dplyr::select(CC, cellIndex)
+# combine
+train <- train %>% 
+  inner_join(caces, by = c('CCcellIndex' = 'cellIndex'))
 
-# 3c Keep only columns of interest 
-caces <- caces %>% 
-  dplyr::select(lat, lon, CC)
-
-# 3d Convert caces to simple features
-caces.point.sf <- st_as_sf(caces, coords = c("lon", "lat"), 
-                            crs=st_crs('epsg:4326')) %>% 
-  st_transform(crs=st_crs(projString))
-
-# 3e Restrict to conus
-#caces.point.sf <- caces.point.sf %>% 
-  #st_join(conus, st_intersects) %>% 
-  #filter(!is.na(g)) %>% 
- # dplyr::select(-g, -m) %>% 
-  #mutate(cellIndex = row_number())
-
-# 3f Join to training data
-# 3f.i Identify which CACES cell pairs to each monitoring location 
-train.point.sf$cellIndex <- unlist(st_nn(train.point.sf, caces.point.sf, k=1))
-caces <- caces.point.sf %>% 
-  as.data.frame() %>% 
-  dplyr::select(-geometry) %>% 
-  mutate(cellIndex = row_number())
-# 3f.iii Combine 
-train.point.sf <- train.point.sf %>% 
-  inner_join(caces, by = 'cellIndex') %>% 
-  dplyr::select(-cellIndex)
-
+# 2d clean up 
+rm(caces)
 ####******************************
 #### 4: Save Training Dataset ####
 ####******************************
 
-# 4a Convert training dataset to dataframe 
-train.point.sf <- train.point.sf %>% 
-  st_transform(., crs=st_crs('epsg:4326')) 
-train.point <- train.point.sf %>% 
-  as.data.frame() %>% 
-  mutate(lon = st_coordinates(train.point.sf)[,1], 
-         lat = st_coordinates(train.point.sf)[,2])
-  
 # 4b Randomize the order of the rows 
 # this helps us with cross validation later on
-rows <- sample(nrow(train.point))
-train.point <- train.point[rows,]
+rows <- sample(nrow(train))
+train <- train[rows,]
 
 # 4c Save dataset
-train.point %>% 
+train %>% 
   mutate(cellID = row_number()) %>%
   dplyr::select(lat, lon, time, aqs, AV, GS, CM, JS, CC, cellID) %>%
-  write_csv(here::here('data_training', 'combined', 
-                       paste0('Training_annual_', YYYY, '_','AVGSCMJSCC', '_all', '.csv')))
+  write_csv(here::here('BNE_inputs', 'training', 'combined', 
+                       paste0('Training_annual_', timeStep, '_','AVGSCMJSCC', '_all', '.csv')))

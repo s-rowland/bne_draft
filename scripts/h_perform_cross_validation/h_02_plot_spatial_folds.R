@@ -25,7 +25,7 @@
 
 # 0a Load package required for this script
 if(!exists("Ran_a_00")){
-  here::i_am("README.rtf")
+  here::i_am("README.md")
   source(here::here('scripts', 'a_set_up', "a_00_setUp_env.R"))
 }
 
@@ -102,7 +102,7 @@ plot_folds <- function(dta, Location, Description){
     GP
   
   # Print plot ina  png
-  png(here::here('BNE_Inputs', 'd_01_CV_folds_plots', 
+  png(here::here('BNE_inputs', 'CV_folds_plots', 
                  paste0(plotName, '_', Location, '.png')), 
       height = 440, width = 600)
   print(TP)
@@ -136,7 +136,7 @@ plot_roles <- function(foldNum, Location){
     theme_void() 
 }
 
-png(here::here('BNE_Inputs', 'd_01_CV_folds_plots', 
+png(here::here('BNE_inputs', 'CV_folds_plots', 
                paste0('RmNeighbors', '_', 'NYC_', 'roles_folds1to4.png')), 
     height = 880, width = 1200)
 cowplot::plot_grid(
@@ -153,9 +153,8 @@ dev.off()
 YYYY <- 2010
 
 # 2b Readin training dataset
-Train.df <- read_csv(here::here(
-  'BNE_Inputs', 'c_01_trainingData', 
-  paste0('Training_', YYYY, '_' ,  paste(set_AllInputSet(YYYY), collapse = ''), '.csv')))
+Train.df <- read_csv(here::here('data_training', 'combined', 
+                                paste0('Training_annual_', YYYY, '_','avgscmjscc', '_', activeFold, '.csv')))
 
 # 2c Create aqs dataset 
 aqs <- Train.df %>% 
@@ -170,9 +169,9 @@ aqs <- aqs %>%
 
 # 2e Add EPA Regions
 # 2e.i Readin EPA region table
-epaRegion <- read_csv(here::here('Data', 'generated', 'epaRegions.csv'))
+epaRegion <- read_csv(here::here('ancillary_data', 'generated', 'epaRegions.csv'))
 # 2e.ii Readin state spatial data
-states <- read_sf(here::here('Data', 'raw', 'Census','cb_2015_us_state_500k', 
+states <- read_sf(here::here('ancillary_data', 'raw', 'Census','cb_2015_us_state_500k', 
                              'cb_2015_us_state_500k.shp')) %>% 
   st_transform(., crs=st_crs(projString))
 # 2e.iii Calculate area 
@@ -381,7 +380,7 @@ plot_folds(aqsFoldsOut,'LA',
            paste0('Based on Remove Neighbors with a \n',threshold/1000, 'km Distance Threshold'))
 
 # Plot the LeaveOut vs test set for NYC 
-png(here::here('BNE_Inputs', 'd_01_CV_folds_plots', 
+png(here::here('BNE_inputs', 'CV_folds_plots', 
                paste0('RmNeighbors', '_', 'NYC_', 'roles_folds1to4.png')), 
     height = 880, width = 1200)
 cowplot::plot_grid(
@@ -390,7 +389,7 @@ plot_roles(3, 'NYC'), plot_roles(4, 'NYC'),
   nrow = 2)
 dev.off()
 
-png(here::here('BNE_Inputs', 'd_01_CV_folds_plots', 
+png(here::here('BNE_inputs', 'CV_folds_plots', 
                paste0('RmNeighbors', '_', 'NYC_', 'roles_folds5to8.png')), 
     height = 880, width = 1200)
 cowplot::plot_grid(
@@ -399,7 +398,7 @@ cowplot::plot_grid(
   nrow = 2)
 dev.off()
 
-png(here::here('BNE_Inputs', 'd_01_CV_folds_plots', 
+png(here::here('BNE_inputs', 'CV_folds_plots', 
                paste0('RmNeighbors', '_', 'LA_', 'roles_folds1to4.png')), 
     height = 880, width = 1200)
 cowplot::plot_grid(
@@ -408,7 +407,7 @@ cowplot::plot_grid(
   nrow = 2)
 dev.off()
 
-png(here::here('BNE_Inputs', 'd_01_CV_folds_plots', 
+png(here::here('BNE_inputs', 'CV_folds_plots', 
                paste0('RmNeighbors', '_', 'LA_', 'roles_folds5to8.png')), 
     height = 880, width = 1200)
 cowplot::plot_grid(
@@ -437,6 +436,6 @@ dgk <- Train.df %>%
   dplyr::select(-aqs, -lat, -lon) %>%
   inner_join(b, by = c('ID'))
 
-dgk %>% write_csv(here::here('BNE_Inputs', 'c_02_folds', paste0('folds_', YYYY)))
+dgk %>% write_csv(here::here('BNE_inputs', 'CV_folds_plots', paste0('folds_', YYYY)))
   
 ab <- dgk %>% group_by(foldMethod, fold, role) %>% summarize(count =n())

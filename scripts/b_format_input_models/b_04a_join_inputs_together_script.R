@@ -81,7 +81,7 @@ predGrid <- predGrid%>%
 ####**********************************
 
 # 3a Read JS 
-js <- read_fst(here::here('data_input_models', 'formatted', 'JS_annual_formatted',
+js <- read_fst(here::here('BNE_inputs', 'inputModels', 'formatted', 'JS_annual_formatted',
                           paste0('JS_annual_', timeStep, '_formatted.fst')))
 
 # 3b Rename columns 
@@ -102,7 +102,7 @@ rm(js)
 
 # 5a Readin CACES
 # so while we are doing extra tasks, we will not create any bad data
-caces <- readr::read_csv(here::here('data_input_models', 'raw', 'CC_annual_raw',
+caces <- readr::read_csv(here::here('BNE_inputs', 'inputModels', 'raw', 'CC_annual_raw',
              paste0('CACES_annual_', timeStep, '_blockGrp_raw.csv')))
 
 # 5b Rename columns 
@@ -126,10 +126,10 @@ rm(caces)
 refGrid %>%
   mutate(time = timeStep) %>%
   dplyr::select(lon, lat, time, AV, GS, CM, JS, CC) %>%
-  write_csv(here::here('data_input_models', 'combined', 'annual',
+  write_csv(here::here('BNE_inputs', 'inputModels', 'combined', 'annual',
                        paste0('Predictions_', timeStep, '_' , 'AVGSCMJSCC', '_all.csv')))
 
 # 9b Save the number of observations
 data.frame(Count = nrow(refGrid)) %>%
-  write_csv(here::here('data_input_models', 'combined', 'annual',
+  write_csv(here::here('BNE_inputs', 'inputModels', 'combined', 'annual',
                        paste0('PredCount_', timeStep, '_' , 'AVGSCMJSCC', '_all.csv')))

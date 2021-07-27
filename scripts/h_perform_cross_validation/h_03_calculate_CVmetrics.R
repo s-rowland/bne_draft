@@ -23,7 +23,7 @@
 
 # 0a Load package required for this script
 if(!exists("Ran_a_00")){
-  here::i_am("README.rtf")
+  here::i_am("README.md")
   source(here::here('scripts', 'a_set_up', "a_00_setUp_env.R"))
 }
 
