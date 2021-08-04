@@ -38,7 +38,9 @@ vignettes/*.pdf
 # R Environment Variables
 .Renviron
 
+# pesky macOS files:
 .DS_Store
+*.DS_Store
 
 # data 
 BNE_inputs/*
