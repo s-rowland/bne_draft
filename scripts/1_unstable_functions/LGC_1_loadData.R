@@ -8,7 +8,7 @@
 #' 
 #' @param path A character giving the file path to a .csv file corresponding to the specified \code{dataset}.
 #' @param dataset A character giving the name of the dataset being loaded. 
-#' Must be one of \code{{"EPA", "CMAQINS", "CMAQOUTS", "AV"}}.
+#' Must be one of \code{{"EPA", "CMAQINS", "CMAQOUTS", "AV", "GS"}}.
 #' 
 #' @return A tibble (in long format) containing the loaded and pre-processed dataset. 
 #' If \code{dataset = "EPA"} then the tibble will be comprised of the following columns:
@@ -16,16 +16,19 @@
 #'    \item{\code{ref_id} a character identifying the reference ID of the EPA AQS monitor.}
 #'    \item{\code{lat} a double giving the latitude of the EPA AQS monitor.}
 #'    \item{\code{lon} a double giving the longitude of the EPA AQS monitor.}
-#'    \item{\code{date} a character giving the date of the observation.}
 #'    \item{\code{year}} a character giving the year of the observation.}
+#'    \item{\code{month} a character giving the month of the observation.}
+#'    \item{\code{day} a character giving the day of the observation.}
 #'    \item{\code{obs_pm2_5} a double giving the PM2.5 observation recorded at the EPA AQS monitor on the specified date.}
 #' }
 #' If \code{dataset} is any of the other acceptable strings, then the tibble will be comprised of the following columns:
 #' \describe{
 #'    \item{\code{lat} a double giving the latitude of the model prediction.}
 #'    \item{\code{lon} a double giving the longitude of the model prediction.}
-#'    \item{\code{date} a character giving the date of the model prediction.}
 #'    \item{\code{year}} a character giving the year of the model prediction.}
+#'    \item{\code{month}} a character giving the month of the model prediction. Only returned if monthly data is available.}
+#'    \item{\code{day}} a character giving the day of the model prediction. Only returned if daily data is available.}
+#'    \item{\code{fips}} a character giving the fips associated with the model prediction. Only returned if lat & lon reference FIPS centroids.}
 #'    \item{\code{pred} a double giving the predicted PM2.5 for that location and date.}
 #' }
 #' 
@@ -39,7 +42,7 @@ loadData <- function(path, dataset) {
   #### 0. error handling: ####
   #### ------------------ ####
   # 0a. soft-check on the dataset being asked for. 
-  datasets <- c("EPA", "CMAQINS", "CMAQOUTS", "AV")
+  datasets <- c("EPA", "CMAQINS", "CMAQOUTS", "AV", "GS")
   if (!dataset %in% datasets) stop("The dataset specified was not recognized. See documentation.")
 
   #### ------------------ ####
@@ -64,14 +67,15 @@ loadData <- function(path, dataset) {
       dplyr::rename(lon = X, lat = Y) %>% 
       tibble::as_tibble() %>%
       dplyr::select(-geometry) %>% 
-      rbind(dInit[[2]], .)
+      rbind(dInit[[2]], .) %>%
+      dplyr::select(ref_id, lat, lon, year, month, day, obs_pm2_5)
 
   } else if (dataset == "CMAQINS") {
 
     d <- readr::read_csv(path, col_types = "ddcd") %>%
       dplyr::rename(lat = Lat, lon = Lon, date = Date, pred = Conc) %>%
       dplyr::mutate(year = stringr::str_sub(date, 1, 4), month = stringr::str_sub(date, 6, 7), day = stringr::str_sub(date, 9, 10)) %>%
-      dplyr::select(-date) %>%
+      dplyr::select(lat, lon, year, month, day, pred) %>%
       na.omit()
 
   } else if (dataset == "CMAQOUTS") {
@@ -101,11 +105,28 @@ loadData <- function(path, dataset) {
     d <- rbind(tibble::tibble(lon = usa.coords[,"x"], lat = usa.coords[,"y"], pred = usa.pm), 
                tibble::tibble(lon = alaska.coords[,"x"], lat = alaska.coords[,"y"], pred = alaska.pm)) %>% 
           na.omit() %>%
-          dplyr::mutate(year = stringr::str_sub(date, 1, 4), month = stringr::str_sub(date, 5, 6))
+          dplyr::mutate(year = stringr::str_sub(date, 1, 4), month = stringr::str_sub(date, 5, 6)) %>%
+          dplyr::select(lat, lon, year, month, pred)
+
+  } else if (dataset == "GS") {
+
+    load(path) # mydata2 is loaded into the environment...
+    d <- mydata2 %>%
+      tibble::as_tibble() %>%
+      dplyr::filter(Country == "USA") %>%
+      dplyr::select(!(tidyselect::contains("log") | tidyselect::contains("pop"))) %>%
+      tidyr::pivot_longer(cols = tidyselect::contains("_PM2.5_"), 
+                          names_to = c("measurement", "year"),
+                          names_pattern = "(.*)_PM2.5_(.*)",
+                          values_to = "pred") %>%
+      dplyr::rename(lat = Latitude, lon = Longitude) %>%
+      dplyr::select(lat, lon, measurement, year, pred) %>%
+      dplyr::filter(measurement == "Mean") %>%
+      dplyr::select(-measurement)
 
   }
 
-  # need to add code for GS, Caces, and JS..!
+  # need to add code for Caces, and JS..!
 
   return(d)
 

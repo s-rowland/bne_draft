@@ -2,6 +2,9 @@
 # Author: Lawrence Chillrud <lgc2139@cumc.columbia.edu>
 # Date: 07/26/21
 # To Do: work on GS, Caces, and JS.
+#
+# Contents:
+# 0. Package Imports
 
 #### ------------------ ####
 #### 0. PACKAGE IMPORTS ####
@@ -9,8 +12,10 @@
 library(magrittr)
 library(foreach)
 library(tictoc)
-source("~/Documents/Research_Marianthi/BNE_project/BNE_data_cleaning/spatioTemporalJoin.R")
-source("~/Documents/Research_Marianthi/BNE_project/BNE_data_cleaning/loadData.R")
+
+source(here::here("scripts", "1_unstable_functions", "LGC_1_spatioTemporalJoin.R"))
+source(here::here("scripts", "1_unstable_functions", "LGC_1_loadData.R"))
+dataDir <- "~/Documents/Research_Marianthi/BNE_project/BNE_data_cleaning/"
 
 #### ----------------------------- ####
 #### 1. READ IN EPA AQS DAILY DATA ####
@@ -23,7 +28,7 @@ epa <- loadData(epaPath, "EPA")
 #### ----------- ####
 # 2a. read in data:
 cmaqInsPath <- "~/OneDrive - cumc.columbia.edu/CMAQ/cmaq_pm25_inputs_2010-2016.csv"
-cmaqIns <- loadData(cmaqInsPath, "cmaq_ins")
+cmaqIns <- loadData(cmaqInsPath, "CMAQINS")
 
 # 2b. make training data:
 tic()
@@ -40,8 +45,8 @@ toc()
 #### 3. CMAQ OUTS ####
 #### ------------ ####
 # 3a. read in data:
-cmaqOutsPath <- "~/Documents/Research_Marianthi/BNE_project/BNE_data_cleaning/CMAQ/outputs/cmaq_pm25_outputs_2010-2016.csv"
-cmaqOuts <- loadData(cmaqOutsPath, "cmaq_outs")
+cmaqOutsPath <- paste0(dataDir, "CMAQ/outputs/cmaq_pm25_outputs_2010-2016.csv")
+cmaqOuts <- loadData(cmaqOutsPath, "CMAQOUTS")
 
 # 3b. make training data:
 tic()
@@ -59,7 +64,7 @@ toc()
 # also faster to parse it one month at a time in spatioTemporalJoin
 
 # 4a. read in data:
-fPaths <- list.files(path = "~/Documents/Research_Marianthi/BNE_project/BNE_data_cleaning/AV/PM25", pattern = ".nc", full.names = TRUE)
+fPaths <- list.files(path = paste0(dataDir, "AV/PM25"), pattern = ".nc", full.names = TRUE)
 av1 <- 121:141 %>% purrr::map_dfr(~ loadData(fPaths[.x], "AV"))
 av2 <- 142:162 %>% purrr::map_dfr(~ loadData(fPaths[.x], "AV"))
 av3 <- 163:183 %>% purrr::map_dfr(~ loadData(fPaths[.x], "AV"))
@@ -99,6 +104,18 @@ epa.av <- rbind(epa.av1, epa.av2, epa.av3, epa.av4)
 #### ----------------- ####
 #### 5. GS ANNUAL DATA ####
 #### ----------------- ####
+# 5a. read in data:
+gsPath <- paste0(dataDir, "GS/GBD2016_PREDPOP_FINAL.RData")
+gs <- loadData(gsPath, "GS")
+
+# 5b. make training data:
+tic()
+epa.gs <- spatioTemporalJoin(refData = epa,
+                             modelData = gs,
+                             modelName = "gs")
+toc()
+# took 14.312 seconds...
+# output a tibble 918,636 x 8
 
 #### ------------- ####
 #### 6. CACES DATA ####
