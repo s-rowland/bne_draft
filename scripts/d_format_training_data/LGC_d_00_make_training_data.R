@@ -1,10 +1,15 @@
 # File: LGC_d_00_make_training_data.R
 # Author: Lawrence Chillrud <lgc2139@cumc.columbia.edu>
 # Date: 07/26/21
-# To Do: work on GS, Caces, and JS.
 #
 # Contents:
 # 0. Package Imports
+# 1. EPA AQS Daily Data
+# 2. CMAQ ins
+# 3. CMAQ outs
+# 4. AV
+# 5. GS
+# 6. CACES
 
 #### ------------------ ####
 #### 0. PACKAGE IMPORTS ####
@@ -120,7 +125,14 @@ toc()
 #### ------------- ####
 #### 6. CACES DATA ####
 #### ------------- ####
+# 6a. read in data:
+cacesPath <- paste0(dataDir, "CACES/downloaded/caces_tracts.csv")
+caces <- loadData(cacesPath, "CACES")
 
-#### ---------- ####
-#### 7. JS DATA ####
-#### ---------- ####
+# 6b. make training data:
+tic()
+epa.caces <- spatioTemporalJoin(refData = epa,
+                                modelData = caces,
+                                modelName = "caces",
+                                censusTractFile = "~/Documents/Research_Marianthi/BNE_project/cb_2019_us_tract_500k")
+toc()

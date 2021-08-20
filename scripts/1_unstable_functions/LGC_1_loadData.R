@@ -1,14 +1,13 @@
 # File: LGC_1_loadData.R
 # Author: Lawrence Chillrud <lgc2139@cumc.columbia.edu>
 # Date: 07/26/21
-# To Do: need to add code to handle GS, Caces, and JS..!
 
 #' \code{loadData} loads and pre-processes PM2.5 data,
 #' given the path to the .csv file containg the data and the dataset's name.
 #' 
 #' @param path A character giving the file path to a .csv file corresponding to the specified \code{dataset}.
 #' @param dataset A character giving the name of the dataset being loaded. 
-#' Must be one of \code{{"EPA", "CMAQINS", "CMAQOUTS", "AV", "GS"}}.
+#' Must be one of \code{{"EPA", "CMAQINS", "CMAQOUTS", "AV", "GS", "CACES", "JSSITES", "JSEPAKEY", "JSREF"}}.
 #' 
 #' @return A tibble (in long format) containing the loaded and pre-processed dataset. 
 #' If \code{dataset = "EPA"} then the tibble will be comprised of the following columns:
@@ -42,7 +41,7 @@ loadData <- function(path, dataset) {
   #### 0. error handling: ####
   #### ------------------ ####
   # 0a. soft-check on the dataset being asked for. 
-  datasets <- c("EPA", "CMAQINS", "CMAQOUTS", "AV", "GS")
+  datasets <- c("EPA", "CMAQINS", "CMAQOUTS", "AV", "GS", "CACES", "JSSITES", "JSEPAKEY", "JSREF")
   if (!dataset %in% datasets) stop("The dataset specified was not recognized. See documentation.")
 
   #### ------------------ ####
@@ -84,7 +83,7 @@ loadData <- function(path, dataset) {
       dplyr::rename(fips = FIPS, lat = Latitude, lon = Longitude, date = Date, pred = Prediction, stderr = SEpred) %>%
       dplyr::select(-stderr) %>%
       na.omit() %>%
-      mutate(year = stringr::str_sub(date, 1, 4), month = stringr::str_sub(date, 6, 7), day = stringr::str_sub(date, 9, 10)) %>%
+      dplyr::mutate(year = stringr::str_sub(date, 1, 4), month = stringr::str_sub(date, 6, 7), day = stringr::str_sub(date, 9, 10)) %>%
       dplyr::select(-date)
 
   } else if (dataset == "AV") {
@@ -124,9 +123,29 @@ loadData <- function(path, dataset) {
       dplyr::filter(measurement == "Mean") %>%
       dplyr::select(-measurement)
 
-  }
+  } else if (dataset == "CACES") {
 
-  # need to add code for Caces, and JS..!
+    d <- readr::read_csv(path, col_types = "cccdcdd") %>%
+      dplyr::rename(pred = pred_wght) %>%
+      dplyr::select(lat, lon, fips, year, pred)
+
+  } else if (dataset == "JSSITES") {
+
+    d <- readRDS(path) %>% 
+      tibble::as_tibble() %>%
+      dplyr::rename(js_lat = Lat, js_lon = Lon) %>%
+      dplyr::select(js_lat, js_lon) %>%
+      dplyr::mutate(js_index = dplyr::row_number())
+
+  } else if (dataset == "JSEPAKEY") {
+
+    d <- readr::read_csv(path)
+
+  } else if (dataset == "JSREF") {
+
+    d <- readr::read_csv(path)
+    
+  }
 
   return(d)
 
