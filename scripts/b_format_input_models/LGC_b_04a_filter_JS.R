@@ -14,6 +14,7 @@
 ####       N. NOTES      ####
 #### ------------------- ####
 # The point of this script is to create two files:
+#
 # (1) epa-js_nn_key.csv, which maps EPA monitor locations to
 #     their nearest neighbour JS <lat, lon> coordinate pairs, along with 
 #     recording the index of the JS pair. In this way, a "key" is made, allowing
