@@ -6,8 +6,14 @@
 # N. Notes
 # 0. Package Imports
 # 1. General Setup
-# 2. Download ZIP
-# 3. UNZIP Files
+# 2. Process JS by month
+# 3. Download ZIP
+# 4. Unzip Files
+# 5. Process JS day by day
+# 6. Join w/EPA training data
+# 7. Get Ref Grid for predictions data
+# 8. Save that month's work
+# 9. Delete ZIP and raw JS data
 
 #### ------------------ ####
 ####       N. NOTES     ####
@@ -162,14 +168,14 @@ for (i in 1:nrow(timeSteps)) {
   }
   
   #### -------------------------- ####
-  ####  7. SAVE THAT MONTH'S WORK ####
+  ####  8. SAVE THAT MONTH'S WORK ####
   #### -------------------------- ####
   # once we finish a month, save that month's work:
   readr::write_csv(epa.js, paste0(wd, outDir.epa,"epa-js_", infix, ".csv"))
   readr::write_csv(refGrid, paste0(wd, outDir.ref, "js_ref-grid_", infix, ".csv"))
   
   #### ------------------------------ ####
-  ####  8. DELETE ZIP AND JS RAW DATA ####
+  ####  9. DELETE ZIP AND JS RAW DATA ####
   #### ------------------------------ ####
   unlink(paste0(wd, infix), recursive = TRUE)
   unlink(paste0(wd, infix, ".zip"))
