@@ -60,10 +60,6 @@ epa <- loadData(epaPath, "EPA")
 jsKey <- loadData("~/Desktop/epa-js_nn_key.csv", "JSEPAKEY")
 jsRefGrid <- loadData("~/Desktop/js_preds_ref_grid.csv", "JSREF")
 
-# for record keeping:
-epa.js <- tibble::tibble()
-refGrid <- tibble::tibble()
-
 # progress bar:
 n <- as.numeric(as.Date("2017-01-01") - as.Date("2010-01-01"))
 progressBar <- txtProgressBar(min=0, max=n, width=50, style=3)
@@ -117,6 +113,10 @@ for (i in 1:nrow(timeSteps)) {
   #### ------------------------- ####
   ####  5. PROCESS JS DAY BY DAY ####
   #### ------------------------- ####
+  # for record keeping:
+  epa.js <- tibble::tibble()
+  refGrid <- tibble::tibble()
+  
   for (d in days) {
     # read in JS data:
     preds <- tibble::tibble(js_pred = as.vector(t(readRDS(paste0(wd, infix, "/", d, ".rds"))))) 
