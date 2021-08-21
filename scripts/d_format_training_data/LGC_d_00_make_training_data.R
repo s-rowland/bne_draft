@@ -4,7 +4,7 @@
 #
 # Contents:
 # 0. Package Imports
-# 1. EPA AQS Daily Data
+# 1. EPA & JS Daily Data
 # 2. CMAQ ins
 # 3. CMAQ outs
 # 4. AV
@@ -21,45 +21,54 @@ library(tictoc)
 source(here::here("scripts", "1_unstable_functions", "LGC_1_spatioTemporalJoin.R"))
 source(here::here("scripts", "1_unstable_functions", "LGC_1_loadData.R"))
 dataDir <- "~/Documents/Research_Marianthi/BNE_project/BNE_data_cleaning/"
-
-#### ----------------------------- ####
-#### 1. READ IN EPA AQS DAILY DATA ####
-#### ----------------------------- ####
-epaPath <- "~/Documents/Research_Marianthi/BNE_project/EPA_data/latest_version_clean_daily_data/daily_data_2000-2016.csv"
-epa <- loadData(epaPath, "EPA")
+#### ------------------------- ####
+####  1. READ IN EPA & JS DATA ####
+#### ------------------------- ####
+print("Reading JS Data in (model 1/6)...")
+epa.js <- list.files("~/Downloads/EPA-JS_training_data", full.names = T) %>%
+  purrr::map_dfr(~readr::read_csv(., col_types = "cddcccdd"))
 
 #### ----------- ####
 #### 2. CMAQ INS ####
 #### ----------- ####
+print("Processing CMAQ INS (model 2/6)...")
+
 # 2a. read in data:
 cmaqInsPath <- "~/OneDrive - cumc.columbia.edu/CMAQ/cmaq_pm25_inputs_2010-2016.csv"
 cmaqIns <- loadData(cmaqInsPath, "CMAQINS")
 
 # 2b. make training data:
 tic()
-epa.cmaqIns <- spatioTemporalJoin(refData = epa,
-                                  modelData = cmaqIns,
-                                  modelName = "cmaq_ins",
-                                  override = TRUE)
+epa.js.cmaqIns <- spatioTemporalJoin(refData = epa.js,
+                                     modelData = cmaqIns,
+                                     modelName = "cmaq_ins",
+                                     override = TRUE)
 toc()
-# should be 685,588 x 8
+# should be 685,588 x 9
 # took 582 seconds going one month at a time...
 # took 85.33 seconds going one year at a time...
+
+# 2c. clean environment:
+rm(cmaqIns, cmaqInsPath, epa.js)
 
 #### ------------ ####
 #### 3. CMAQ OUTS ####
 #### ------------ ####
+print("Processing CMAQ Outs (model 3/6)...")
+
 # 3a. read in data:
 cmaqOutsPath <- paste0(dataDir, "CMAQ/outputs/cmaq_pm25_outputs_2010-2016.csv")
 cmaqOuts <- loadData(cmaqOutsPath, "CMAQOUTS")
 
 # 3b. make training data:
 tic()
-epa.cmaqOuts <- spatioTemporalJoin(refData = epa,
-                                   modelData = cmaqOuts,
-                                   modelName = "cmaq_outs",
-                                   censusTractFile = "~/Documents/Research_Marianthi/BNE_project/cb_2019_us_tract_500k")
+epa.js.cmaqIns.cmaqOuts <- spatioTemporalJoin(refData = epa.js.cmaqIns,
+                                              modelData = cmaqOuts,
+                                              modelName = "cmaq_outs",
+                                              censusTractFile = "~/Documents/Research_Marianthi/BNE_project/cb_2019_us_tract_500k")
 toc()
+
+
 
 #### ------------------ ####
 #### 4. AV MONTHLY DATA ####
@@ -73,7 +82,7 @@ fPaths <- list.files(path = paste0(dataDir, "AV/PM25"), pattern = ".nc", full.na
 av1 <- 121:141 %>% purrr::map_dfr(~ loadData(fPaths[.x], "AV"))
 av2 <- 142:162 %>% purrr::map_dfr(~ loadData(fPaths[.x], "AV"))
 av3 <- 163:183 %>% purrr::map_dfr(~ loadData(fPaths[.x], "AV"))
-av4 <- 164:204 %>% purrr::map_dfr(~ loadData(fPaths[.x], "AV"))
+av4 <- 184:204 %>% purrr::map_dfr(~ loadData(fPaths[.x], "AV"))
 
 # 4b. make training data:
 tic()

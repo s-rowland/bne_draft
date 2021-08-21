@@ -147,12 +147,15 @@ spatioTemporalJoin <- function(
     counter <- pb(counter)
   }
 
+  # 1d. extra columns we want to keep:
+  extraCols <- setdiff(refCols, c(expRefCols, "year", "month", "day", "fips"))
+
   #### ------------------ ####
   ####  2. data cleaning: ####
   #### ------------------ ####
   # here we will use a foreach loop to parse the data one timeStep at a time
   # so that the sf, nngeo, and join operations don't scale badly...
-  df <- foreach (i = iterators::icount(n), .combine = rbind) %do% {
+  df <- foreach(i = iterators::icount(n), .combine = rbind) %do% {
 
     # 2a. process ref data spatially:
     if (mode >= 2 && !override) {
@@ -239,7 +242,7 @@ spatioTemporalJoin <- function(
     # 2e. temporal join: merge the ref data for the year 
     # with the model data for the year by date (temporally)
     refModel.timeStep <- dplyr::inner_join(x = refData.timeStep, y = modelData.timeStep.nn, by = c("ref_id", dateVarsForJoin)) %>%
-      dplyr::select(!!c("ref_id", "ref_lat", "ref_lon", intersect(refDateVars, c("day", "month", "year")), "obs_pm2_5", model_pred)) %>%
+      dplyr::select(!!c("ref_id", "ref_lat", "ref_lon", intersect(refDateVars, c("day", "month", "year")), "obs_pm2_5", extraCols, model_pred)) %>%
       dplyr::rename(lat = ref_lat, lon = ref_lon)
 
     if (verbose) counter <- pb(counter)
