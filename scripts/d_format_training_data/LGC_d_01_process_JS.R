@@ -1,4 +1,4 @@
-# File: process_JS.R
+# File: LGC_d_01_process_JS.R
 # Author: Lawrence Chillrud <lgc2139@cumc.columbia.edu>
 # Date: 8/19/21
 #
@@ -116,7 +116,7 @@ for (i in 1:nrow(timeSteps)) {
   # for record keeping:
   epa.js <- tibble::tibble()
   refGrid <- tibble::tibble()
-  
+
   for (d in days) {
     # read in JS data:
     preds <- tibble::tibble(js_pred = as.vector(t(readRDS(paste0(wd, infix, "/", d, ".rds"))))) 

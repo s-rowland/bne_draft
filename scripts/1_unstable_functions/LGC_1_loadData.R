@@ -31,7 +31,7 @@
 #'    \item{\code{pred} a double giving the predicted PM2.5 for that location and date.}
 #' }
 #' 
-#' @seealso \code{\link{makeTrainingData}}
+#' @seealso \code{\link{makeTrainingData}}, \code{\link{saveData}}
 #' 
 #' @export
 #' @importFrom magrittr %>%
@@ -144,7 +144,7 @@ loadData <- function(path, dataset) {
   } else if (dataset == "JSREF") {
 
     d <- readr::read_csv(path)
-    
+
   }
 
   return(d)
