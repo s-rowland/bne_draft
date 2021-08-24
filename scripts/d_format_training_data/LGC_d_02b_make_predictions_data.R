@@ -3,6 +3,7 @@
 # Date: 08/24/21
 #
 # Contents:
+# N. Notes
 # 0. Package Imports & Global Variables
 # 1. Main Loop
 #    a. Read in JS data
@@ -10,6 +11,12 @@
 #    c. Run CMAQ, GS, CACES loop
 #    d. AV data loop
 #    e. Save outputs
+
+#### -------- ####
+#### N. NOTES ####
+#### -------- ####
+# This script takes about 1 hour 25 minutes to run
+# assuming you do not include FIPS codes...
 
 #### ------------------------------------- ####
 #### 0. PACKAGE IMPORTS & GLOBAL VARIABLES ####
@@ -51,8 +58,8 @@ refGrid <- for(i in 1:n) {
   ####  1b. SET UP CMAQ, GS, CACES LOOP  ####
   #### --------------------------------- ####
   paths <- c(
-    "~/OneDrive - cumc.columbia.edu/CMAQ/cmaq_pm25_inputs_2010-2016.csv",
-    paste0(dataDir, "CMAQ/outputs/cmaq_pm25_outputs_2010-2016.csv"),
+    paste0(dataDir, "CMAQ/inputs/", years[i], "_cmaq_ins.csv"),
+    paste0(dataDir, "CMAQ/outputs/", years[i], "_cmaq_outs.csv"),
     paste0(dataDir, "GS/GBD2016_PREDPOP_FINAL.RData"),
     paste0(dataDir, "CACES/downloaded/caces_tracts.csv")
   )
@@ -67,13 +74,14 @@ refGrid <- for(i in 1:n) {
   ####  1c. CMAQ, GS, CACES LOOP ####
   #### ------------------------- ####
   for (j in 1:m) {
+    cat(paste("\n\tProcessing model:", j, "/", m + 1))
+    cat(paste("\n\tModel:", pathCodes[j], "\n\t"))
+    
     modelData <- loadData(path = paths[j], dataset = pathCodes[j]) %>%
       dplyr::filter(year == years[i])
     
     if ("fips" %in% colnames(modelData)) modelData <- modelData %>% dplyr::select(-fips)
     
-    cat(paste("\n\tProcessing model:", j, "/", m + 1))
-    cat(paste("\n\tModel:", pathCodes[j], "\n\t"))
     tic()
     refGrid <- spatioTemporalJoin(refData = refGrid,
                                   modelData = modelData,

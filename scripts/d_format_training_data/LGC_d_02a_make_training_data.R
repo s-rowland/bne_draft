@@ -1,4 +1,4 @@
-# File: LGC_d_02_make_training_data.R
+# File: LGC_d_02a_make_training_data.R
 # Author: Lawrence Chillrud <lgc2139@cumc.columbia.edu>
 # Date: 08/21/21
 #
@@ -35,7 +35,7 @@ trainingData <- list.files("~/Downloads/EPA-JS_training_data", full.names = T) %
 ####  2. SET UP CMAQ, GS, CACES LOOP  ####
 #### -------------------------------- ####
 paths <- c(
-  "~/OneDrive - cumc.columbia.edu/CMAQ/cmaq_pm25_inputs_2010-2016.csv", # 107.589 sec elapsed
+  paste0(dataDir, "CMAQ/inputs/cmaq_pm25_inputs_2010-2016.csv"),        # 107.589 sec elapsed
   paste0(dataDir, "CMAQ/outputs/cmaq_pm25_outputs_2010-2016.csv"),      # 54.932 sec elapsed
   paste0(dataDir, "GS/GBD2016_PREDPOP_FINAL.RData"),                    # 10.176 sec elapsed
   paste0(dataDir, "CACES/downloaded/caces_tracts.csv")                  # 5.197 sec elapsed
@@ -51,12 +51,13 @@ n <- length(paths)
 ####  3. CMAQ, GS, CACES LOOP ####
 #### ------------------------ ####
 for (i in 1:n) {
+  cat(paste("\nProcessing model:", i, "/", n))
+  cat(paste("\nModel:", pathCodes[i]))
+  
   modelData <- loadData(path = paths[i], dataset = pathCodes[i])
   
   if ("fips" %in% colnames(modelData)) modelData <- modelData %>% dplyr::select(-fips)
 
-  cat(paste("\nProcessing model:", i, "/", n))
-  cat(paste("\nModel:", pathCodes[i]))
   tic()
   trainingData <- spatioTemporalJoin(refData = trainingData,
                                      modelData = modelData,
