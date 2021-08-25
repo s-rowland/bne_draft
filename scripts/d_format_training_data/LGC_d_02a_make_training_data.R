@@ -68,8 +68,6 @@ for (i in 1:n) {
   toc()
 }
 
-readr::write_csv(trainingData, "~/Desktop/trainingData-5models.csv")
-
 #### ---------------- ####
 ####  4. AV DATA LOOP ####
 #### ---------------- ####
@@ -97,11 +95,15 @@ toc()
 # 1939.502 sec elapsed
 
 #### ------------------ ####
-####  5. END OF PROGRAM ####
+####   5. SAVE OUTPUTS  ####
 #### ------------------ ####
-readr::write_csv(trainingData6, "~/Desktop/trainingData-6models.csv")
+outputDir <- "~/Desktop/dailyTrainingData/"
 
-output <- saveData(trainingData6, "~/Desktop/trainingData-6models-2010-2015")
+dir.create(outputDir)
+
+readr::write_csv(trainingData6, paste0(outputDir, "dailyTrainingData_2010-2015.csv"))
+
+output <- saveData(trainingData6, paste0(outputDir, "dailyTrainingData_2010-2015"))
 
 cat("\nFinished making training data! Output saved to: \n\n")
 cat(paste(output, collapse = "\n"))
