@@ -112,6 +112,9 @@ refGrid <- for(i in 1:n) {
   #### ----------------- ####
   ####  1e. SAVE OUTPUTS ####
   #### ----------------- ####
+  refGrid <- refGrid %>%
+    dplyr::rename(js_ref_id = ref_id, js_pred = obs_pm2_5)
+  
   readr::write_csv(refGrid, paste0(outputDir, "dailyPredictionsData_", years[i], ".csv"))
   saveData(refGrid, paste0(outputDir, "dailyPredictionsData_2010-2015/"))
 }
