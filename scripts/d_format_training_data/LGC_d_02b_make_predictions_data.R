@@ -30,7 +30,7 @@ source(here::here("scripts", "1_unstable_functions", "LGC_1_loadData.R"))
 source(here::here("scripts", "1_unstable_functions", "LGC_1_saveData.R"))
 
 dataDir <- "~/Documents/Research_Marianthi/BNE_project/BNE_data_cleaning/"
-outputDir <- "~/Desktop/predictionsDataset/"
+outputDir <- "~/Desktop/dailyPredictionsDataset/"
 ctf <- "~/Documents/Research_Marianthi/BNE_project/cb_2019_us_tract_500k"
 years <- c(2010:2015)
 n <- length(years)
@@ -112,6 +112,6 @@ refGrid <- for(i in 1:n) {
   #### ----------------- ####
   ####  1e. SAVE OUTPUTS ####
   #### ----------------- ####
-  readr::write_csv(refGrid, paste0(outputDir, "predictionsData_", years[i], ".csv"))
-  saveData(refGrid, paste0(outputDir, "predictionsData-2010-2015/"))
+  readr::write_csv(refGrid, paste0(outputDir, "dailyPredictionsData_", years[i], ".csv"))
+  saveData(refGrid, paste0(outputDir, "dailyPredictionsData_2010-2015/"))
 }
