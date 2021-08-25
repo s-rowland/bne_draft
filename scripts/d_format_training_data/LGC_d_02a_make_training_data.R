@@ -8,7 +8,7 @@
 # 2. Setting Up CMAQ, GS, CACES, Loop
 # 3. CMAQ, GS, CACES Loop
 # 4. AV Data Loop
-# 5. End of program
+# 5. Save outputs
 
 #### ------------------------------------- ####
 #### 0. PACKAGE IMPORTS & GLOBAL VARIABLES ####
