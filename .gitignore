@@ -1,3 +1,14 @@
+########*****************########
+#### 1: Auto-generated Files ####
+########*****************########
+
+# Pesky macOS files:
+.DS_Store
+*/*.DS_Store
+
+# OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3
+.httr-oauth
+
 # History files
 .Rhistory
 .Rapp.history
@@ -8,24 +19,17 @@
 # User-specific files
 .Ruserdata
 
-# Example code in package build process
-*-Ex.R
+# R Environment Variables
+.Renviron
+
+# RStudio files
+.Rproj.user/
 
 # Output files from R CMD build
 /*.tar.gz
 
 # Output files from R CMD check
 /*.Rcheck/
-
-# RStudio files
-.Rproj.user/
-
-# produced vignettes
-vignettes/*.html
-vignettes/*.pdf
-
-# OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3
-.httr-oauth
 
 # knitr and R markdown default cache directories
 *_cache/
@@ -35,20 +39,25 @@ vignettes/*.pdf
 *.utf8.md
 *.knit.md
 
-# R Environment Variables
-.Renviron
+########****************########
+#### 2: Project-Based Files ####
+########****************########
 
-# pesky macOS files:
-.DS_Store
-*/*.DS_Store
-
-# data 
+# Data and outputs 
 BNE_inputs/*
 BNE_outputs/*
 BNE_plots/*
 ancillary_data/*
 externalValidation_data/*
 
-# projects
+# Researcher-specific projects
 examine_MERRA/*
-uncertaintyFactorAnalysis_ISEE/*
+uncertainty_factor_analysis_ISEE/*
+application_uncertainty_distribution/*
+
+# Produced vignettes
+vignettes/*.html
+vignettes/*.pdf
+
+# Example code in package build process
+*-Ex.R
