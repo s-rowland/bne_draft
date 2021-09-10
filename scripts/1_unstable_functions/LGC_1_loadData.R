@@ -25,8 +25,8 @@
 #'    \item{\code{lat} a double giving the latitude of the model prediction.}
 #'    \item{\code{lon} a double giving the longitude of the model prediction.}
 #'    \item{\code{year}} a character giving the year of the model prediction.}
-#'    \item{\code{month}} a character giving the month of the model prediction. Only returned if monthly data is available.}
-#'    \item{\code{day}} a character giving the day of the model prediction. Only returned if daily data is available.}
+#'    \item{\code{month}} a character giving the month of the model prediction. Only returned if month of observation is available.}
+#'    \item{\code{day}} a character giving the day of the model prediction. Only returned if day of observation is available.}
 #'    \item{\code{fips}} a character giving the fips associated with the model prediction. Only returned if lat & lon reference FIPS centroids.}
 #'    \item{\code{pred} a double giving the predicted PM2.5 for that location and date.}
 #' }
@@ -83,7 +83,9 @@ loadData <- function(path, dataset) {
       dplyr::rename(fips = FIPS, lat = Latitude, lon = Longitude, date = Date, pred = Prediction, stderr = SEpred) %>%
       dplyr::select(-stderr) %>%
       na.omit() %>%
-      dplyr::mutate(year = stringr::str_sub(date, 1, 4), month = stringr::str_sub(date, 6, 7), day = stringr::str_sub(date, 9, 10)) %>%
+      dplyr::mutate(year = stringr::str_sub(date, 1, 4), 
+                    month = stringr::str_sub(date, 6, 7), 
+                    day = stringr::str_sub(date, 9, 10)) %>%
       dplyr::select(-date)
 
   } else if (dataset == "AV") {

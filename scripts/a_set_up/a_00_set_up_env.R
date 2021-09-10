@@ -3,9 +3,9 @@
 # Bayesian Nonparametric Ensemble 
 # Sebastian T. Rowland 
 
-####***********************
+#### ----------------- ####
 #### Table of Contents ####
-####***********************
+#### ----------------- ####
 
 # 0: Preparation 
 # 1: Load Packages for Analysis

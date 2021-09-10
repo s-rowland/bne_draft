@@ -1,7 +1,6 @@
 # File: LGC_1_spatioTemporalJoin.R
 # Author: Lawrence Chillrud <lgc2139@cumc.columbia.edu>
 # Date: 07/27/21
-# To Do: update save feature to save one file per day / timeStep...
 
 #' \code{spatioTemporalJoin} cleans and formats PM2.5 data for training BNE.
 #' Briefly, given a reference dataset, R, (e.g. EPA AQS PM2.5 observations from EPA monitors) 
@@ -37,8 +36,6 @@
 #' for \code{modelData}'s \code{lat} and \code{lon} columns. By default, \code{modelCRS = "epsg:4326"}.
 #' @param outputCRS (Optional) A character providing the coordinate reference system to be used
 #' for the output \code{lat} and \code{lon} columns in the returned tibble. By default, \code{outputCRS = "epsg:2163"}.
-#' @param saveAs (Optional) A character providing the file path to use when writing the output .csv file. 
-#' Should end in \code{".csv"}. By default, \code{saveAs = NULL}, in which case no output .csv is written.
 #' @param verbose (Optional) A logical indicating if verbose output should be printed as the function executes. 
 #' By default, \code{verbose = TRUE}. 
 #' 
@@ -70,7 +67,6 @@ spatioTemporalJoin <- function(
   refCRS = "epsg:4326", 
   modelCRS = "epsg:4326", 
   outputCRS = "epsg:2163", 
-  saveAs = NULL,
   verbose = TRUE
 ) {
 
@@ -150,14 +146,15 @@ spatioTemporalJoin <- function(
   # 1d. extra columns we want to keep:
   extraCols <- setdiff(refCols, c(expRefCols, "year", "month", "day", "fips"))
 
-  #### ------------------ ####
+  #*** ------------------ ***#
   ####  2. data cleaning: ####
-  #### ------------------ ####
+  #*** ------------------ ***#
   # here we will use a foreach loop to parse the data one timeStep at a time
   # so that the sf, nngeo, and join operations don't scale badly...
   df <- foreach(i = iterators::icount(n), .combine = rbind) %do% {
 
-    # 2a. process ref data spatially:
+    # 2a. process ref data
+    # 2a.i restrict to timeStep
     if (mode >= 2 && !override) {
       # parse one month at a time:
       refData.timeStep <- refData %>%
@@ -170,12 +167,18 @@ spatioTemporalJoin <- function(
         dplyr::filter(year == timeSteps[i])
     }
     
+    # 2a.ii extract locations
     refLocations <- refData.timeStep %>%
       dplyr::select(ref_id, ref_lat, ref_lon) %>%
       dplyr::distinct()
     
+    # 2a.iii process ref data spatially (convert to simple features)
     # here we take fips into account if refData's lon and lat coords
     # reference the centroids of fips / census tracts. 
+    # Aka - by default we treat data as points, which would almost always yield 
+    # the same results as treating it as regular rectangles. 
+    # However, if the data represents average of an irregular area, such as 
+    # Census tracts, we want to capture that irregular area
     if ("fips" %in% refCols) {
       refLocations.sf <- sf::read_sf(censusTractFile) %>%
         dplyr::inner_join(., refData.timeStep, by = c("GEOID" = "fips")) %>%
@@ -188,7 +191,8 @@ spatioTemporalJoin <- function(
 
     if (verbose) counter <- pb(counter)
 
-    # 2b. process model data spatially:
+    # 2b. process model data
+    # 2b.i restrict to timeStep
     if (mode >= 2 && !override) {
       # parse one month at a time:
       modelData.timeStep <- modelData %>%
@@ -201,8 +205,11 @@ spatioTemporalJoin <- function(
         dplyr::rename(!!model_pred := pred, model_lat = lat, model_lon = lon)
     }
     
+    # 2b.iii process model data spatially (convert to simple features)
     # here we take fips into account if modelData's lon and lat coords
     # reference the centroids of fips / census tracts. 
+    
+    # add . timeStep to modelLocations.sf
     if ("fips" %in% modelCols) {
       modelLocations.sf <- sf::read_sf(censusTractFile) %>%
         dplyr::inner_join(., modelData.timeStep, by = c("GEOID" = "fips")) %>%
@@ -231,35 +238,28 @@ spatioTemporalJoin <- function(
       cbind(refLocations, .) %>%
       tibble::as_tibble()
 
-    # 2d. spatial join: merge the model data for the year 
-    # with the nearest neighbour ref locations for the year 
+    # 2d. spatial join: merge the model data for the timeStep 
+    # with the nearest neighbour ref locations for the timeStep 
     # by lon and lat (spatially)
-    modelData.timeStep.nn <- dplyr::inner_join(x = modelData.timeStep, y = nnTable, by = c("model_lon", "model_lat")) %>%
+    modelData.timeStep.nn <- dplyr::inner_join(x = modelData.timeStep, y = nnTable, 
+                                               by = c("model_lon", "model_lat")) %>%
       dplyr::select(ref_id, !!dateVarsForJoin, !!model_pred)
 
     if (verbose) counter <- pb(counter)
 
-    # 2e. temporal join: merge the ref data for the year 
-    # with the model data for the year by date (temporally)
-    refModel.timeStep <- dplyr::inner_join(x = refData.timeStep, y = modelData.timeStep.nn, by = c("ref_id", dateVarsForJoin)) %>%
-      dplyr::select(!!c("ref_id", "ref_lat", "ref_lon", intersect(refDateVars, c("day", "month", "year")), "obs_pm2_5", extraCols, model_pred)) %>%
+    # 2e. spatio-temporal join: merge the ref data and model data for the timeStep
+    # by ref_id and date (temporally)
+    refModel.timeStep <- dplyr::inner_join(x = refData.timeStep, y = modelData.timeStep.nn, 
+                                           by = c("ref_id", dateVarsForJoin)) %>%
+      dplyr::select(!!c("ref_id", "ref_lat", "ref_lon", 
+                        intersect(refDateVars, c("day", "month", "year")), 
+                        "obs_pm2_5", extraCols, model_pred)) %>%
       dplyr::rename(lat = ref_lat, lon = ref_lon)
 
     if (verbose) counter <- pb(counter)
 
     refModel.timeStep
 
-  }
-
-  #### ------------------ ####
-  ####  3. save & return: ####
-  #### ------------------ ####
-  # LGC: need to change the save function to allow us to save 
-  # in the format of one file per day / timeStep... maybe that should
-  # be an outside function though? 
-  if (!is.null(saveAs)) {
-    if (verbose) print(paste("Writing to:", saveAs))
-    readr::write_csv(df, file = saveAs)
   }
 
   return(df)

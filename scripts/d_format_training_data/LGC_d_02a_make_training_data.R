@@ -5,12 +5,12 @@
 # Contents:
 # 0. Package Imports & Global Variables
 # 1. EPA & JS Daily Data
-# 2. Setting Up CMAQ, GS, CACES, Loop
-# 3. CMAQ, GS, CACES Loop
-# 4. AV Data Loop
+# 2. Setting Up CMAQ, GS, CACES loop
+# 3. CMAQ, GS, CACES loop
+# 4. AV data loop
 # 5. Save outputs
 
-#### ------------------------------------- ####
+##** ------------------------------------- **##
 #### 0. PACKAGE IMPORTS & GLOBAL VARIABLES ####
 #### ------------------------------------- ####
 library(magrittr)
@@ -101,8 +101,10 @@ outputDir <- "~/Desktop/dailyTrainingData/"
 
 dir.create(outputDir)
 
+# save all data in one csv
 readr::write_csv(trainingData6, paste0(outputDir, "dailyTrainingData_2010-2015.csv"))
 
+# remember, default is to save 1 file per day. 
 output <- saveData(trainingData6, paste0(outputDir, "dailyTrainingData_2010-2015"))
 
 cat("\nFinished making training data! Output saved to: \n\n")

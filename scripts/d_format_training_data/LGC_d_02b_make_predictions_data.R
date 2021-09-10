@@ -45,9 +45,11 @@ jsPath <- "~/Downloads/JSrefGrid"
 
 refGrid <- for(i in 1:n) {
   cat(paste0("\nProcessing year ", i, " / ", n, " (", years[i], ")...\n"))
-  #### -------------------- ####
-  ####  1a. READ IN JS DATA ####
-  #### -------------------- ####
+  #### ----------------------------------------- ####
+  ####  1a. READ IN REF GRID WITH JS PREDICTIONS ####
+  #### ----------------------------------------- ####
+  # we need to rename js_pred because spatioTemporalJoin expects 
+  # a column named 'obs_pm2_5'
   refGrid <- list.files(jsPath, pattern = paste0("js_ref-grid_", years[i], "(.*).csv"), full.names = T) %>%
     purrr::map_dfr(~readr::read_csv(., col_types = "cddcccd")) %>%
     dplyr::rename(obs_pm2_5 = js_pred)
@@ -83,6 +85,7 @@ refGrid <- for(i in 1:n) {
     if ("fips" %in% colnames(modelData)) modelData <- modelData %>% dplyr::select(-fips)
     
     tic()
+    # update refGrid with itself
     refGrid <- spatioTemporalJoin(refData = refGrid,
                                   modelData = modelData,
                                   modelName = modelNames[j],
@@ -92,15 +95,23 @@ refGrid <- for(i in 1:n) {
     toc()
   }
   
-  #### ----------------- ####
-  ####  1d. AV DATA LOOP ####
-  #### ----------------- ####
+  #### ------------ ####
+  ####  1d. JOIN AV ####
+  #### ------------ ####
+  
+  # 1d.i tell the user we are processing AV
   cat(paste("\n\tProcessing model:", m + 1, "/", m + 1))
   cat("\n\tModel: AV\n\t")
+  
+  # 1d.ii identify the daily AV files within the year of interest
   # faster to parse AV one month at a time in spatioTemporalJoin?
-  avPaths <- list.files(path = paste0(dataDir, "AV/PM25"), pattern = paste0("V4NA03_PM25_NA_", years[i], "(.*).nc"), full.names = TRUE)
+  avPaths <- list.files(path = paste0(dataDir, "AV/PM25"), 
+                        pattern = paste0("V4NA03_PM25_NA_", years[i], "(.*).nc"), full.names = TRUE)
+  
+  # 1d.iii load those AV files
   modelData <- avPaths %>% purrr::map_dfr(~ loadData(.x, "AV"))
   
+  # 1d.iv join AV to the other predictions
   tic()
   refGrid <- spatioTemporalJoin(refData = refGrid,
                                 modelData = modelData,

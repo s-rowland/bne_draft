@@ -1,6 +1,8 @@
-# File: LGC_d_01_process_JS.R
-# Author: Lawrence Chillrud <lgc2139@cumc.columbia.edu>
-# Date: 8/19/21
+# File: LGC_d_01_make_training_predictions_JS.R
+# Authors:
+# Lawrence Chillrud <lgc2139@cumc.columbia.edu>
+# Sebastian Rowland <sr3463@cumc.columbia.edu>
+# Date: 9/03/21
 #
 # Contents:
 # N. Notes
@@ -82,41 +84,54 @@ for (i in 1:nrow(timeSteps)) {
   #### --------------- ####
   #### 3. DOWNLOAD ZIP ####
   #### --------------- ####
+  # daily data has been zipped into monthly zip files
   infix <- paste0(timeSteps$year[i], timeSteps$month[i])
   url <- paste0(prefix, infix, suffix)
   zipfile <- paste0(wd, infix, ".zip")
   
+  # bash command as a string
   download <- paste0("curl -o ", zipfile, " -b ~/.urs_cookies -c ~/.urs_cookies -L -n ", url)
-  
+  # run the bash command
   system(download)
   
   #### --------------- ####
   ####  4. UNZIP FILES ####
   #### --------------- ####
+  # each day's data is stored in its own .rds file
+  
+  # 4a. unzip the month's folder
   unzip(zipfile, exdir = paste0(wd, infix))
   
+  # 4b. get the names of the daily rds within that folder
   files <- list.files(paste0(wd, infix), pattern = ".rds")
   
+  # 4c. rename files
+  # 4c.i create clean names of files 
+  # extract date of each file, and append .rds
   nfiles <- files %>% 
     stringr::str_extract("\\d{8}") %>% 
     stringr::str_sub(-2, -1) %>%
     paste0(".rds")
   
+  # 4c.ii rename files that you downloaded
   # each file is now named after the day they represent. format: "DD"
   # the directory they belong to is formatted "YYYYMM"
   # overall, we then have: "./YYYYMM/DD.rda"
   file.rename(paste0(wd, infix, "/", files), paste0(wd, infix, "/", nfiles))
-  
-  days <- nfiles %>%
-    stringr::str_sub(1, 2)
-  
+
   #### ------------------------- ####
   ####  5. PROCESS JS DAY BY DAY ####
   #### ------------------------- ####
-  # for record keeping:
+  
+  # 5a create vector of days of the month in this timeStep
+  days <- nfiles %>%
+    stringr::str_sub(1, 2)
+  
+  # 5b create empty tables to store the predictions of interest and reference grid 
   epa.js <- tibble::tibble()
   refGrid <- tibble::tibble()
 
+  # 5c begin loop; one iteration per day in timeStep
   for (d in days) {
     # read in JS data:
     preds <- tibble::tibble(js_pred = as.vector(t(readRDS(paste0(wd, infix, "/", d, ".rds"))))) 
@@ -124,9 +139,12 @@ for (i in 1:nrow(timeSteps)) {
     #### ---------------------------- ####
     ####  6. JOIN W/EPA TRAINING DATA ####
     #### ---------------------------- ####
+    
+    # 6a restrict to timeStep
     epa.timeStep <- epa %>% 
       dplyr::filter(year == timeSteps$year[i], month == timeSteps$month[i], day == d)
     
+    # 6b we have this condition just in case aqs data is missing for one day 
     if (nrow(epa.timeStep) > 0) {
       
       preds.epa <- preds %>%
@@ -147,9 +165,9 @@ for (i in 1:nrow(timeSteps)) {
     # record:
     epa.js <- rbind(epa.js, epa.js.day)
     
-    #### ------------------------------------- ####
-    ####  7. GET REF GRID FOR PREDICTIONS DATA ####
-    #### ------------------------------------- ####
+    #### ----------------------------------- ####
+    ####  7. GET JS PREDICTIONS FOR REF GRID ####
+    #### ----------------------------------- ####
     # 1% of Joel's data
     preds.ref <- preds %>%
       dplyr::slice(jsRefGrid$js_index)

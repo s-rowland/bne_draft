@@ -107,8 +107,11 @@ and comparing results
 ## Diagram of BNE 
 insert diagram 
 
-## Diagram of Data Processing 
-insert diagram 
+## Data Processing 
+* Models should first be processed to have uniform column names - in 1_loadData we set uniform column names for our datasets
+* To create the training dataset, we spatially joined each model to the EPQ AQS dataset, using the prediction that was closest to each monitor (i.e., nearest neighbors). 
+* For more details on the join and how missing data are addressed, see documentation for spatioTemporalJoin
+* To create the prediction dataset, we first created a reference grid (based on 1% of the locations of JS), and then joined each prediction dataset by nearest neighbor. 
 
 ## Components of BNE Input and Output
 * Note that while the predictions themselves represent the estimated 
@@ -241,9 +244,9 @@ predictions later.
   * We have different rules for naming function files and non-function files 
   * *Function Code Files*
     * (initials_) [directory-number] _ [file-name] .R
-    * the directory number is either 1 for unstable functions still under development or 0 for a stable function whose development is mostly finalized
-    * the file name should use camelCase. The file name should align with the name of the function; should be informative and begin with a verb. 
-  
+    * The directory number is either 1 for unstable functions still under development or 0 for a stable function whose development is mostly finalized
+    * The file name should use camelCase. The file name should align with the name of the function; should be informative and begin with a verb.
+    * Functions from packages (not base R) should have explicit function calls, i.e., call the package that the function comes from, like so: package::function (dplyr::select()). This will be required for the package version and avoid namespace overlap issues.    
   * *Non-Function Code Files*
     * (initials_) [directory-letter] _ [step-number] _ [file-name] .R
     * initials. Use your initials if you do not want anyone to modify the code (eg LGC_)
@@ -257,8 +260,19 @@ predictions later.
 * Be consistent with similar types of objects. 
 * Object names should align with the terminology used in the manuscript (and vice-versa)
 * Section names should align with the subsections of the Methods section 
-* Write code (eg path names) such that Windows and Macs can handle the code without modifications (akak use here package)
+* Write code (eg path names) such that Windows and Macs can handle the code without modifications (aka use the here package)
 * In general, I (Sebastian) try to follow Hadley Wickham's style guide: 
+
+## Workflow for Finalizing Functions for Package 
+* Functions should live in the 1_unstable_functions folder while they are under development
+* For functions that we use for our CONUS application but not generalizable to other applications (e.g., loadData), we will also include those in the package, but include a suffix 'H' (H for helper)
+* Once a function is stable enough (it doesn't require frequent bug fixes, logic overhauls, or major additional features), we can relocate it to the 0_functions folder after under going function review:
+    1. Standardize style in accordance with code style described throughout this document. Importantly, this should also include conventions for calling packages, i.e. package::function().
+    2. Write roxygen documentation for the function. 
+    3. Incorporate error handling.
+    4. Make it abstract - argument names etc should be generalizable to other settings with different datasets
+    5. Have a team member other than the primary author of the code review the function for efficiency, style, reproducibility, etc. 
+      * Incorporate option for progress bar where appropriate 
 
 ## General 
 * Include a mega script that sources all of the scripts, in order, to go from raw data to final product
