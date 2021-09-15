@@ -52,8 +52,8 @@ externalValidation_data/*
 
 # Researcher-specific projects
 examine_MERRA/*
-uncertainty_factor_analysis_ISEE/*
-application_uncertainty_distribution/*
+str_uncertainty_factor_analysis_ISEE/*
+str_appl_conus_uncert/*
 
 # Produced vignettes
 vignettes/*.html
