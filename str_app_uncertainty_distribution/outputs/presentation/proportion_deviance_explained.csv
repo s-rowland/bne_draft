@@ -1,0 +1,8 @@
+var,prop_dev
+pred_mean,0.015
+mon_dist,0.178
+winter_temp,0.028
+summer_temp,0.013
+pop_density,0.001
+cloud,0.014
+elev,0.007

@@ -37,28 +37,39 @@
 #' @importFrom magrittr %>%
 loadData <- function(path, dataset) {
 
-  #### ------------------ ####
+  #--------------------------#
   #### 0. error handling: ####
-  #### ------------------ ####
+  #--------------------------#
+  
   # 0a. soft-check on the dataset being asked for. 
   datasets <- c("EPA", "CMAQINS", "CMAQOUTS", "AV", "GS", "CACES", "JSSITES", "JSEPAKEY", "JSREF")
   if (!dataset %in% datasets) stop("The dataset specified was not recognized. See documentation.")
 
-  #### ------------------ ####
+  #-------------------------#
   ####  1. load & clean: ####
-  #### ------------------ ####
-  if (dataset == "EPA") {
+  #-------------------------#
+  
+  # 1a AQS data from EPA 
+  # ground-truth data CONUS application and other US-based applications
+    if (dataset == "EPA") {
 
+      # we first keep columns of interest, standardize their names. 
+      # Some of the monitor locations are in the NAD83 datum; to project these to 
+      # WGS84 we first split the dataset by datum
+      # split by datum to reproject to epsg:4326 
     # need to split by datum here and standardize lon / lat coords...
     dInit <- readr::read_csv(path, col_types = "cddccccddd") %>%
       dplyr::select(!c("State.Name", "Arithmetic.Mean", "Required.Day.Count")) %>% 
       na.omit() %>%
-      dplyr::rename(ref_id = Monitor.ID, lat = Latitude, lon = Longitude, datum = Datum, date = Date.Local.Formatted, year = Year, obs_pm2_5 = Arithmetic.Mean.Seasonal) %>%
+      dplyr::rename(ref_id = Monitor.ID, lat = Latitude, lon = Longitude, 
+                    datum = Datum, date = Date.Local.Formatted, year = Year, 
+                    obs_pm2_5 = Arithmetic.Mean.Seasonal) %>%
       dplyr::mutate(month = stringr::str_sub(date, 6, 7), day = stringr::str_sub(date, 9, 10)) %>%
       dplyr::select(-date) %>%
       dplyr::group_by(datum) %>%
       dplyr::group_split(.keep = FALSE)
-
+    
+    # reproject the datum and combine
     d <- dInit[[1]] %>% 
       sf::st_as_sf(coords = c("lon", "lat"), crs = sf::st_crs("epsg:4269")) %>%
       sf::st_transform(crs = sf::st_crs("epsg:4326")) %>%
@@ -66,7 +77,7 @@ loadData <- function(path, dataset) {
       dplyr::rename(lon = X, lat = Y) %>% 
       tibble::as_tibble() %>%
       dplyr::select(-geometry) %>% 
-      rbind(dInit[[2]], .) %>%
+      rbind(dInit[[2]], .) %>% # combined with points already recorded in epsg:4326
       dplyr::select(ref_id, lat, lon, year, month, day, obs_pm2_5)
 
   } else if (dataset == "CMAQINS") {
@@ -89,29 +100,38 @@ loadData <- function(path, dataset) {
       dplyr::select(-date)
 
   } else if (dataset == "AV") {
-
-    date <- stringr::str_split(stringr::str_split(path, "V4NA03_PM25_NA_")[[1]][2], "_")[[1]][1]
-    usaExtent <- raster::extent(-124.8, -66.9, 24.4, 49.5) # USA
+    
+    # read in the raster
+    rasterObj <- raster::raster(path)
+    
+    # split data into conus and alaska components
+    # renamed usa to conus bc alaska is within usa
+    conusExtent <- raster::extent(-124.8, -66.9, 24.4, 49.5) # CONUS
     alaskaExtent <- raster::extent(-179.2, -129.9, 51.1, 71.5) # ALASKA
 
-    rasterObj <- raster::raster(path)
-  
-    usa <- raster::crop(rasterObj, usaExtent)
+    conus <- raster::crop(rasterObj, conusExtent)
     alaska <- raster::crop(rasterObj, alaskaExtent)
-    usa.coords <- raster::coordinates(usa)
+    conus.coords <- raster::coordinates(conus)
     alaska.coords <- raster::coordinates(alaska)
-    usa.pm <- raster::extract(usa, usa.coords)
+    conus.pm <- raster::extract(conus, conus.coords)
     alaska.pm <- raster::extract(alaska, alaska.coords)
   
-    d <- rbind(tibble::tibble(lon = usa.coords[,"x"], lat = usa.coords[,"y"], pred = usa.pm), 
+    # extract date from the path name 
+    # renamed date because date is a function in base R 
+    capture_date <- stringr::str_split(stringr::str_split(path, "V4NA03_PM25_NA_")[[1]][2], "_")[[1]][1]
+    
+    # create dataframe with conus and Alaska predictions
+    d <- rbind(tibble::tibble(lon = conus.coords[,"x"], lat = conus.coords[,"y"], pred = conus.pm), 
                tibble::tibble(lon = alaska.coords[,"x"], lat = alaska.coords[,"y"], pred = alaska.pm)) %>% 
           na.omit() %>%
-          dplyr::mutate(year = stringr::str_sub(date, 1, 4), month = stringr::str_sub(date, 5, 6)) %>%
+          dplyr::mutate(year = stringr::str_sub(capture_date, 1, 4), 
+                        month = stringr::str_sub(capture_date, 5, 6)) %>%
           dplyr::select(lat, lon, year, month, pred)
 
   } else if (dataset == "GS") {
 
     load(path) # mydata2 is loaded into the environment...
+    # note that GS has extra columns and allows us to explicitly filter by country
     d <- mydata2 %>%
       tibble::as_tibble() %>%
       dplyr::filter(Country == "USA") %>%
@@ -131,6 +151,7 @@ loadData <- function(path, dataset) {
       dplyr::rename(pred = pred_wght) %>%
       dplyr::select(lat, lon, fips, year, pred)
 
+    # Non- prediction datasets
   } else if (dataset == "JSSITES") {
 
     d <- readRDS(path) %>% 

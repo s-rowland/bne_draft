@@ -47,7 +47,7 @@
 BNE_inputs/*
 BNE_outputs/*
 BNE_plots/*
-ancillary_data/*
+data_ancillary/*
 externalValidation_data/*
 
 # Researcher-specific projects

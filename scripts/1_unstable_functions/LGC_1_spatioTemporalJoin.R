@@ -70,9 +70,10 @@ spatioTemporalJoin <- function(
   verbose = TRUE
 ) {
 
-  #### ------------------ ####
+  #--------------------------#
   #### 0. error handling: ####
-  #### ------------------ ####
+  #--------------------------#
+  
   # 0a. soft-check on the refData column names
   # the reason we check for "year" in a separate if-statement outside 
   # of the for-loop is to make calculations in 1b easier (same applies to 0b).
@@ -146,15 +147,16 @@ spatioTemporalJoin <- function(
   # 1d. extra columns we want to keep:
   extraCols <- setdiff(refCols, c(expRefCols, "year", "month", "day", "fips"))
 
-  #*** ------------------ ***#
+  #--------------------------#
   ####  2. data cleaning: ####
-  #*** ------------------ ***#
+  #--------------------------#
+  
   # here we will use a foreach loop to parse the data one timeStep at a time
   # so that the sf, nngeo, and join operations don't scale badly...
   df <- foreach(i = iterators::icount(n), .combine = rbind) %do% {
 
     # 2a. process ref data
-    # 2a.i restrict to timeStep
+    # 2a.i restrict to current timeStep
     if (mode >= 2 && !override) {
       # parse one month at a time:
       refData.timeStep <- refData %>%
@@ -192,7 +194,7 @@ spatioTemporalJoin <- function(
     if (verbose) counter <- pb(counter)
 
     # 2b. process model data
-    # 2b.i restrict to timeStep
+    # 2b.i restrict to current timeStep
     if (mode >= 2 && !override) {
       # parse one month at a time:
       modelData.timeStep <- modelData %>%
@@ -208,7 +210,6 @@ spatioTemporalJoin <- function(
     # 2b.iii process model data spatially (convert to simple features)
     # here we take fips into account if modelData's lon and lat coords
     # reference the centroids of fips / census tracts. 
-    
     # add . timeStep to modelLocations.sf
     if ("fips" %in% modelCols) {
       modelLocations.sf <- sf::read_sf(censusTractFile) %>%
@@ -222,23 +223,29 @@ spatioTemporalJoin <- function(
         sf::st_transform(crs = sf::st_crs(outputCRS))
     }
     
+    # add ticker if requested
     if (verbose) counter <- pb(counter)
 
     # 2c. run nearest neighbours to get spatial mapping:
+    # for each point in refData, modelIndicies has a row containing the index 
+    # (row_number) of the nearest model point. 
     modelIndices <- unlist(
       suppressMessages(
         nngeo::st_nn(refLocations.sf, modelLocations.sf, k = 1)
       )
     )
-
+    
+    # add ticker if requested
     if (verbose) counter <- pb(counter)
-
+    
+    # 2d. create a a table of the refData locations and lat and lon of nearest point 
+    # from the model
     nnTable <- modelData.timeStep[modelIndices, ] %>%
       dplyr::select(model_lat, model_lon) %>%
       cbind(refLocations, .) %>%
       tibble::as_tibble()
 
-    # 2d. spatial join: merge the model data for the timeStep 
+    # 2e. spatial join: merge the model data for the timeStep 
     # with the nearest neighbour ref locations for the timeStep 
     # by lon and lat (spatially)
     modelData.timeStep.nn <- dplyr::inner_join(x = modelData.timeStep, y = nnTable, 
@@ -247,7 +254,7 @@ spatioTemporalJoin <- function(
 
     if (verbose) counter <- pb(counter)
 
-    # 2e. spatio-temporal join: merge the ref data and model data for the timeStep
+    # 2f. spatio-temporal join: merge the ref data and model data for the timeStep
     # by ref_id and date (temporally)
     refModel.timeStep <- dplyr::inner_join(x = refData.timeStep, y = modelData.timeStep.nn, 
                                            by = c("ref_id", dateVarsForJoin)) %>%
@@ -258,6 +265,7 @@ spatioTemporalJoin <- function(
 
     if (verbose) counter <- pb(counter)
 
+    # 2g. Return joined dataset
     refModel.timeStep
 
   }
