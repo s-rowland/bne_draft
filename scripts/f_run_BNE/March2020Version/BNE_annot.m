@@ -26,10 +26,10 @@ function [W,w0,SigW,Z,piZ] = BNE(y,X,models,num_rand_feat,len_scale)
 %%%% ------------------------------ %%%%
 
 % Set some initial parameteres
-YYYY = '2015';
-inputset = 'avgscmjscc';
-len_scale = 6.5';
-fold = 'all';
+% YYYY = '2015';
+% inputset = 'avgscmjscc';
+% len_scale = 6.5';
+% fold = 'all';
 % read data
 training = readtable(append('BNE_inputs/training_data/combined/Training_annual_', YYYY, '_AVGSCMJSCC_', fold, '.csv'));
 % break up training data into its components 
@@ -138,6 +138,7 @@ end
 
 
 % % === CALCULATE THE COVARIANCE ===
+% this is used to generate the samples in the prediction step
 
 bool_global_cov = 1;
 dotWPhi = W'*Phi;

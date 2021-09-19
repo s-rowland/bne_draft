@@ -37,17 +37,20 @@
 #### ------------------ ####
 #### 0. PACKAGE IMPORTS ####
 #### ------------------ ####
-library(magrittr)
-source(here::here("scripts", "1_unstable_functions", "LGC_1_loadData.R"))
+
+# 0a. load packages and functions required for this script
+if(!exists("Ran_a_00")){
+  here::i_am("README.md")
+  source(here::here('scripts', 'a_set_up', "a_00_set_up_env.R"))
+}
 
 #### ------------------ ####
 ####  1. GENERAL SETUP  ####
 #### ------------------ ####
 # specify the years and months we are interested in:
-years <- c(2010:2016)
-months <- stringr::str_pad(1:12, 2, "left", "0")
-timeSteps <- expand.grid(list("year" = years, "month" = months)) %>%
-  dplyr::arrange(year, month)
+years <- c(2010:2015)
+timeSteps <- expand.grid(list("year" = years)) %>%
+  dplyr::arrange(year)
 
 # define the link to download the data & working directory:
 prefix <- "https://beta.sedac.ciesin.columbia.edu/downloads/data/aqdh/aqdh-pm2-5-concentrations-contiguous-us-1-km-2000-2016/aqdh-pm2-5-concentrations-contiguous-us-1-km-2000-2016-"
@@ -55,26 +58,55 @@ suffix <- "-rds.zip"
 wd <- "~/Downloads/"
 
 # read in EPA data:
-epaPath <- "~/Documents/Research_Marianthi/BNE_project/EPA_data/latest_version_clean_daily_data/daily_data_2000-2016.csv"
-epa <- loadData(epaPath, "EPA")
+aqsPath <- here::here('BNE_inputs', 'ground_truth', 'formatted', 
+                      'lgc_annual_data_2000-2016.csv')
+epa <- loadData(aqsPath, "AQS_annual")
+
+# restrict AQS monitors to CONUS 
+# 1c.i. bring in states shape file 
+states <- sf::read_sf(here::here('data_ancillary', 'raw', 'Census','cb_2015_us_state_500k', 
+                                 'cb_2015_us_state_500k.shp')) %>% 
+  st_transform(., crs=st_crs(projString))
+# 1c.ii. restrict to conus 
+states <- states %>% 
+  dplyr::mutate(area = ALAND + AWATER) %>% 
+  dplyr::filter(!(STUSPS%in%c('HI', 'AK'))) %>% 
+  dplyr::rename(state = STUSPS) %>% 
+  dplyr::select(state)
+# 1c.iii make epa spatial 
+epa <- epa   %>% 
+  sf::st_as_sf(., coords = c("lon", "lat"), crs=sf::st_crs('epsg:4326')) %>% 
+  sf::st_transform(., crs=st_crs(projString))
+# 1c.iii. join
+epa <- sf::st_intersection(states, epa, join = st_intersects)
+# 1c.iv make not-spatial 
+epa <- epa %>% 
+  sf::st_transform(., crs=sf::st_crs('epsg:4326')) %>%
+  dplyr::mutate(lat = sf::st_coordinates(.)[,2], 
+                lon = sf::st_coordinates(.)[,1],) %>% 
+  as.data.frame() %>% 
+  dplyr::select(-geometry, -state)
 
 # read in JS files:
-jsKey <- loadData("~/Desktop/epa-js_nn_key.csv", "JSEPAKEY")
-jsRefGrid <- loadData("~/Desktop/js_preds_ref_grid.csv", "JSREF")
+jsKey <- loadData(here::here('BNE_inputs','keys', "epa-js_nn_key.csv"), "JSEPAKEY")
+
+
+jsRefGrid <- loadData(here::here('BNE_inputs','keys', "js_preds_ref_grid.csv"), "JSREF")
 
 # progress bar:
 n <- as.numeric(as.Date("2017-01-01") - as.Date("2010-01-01"))
-progressBar <- txtProgressBar(min=0, max=n, width=50, style=3)
+
+progressBar <- txtProgressBar(min=0, max=6, width=50, style=3)
 counter <- 0
 pb <- function(p) { setTxtProgressBar(progressBar, p); return(p+1) }
 counter <- pb(counter)
 
 # set up output directories:
-outDir.epa <- "EPA-JS_training_data/"
-outDir.ref <- "JSrefGrid/"
+outDir.epa <- here::here('BNE_inputs','training_datasets', "EPA-JS_training_data")
+outDir.ref <- here::here('BNE_inputs','prediction_datasets', "JSrefGrid")
 
-dir.create(paste0(wd, outDir.epa))
-dir.create(paste0(wd, outDir.ref))
+dir.create(outDir.epa)
+dir.create(outDir.ref)
 
 #### ---------------------------- ####
 #### 2. PROCESS JS MONTH BY MONTH ####
@@ -84,57 +116,29 @@ for (i in 1:nrow(timeSteps)) {
   #### --------------- ####
   #### 3. DOWNLOAD ZIP ####
   #### --------------- ####
-  # daily data has been zipped into monthly zip files
-  infix <- paste0(timeSteps$year[i], timeSteps$month[i])
-  url <- paste0(prefix, infix, suffix)
-  zipfile <- paste0(wd, infix, ".zip")
-  
-  # bash command as a string
-  download <- paste0("curl -o ", zipfile, " -b ~/.urs_cookies -c ~/.urs_cookies -L -n ", url)
-  # run the bash command
-  system(download)
+
   
   #### --------------- ####
   ####  4. UNZIP FILES ####
   #### --------------- ####
-  # each day's data is stored in its own .rds file
-  
-  # 4a. unzip the month's folder
-  unzip(zipfile, exdir = paste0(wd, infix))
-  
-  # 4b. get the names of the daily rds within that folder
-  files <- list.files(paste0(wd, infix), pattern = ".rds")
-  
-  # 4c. rename files
-  # 4c.i create clean names of files 
-  # extract date of each file, and append .rds
-  nfiles <- files %>% 
-    stringr::str_extract("\\d{8}") %>% 
-    stringr::str_sub(-2, -1) %>%
-    paste0(".rds")
-  
-  # 4c.ii rename files that you downloaded
-  # each file is now named after the day they represent. format: "DD"
-  # the directory they belong to is formatted "YYYYMM"
-  # overall, we then have: "./YYYYMM/DD.rda"
-  file.rename(paste0(wd, infix, "/", files), paste0(wd, infix, "/", nfiles))
+
 
   #### ------------------------- ####
   ####  5. PROCESS JS DAY BY DAY ####
   #### ------------------------- ####
   
-  # 5a create vector of days of the month in this timeStep
-  days <- nfiles %>%
-    stringr::str_sub(1, 2)
-  
   # 5b create empty tables to store the predictions of interest and reference grid 
   epa.js <- tibble::tibble()
   refGrid <- tibble::tibble()
 
-  # 5c begin loop; one iteration per day in timeStep
-  for (d in days) {
-    # read in JS data:
-    preds <- tibble::tibble(js_pred = as.vector(t(readRDS(paste0(wd, infix, "/", d, ".rds"))))) 
+  # 5c Read JS predictions
+    preds <- readr::read_rds(
+      here::here('BNE_inputs', 'input_models', 'raw', 'JS_annual_raw', 
+                 paste0('PredictionStep2_Annual_PM25_USGrid_',
+                        timeSteps$year[i], '0101_', timeSteps$year[i], '1231.rds')))
+    
+    preds <- tibble::as_tibble(as.vector(t(preds)))
+    names(preds) <- 'js_pred'
     
     #### ---------------------------- ####
     ####  6. JOIN W/EPA TRAINING DATA ####
@@ -142,7 +146,7 @@ for (i in 1:nrow(timeSteps)) {
     
     # 6a restrict to timeStep
     epa.timeStep <- epa %>% 
-      dplyr::filter(year == timeSteps$year[i], month == timeSteps$month[i], day == d)
+      dplyr::filter(year == timeSteps$year[i],)
     
     # 6b we have this condition just in case aqs data is missing for one day 
     if (nrow(epa.timeStep) > 0) {
@@ -154,16 +158,16 @@ for (i in 1:nrow(timeSteps)) {
         tibble::as_tibble() %>%
         dplyr::select(epa_id, js_pred)
       
-      epa.js.day <- dplyr::inner_join(epa.timeStep, jsExtract, by = c("ref_id" = "epa_id"))
+      epa.js <- dplyr::inner_join(epa.timeStep, jsExtract, by = c("ref_id" = "epa_id"))
       
     } else {
       
-      epa.js.day <- tibble::tibble()
+      epa.js <- tibble::tibble()
       
     }
     
     # record:
-    epa.js <- rbind(epa.js, epa.js.day)
+    epa.js <- epa.js
     
     #### ----------------------------------- ####
     ####  7. GET JS PREDICTIONS FOR REF GRID ####
@@ -172,29 +176,28 @@ for (i in 1:nrow(timeSteps)) {
     preds.ref <- preds %>%
       dplyr::slice(jsRefGrid$js_index)
     
-    refGrid.day <- cbind(jsRefGrid, preds.ref) %>%
+    refGrid <- cbind(jsRefGrid, preds.ref) %>%
       tibble::as_tibble() %>%
-      dplyr::mutate(year = as.character(timeSteps$year[i]), month = as.character(timeSteps$month[i]), day = d) %>%
+      dplyr::mutate(year = as.character(timeSteps$year[i])) %>%
       dplyr::rename(lat = js_lat, lon = js_lon, ref_id = js_index) %>%
-      dplyr::select(ref_id, lat, lon, year, month, day, js_pred)
+      dplyr::select(ref_id, lat, lon, year,  js_pred)
     
     # record:
-    refGrid <- rbind(refGrid, refGrid.day)
+    refGrid <- refGrid
     
     # progress bar:
     counter <- pb(counter)
-  }
+  
   
   #### -------------------------- ####
   ####  8. SAVE THAT MONTH'S WORK ####
   #### -------------------------- ####
   # once we finish a month, save that month's work:
-  readr::write_csv(epa.js, paste0(wd, outDir.epa,"epa-js_", infix, ".csv"))
-  readr::write_csv(refGrid, paste0(wd, outDir.ref, "js_ref-grid_", infix, ".csv"))
-  
-  #### ------------------------------ ####
-  ####  9. DELETE ZIP AND JS RAW DATA ####
-  #### ------------------------------ ####
-  unlink(paste0(wd, infix), recursive = TRUE)
-  unlink(paste0(wd, infix, ".zip"))
+epa.js %>% 
+  readr::write_csv(here::here('BNE_inputs','training_datasets', "EPA-JS_training_data", 
+                                  paste0("epa-js_", timeSteps$year[i], ".csv")))
+refGrid %>% 
+  readr::write_csv(here::here('BNE_inputs','prediction_datasets', "JSrefGrid", 
+                       paste0("js_ref-grid_", timeSteps$year[i], ".csv")))
+
 }

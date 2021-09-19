@@ -42,7 +42,8 @@ loadData <- function(path, dataset) {
   #--------------------------#
   
   # 0a. soft-check on the dataset being asked for. 
-  datasets <- c("EPA", "CMAQINS", "CMAQOUTS", "AV", "GS", "CACES", "JSSITES", "JSEPAKEY", "JSREF")
+  datasets <- c("EPA", "CMAQINS", "CMAQOUTS", "AV", "GS", "CACES", "JSSITES", 
+                "JSEPAKEY", "JSREF", "CMAQOUTS_annual", "JS_annual", "AQS_annual")
   if (!dataset %in% datasets) stop("The dataset specified was not recognized. See documentation.")
 
   #-------------------------#
@@ -51,6 +52,31 @@ loadData <- function(path, dataset) {
   
   # 1a AQS data from EPA 
   # ground-truth data CONUS application and other US-based applications
+  # str: added annual option which does not have Required.Day.Count column
+  
+  if (dataset == "AQS_annual"){
+    dta <- readr::read_csv(path, col_types = "cddcccdd")
+    dInit <- dta %>% 
+      dplyr::select(!c("State.Name", "Arithmetic.Mean")) %>%
+      na.omit() %>%
+      dplyr::rename(ref_id = Monitor.ID, lat = Latitude, lon = Longitude, 
+                    datum = Datum,  year = Year, 
+                    obs_pm2_5 = Arithmetic.Mean.Seasonal) %>%
+      dplyr::group_by(datum) %>%
+      dplyr::group_split(.keep = FALSE)
+    
+    # reproject the datum and combine
+    d <- dInit[[1]] %>% 
+      sf::st_as_sf(coords = c("lon", "lat"), crs = sf::st_crs("epsg:4269")) %>%
+      sf::st_transform(crs = sf::st_crs("epsg:4326")) %>%
+      cbind(., sf::st_coordinates(.)) %>%
+      dplyr::rename(lon = X, lat = Y) %>% 
+      tibble::as_tibble() %>%
+      dplyr::select(-geometry) %>% 
+      rbind(dInit[[2]], .) %>% # combined with points already recorded in epsg:4326
+      dplyr::select(ref_id, lat, lon, year, obs_pm2_5)
+    
+  }
     if (dataset == "EPA") {
 
       # we first keep columns of interest, standardize their names. 
@@ -58,16 +84,18 @@ loadData <- function(path, dataset) {
       # WGS84 we first split the dataset by datum
       # split by datum to reproject to epsg:4326 
     # need to split by datum here and standardize lon / lat coords...
-    dInit <- readr::read_csv(path, col_types = "cddccccddd") %>%
-      dplyr::select(!c("State.Name", "Arithmetic.Mean", "Required.Day.Count")) %>% 
-      na.omit() %>%
-      dplyr::rename(ref_id = Monitor.ID, lat = Latitude, lon = Longitude, 
+      dta <- readr::read_csv(path, col_types = "cddccccddd")
+
+      dInit <- dta %>% 
+        dplyr::select(!c("State.Name", "Arithmetic.Mean", "Required.Day.Count")) %>%
+        na.omit() %>%
+        dplyr::rename(ref_id = Monitor.ID, lat = Latitude, lon = Longitude, 
                     datum = Datum, date = Date.Local.Formatted, year = Year, 
                     obs_pm2_5 = Arithmetic.Mean.Seasonal) %>%
-      dplyr::mutate(month = stringr::str_sub(date, 6, 7), day = stringr::str_sub(date, 9, 10)) %>%
-      dplyr::select(-date) %>%
-      dplyr::group_by(datum) %>%
-      dplyr::group_split(.keep = FALSE)
+        dplyr::mutate(month = stringr::str_sub(date, 6, 7), day = stringr::str_sub(date, 9, 10)) %>% 
+        dplyr::select(-date) %>%
+        dplyr::group_by(datum) %>%
+        dplyr::group_split(.keep = FALSE)
     
     # reproject the datum and combine
     d <- dInit[[1]] %>% 
@@ -98,7 +126,12 @@ loadData <- function(path, dataset) {
                     month = stringr::str_sub(date, 6, 7), 
                     day = stringr::str_sub(date, 9, 10)) %>%
       dplyr::select(-date)
-
+  } else if (dataset == "CMAQOUTS_annual") {
+    capture_date <- stringr::str_split(stringr::str_split(path, "annual_")[[1]][3], '_')[[1]][1]
+    
+    d <- fst::read_fst(path) %>%
+      dplyr::mutate(year = capture_date)
+    
   } else if (dataset == "AV") {
     
     # read in the raster
@@ -159,7 +192,14 @@ loadData <- function(path, dataset) {
       dplyr::rename(js_lat = Lat, js_lon = Lon) %>%
       dplyr::select(js_lat, js_lon) %>%
       dplyr::mutate(js_index = dplyr::row_number())
-
+    
+  } else if (dataset == "JS_annual") {
+    
+    capture_date <- stringr::str_split(stringr::str_split(path, "js_annual_")[[1]][3], "_")[[1]][1]
+    
+    d <- fst::read.fst(path) %>%
+      dplyr::mutate(year = capture_date)
+    
   } else if (dataset == "JSEPAKEY") {
 
     d <- readr::read_csv(path)

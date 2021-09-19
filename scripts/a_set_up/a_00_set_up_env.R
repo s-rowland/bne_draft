@@ -33,7 +33,7 @@ library(pacman)
 p_load(tidyverse, lubridate, magrittr, janitor, # tidyverse packages
        sf, raster, rgdal, sp, stars, ncdf4, deldir, dismo,nngeo, ncf, # spatial packages 
        prism, # packages with data 
-       tidycensus,
+       tidycensus, foreach,
        fst, FNN,
        latex2exp,
        purrr, furrr, future, progress, progressr, # efficiency/paralleization packages
