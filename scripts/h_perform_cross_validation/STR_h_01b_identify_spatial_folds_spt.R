@@ -66,7 +66,7 @@ states <- sf::read_sf(here::here('data_ancillary', 'raw', 'Census','cb_2015_us_s
 # 2e.iii Calculate area 
 states <- states %>% 
   dplyr::mutate(area = ALAND + AWATER) %>% 
-  dplyr::filter(!(STUSPS%in%c('HI', 'AK')))
+  dplyr::filter(!(STUSPS%in%c('HI', 'AK', 'VI')))
 # 2e.iv Combine 
 states <- states %>% 
   dplyr::rename(state = STUSPS) %>%
@@ -77,7 +77,7 @@ train <- sf::st_intersection(states, train, join = st_intersects)
 
 # 2f. remove monitors not in CONUS 
 train <- train %>% 
-  dplyr::filter(! state %in% c('HI', 'AK'))
+  dplyr::filter(! state %in% c('HI', 'AK', 'VI'))
 
 # 2f Clean up 
 rm(epaRegion)

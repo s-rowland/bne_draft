@@ -70,7 +70,7 @@ states <- sf::read_sf(here::here('data_ancillary', 'raw', 'Census','cb_2015_us_s
 # 1c.ii. restrict to conus 
 states <- states %>% 
   dplyr::mutate(area = ALAND + AWATER) %>% 
-  dplyr::filter(!(STUSPS%in%c('HI', 'AK'))) %>% 
+  dplyr::filter(!(STUSPS%in%c('HI', 'AK', 'VI'))) %>% 
   dplyr::rename(state = STUSPS) %>% 
   dplyr::select(state)
 # 1c.iii make epa spatial 

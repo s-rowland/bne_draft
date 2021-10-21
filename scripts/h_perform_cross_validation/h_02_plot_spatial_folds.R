@@ -179,7 +179,7 @@ states <- read_sf(here::here('ancillary_data', 'raw', 'Census','cb_2015_us_state
 # 2e.iii Calculate area 
 states <- states %>% 
   mutate(area = ALAND + AWATER) %>% 
-  filter(!(STUSPS%in%c('HI', 'AK')))
+  filter(!(STUSPS%in%c('HI', 'AK', 'VI')))
 # 2e.iv Combine 
 states <- states %>% 
   rename(state = STUSPS) %>%
