@@ -31,19 +31,15 @@ if(!exists("Ran_a_00")){
 #### 1: Calculate CV Metrics for a Run ####
 ####***************************************
 
-# 1a. create empty table of CV metrics
-CV.metrics <- data.frame(Region = 'all', season = 'all', ME = 0,  MAE = 0, 
-                         RMSE = 0, Rsq = 0, coverage = 0, corr = 0, slope = 0)
+# 1a. calculate metrics for whole training dataset
+CV.metrics <- calculateCVMetricsSpt(c('av', 'gs', 'cm', 'js', 'cc'),  3.5, 0.008, 'all', 'all')
 
-# 1b. calculate metrics for whole training dataset
-CV.metrics[1,] <- calculateCVMetrics(c('av', 'gs', 'cm', 'js', 'cc'),  3.5, 'all', 'all')
-
-# 1c. calculate metrics for specific regions. 
+# 1c. calculate metrics for specific EPA regions. 
 for (i in 1:10){
-  CV.metrics[(i+1),] <- calculateCVMetrics(c('av', 'gs', 'cm', 'js', 'cc'),  3.5, i, 'all')
+  CV.metrics[(i+1),] <- calculateCVMetricsSpt(c('av', 'gs', 'cm', 'js', 'cc'), 0.008, 3.5, i, 'all')
 }
 
 # 1d. save 
 CV.metrics %>% 
   readr::write_csv(here::here('str_app_conus_uncert', 'outputs', 'CV', 
-                              'cvmetrics_annual_BNE.csv'))
+                              'cvmetrics_annual_BNE_spT.csv'))

@@ -1,4 +1,4 @@
-function [W,w0,SigW,Z,piZ] = BNE(y,X,models,num_rand_feat,len_scale)
+function [W,w0,SigW,Z,piZ] = BNE_t(y,X,models,num_rand_feat,len_scale)
 % % 
 % % === Inputs ===
 % % 
@@ -26,10 +26,10 @@ function [W,w0,SigW,Z,piZ] = BNE(y,X,models,num_rand_feat,len_scale)
 %%%% ------------------------------ %%%%
 
 % Set some initial parameteres
-%YYYY = '2015';
-%inputset = 'avgscmjscc';
-%len_scale = 6.5';
-%fold = 'all';
+% YYYY = '2015';
+% inputset = 'avgscmjscc';
+% len_scale = 6.5';
+% fold = 'all';
 % read data
 %training = readtable(append('BNE_inputs/training_data/combined/Training_annual_', YYYY, '_AVGSCMJSCC_', fold, '.csv'));
 % break up training data into its components 
@@ -47,10 +47,10 @@ function [W,w0,SigW,Z,piZ] = BNE(y,X,models,num_rand_feat,len_scale)
 %%%% 1: Create Initial Objects %%%%
 %%%% ------------------------- %%%%
 
-% 1a extract the number of training points and the number of input models. 
+% 1a extract the number of training points and the number of input models 
 [num_obs,num_models] = size(models);
 
-% 1b number of space-time dimensions
+% 1b number of space dimensions
 dimX = size(X,2);
 
 % 1c an all-zero matrix that will be filled with weights 
@@ -127,7 +127,7 @@ for iter = 1:1000
     % then we add up the amount of residual for each feature with the
     % matrix multiplication 
     % the inversion and the lambda0*noise is about penalizing the offset
-    w0 = zeros(num_rand_feat,1);
+    w0 = inv(lambda0*noise*eye(num_rand_feat) + Phi*Phi')*(Phi*residual);
     % 3g error (but we don't use it) 
     error = y' - model_avg - bias;
 %     if iter > 100
@@ -138,6 +138,7 @@ end
 
 
 % % === CALCULATE THE COVARIANCE ===
+% this is used to generate the samples in the prediction step
 
 bool_global_cov = 1;
 dotWPhi = W'*Phi;

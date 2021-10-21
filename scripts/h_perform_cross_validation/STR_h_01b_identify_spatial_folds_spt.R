@@ -182,7 +182,7 @@ createFoldSets <- function(leaveOut){
 trainFolds <- purrr::map(folds.list, createFoldSets) %>%
   bind_rows()
 
-# add column fo fold stype 
+# add column of fold type 
 trainFolds.hc <- trainFolds %>% 
   dplyr::mutate(foldMethod = paste0('hc', threshold/1000))
 
@@ -206,44 +206,34 @@ trainFolds.hc <- trainFolds.hc %>%
 
 # 5b Make a function to save the training and testing components of the fold
 # 5b.i Begin function
-save_folds <- function(foldNum, YYYY){
+save_folds <- function(foldNum){
   #foldNum <- 1; YYYY <- 2010
   # 5b.ii Make the name of the fold
   activeFold <- paste0('fold', str_pad(foldNum, 2, 'left', '0'))
-  # 5b.iii isolate the fold of interest 
-  train.full.yyyy <- train.full %>% 
-    dplyr::filter(year == YYYY)
   # and add the observations 
   train.fold <- trainFolds.hc %>% 
     dplyr::select(ref_id, fold, state,region,  role) %>%
     dplyr::filter(fold == activeFold) %>% 
-    dplyr::inner_join(train.full.yyyy, by = 'ref_id')
+    dplyr::inner_join(train.full, by = 'ref_id')
   
   # 5b.iii Save the training dataset
   train.fold %>% 
     dplyr::filter(role == 'Train') %>% 
-    dplyr::mutate(year = YYYY) %>%
     dplyr::select(lat, lon, year, obs_pm2_5, av_pred, gs_pred, cmaq_outs_pred, js_pred, caces_pred, ref_id, region) %>%
     dplyr::mutate(region = as.numeric(stringr::str_remove(region, 'Region'))) %>%
-    readr::write_csv(here::here('BNE_inputs', 'training_datasets', 'individual_annual', 
-                         paste0('training_avgscmjscc_', YYYY, '_', activeFold, '.csv')))
+    readr::write_csv(here::here('BNE_inputs', 'training_datasets', 'combined_annual', 
+                         paste0('training_avgscmjscc_',  activeFold, '.csv')))
  
    # 5b.iv save the testing dataset
-  testFold <- train.fold %>% 
+  train.fold %>% 
     dplyr::filter(role == 'Test') %>% 
-    dplyr::mutate(time = YYYY) %>%
-    dplyr::select(lat, lon, time, av_pred, gs_pred, cmaq_outs_pred, js_pred, caces_pred, obs_pm2_5, ref_id, region) %>%
+    dplyr::select(lat, lon, year, av_pred, gs_pred, cmaq_outs_pred, js_pred, caces_pred, obs_pm2_5, ref_id, region) %>%
     dplyr::mutate(region = as.numeric(stringr::str_remove(region, 'Region'))) %>%
-    readr::write_csv(here::here('BNE_inputs', 'prediction_datasets', 'individual_annual',
-                         paste0('predictions_avgscmjscc_', YYYY, '_', activeFold, '.csv')))
-  
-  # 5b.vi Then save the number of observations
-  data.frame(Count = nrow(testFold)) %>%
-    readr::write_csv(here::here('BNE_inputs', 'prediction_datasets', 'individual_annual', 
-                         paste0('predCount_avgscmjscc_', YYYY, '_', activeFold, '.csv')))
-}
+    readr::write_csv(here::here('BNE_inputs', 'prediction_datasets', 'combined_annual',
+                         paste0('predictions_avgscmjscc_', activeFold, '.csv')))
+  }
 
 # now actually make the folds
-purrr::map2(rep(c(1:10), 6), sort(rep(2010:2015, 10)), save_folds)
+purrr::map(c(1:10), save_folds)
 
 #check <- trainFolds.hc %>% group_by(foldMethod, fold, role) %>% summarize(count =n())

@@ -1,4 +1,4 @@
-function [W] = runPredictBNE(YYYY,inputset,len_scale, fold)
+function [W] = train_predict_BNE_t(YYYY, inputset,len_scale, fold)
 % % 
 % % === Inputs ===
 % % 
@@ -22,7 +22,7 @@ function [W] = runPredictBNE(YYYY,inputset,len_scale, fold)
 % YYYY = '2010';
 % inputset = 'avgscmjscc';
 % len_scale = 3.5';
-% fold = 'fold01';
+% fold = 'cities';
 
 %%%% ------------ %%%%
 %%%% 1: Train BNE %%%%
@@ -33,8 +33,13 @@ num_rand_feat = 500;
 num_models = 5;
 
 % 1b bring in training data
-training = readtable(append('BNE_inputs/training_datasets/individual_annual/training_annual_', ...
-    YYYY, '_', inputset, '_', fold, '.csv'));
+if strcmp(fold, 'cities')
+    trainFold = 'all'
+else 
+    trainFold = fold
+end
+ 
+training = readtable(append('BNE_inputs/training_datasets/individual_annual/training_', inputset, '_', YYYY, '_', trainFold, '.csv'));
 
 % 1c break down the training data into its components
 % note that column 3 is date, which we aren't using yet
@@ -49,7 +54,7 @@ trainPred = training{:,5:9};
 % note also since this is a maximum a posteriori model, not MCMC or VI, we
 % get the best-fit values and not whole distributions. Distributions are
 % estimated in the prediction phase
-[W,w0,SigW,Z,piZ] = BNE(trainAqs, trainLatlon, trainPred, num_rand_feat, len_scale)
+[W,w0,SigW,Z,piZ] = BNE_t(trainAqs, trainLatlon, trainPred, num_rand_feat, len_scale)
 
 %%%% -------------------------- %%%%
 %%%% 2: Prepare for Predictions %%%%
@@ -106,6 +111,8 @@ y_95CIu = [];
 y_min = [];
 y_max = [];
 y_median = [];
+y_skew = [];
+y_kurtosis = [];
 
 %%%% ----------------------- %%%%
 %%%% 3: Generate Predictions %%%%
@@ -127,7 +134,7 @@ for i = 1:predCount{1,1}
             % not sure what this line does 
             start_plot = 1;
             % 3g define the location (lat and lon)
-            X = [X ; [line(2) line(1)]];
+            X = [X ; [line(1) line(2)]];
             % 3h define the input model predictions
             f = line([4, 5, 6, 7, 8]); %% Select 5 main models
             f_all = [f_all ; f];
@@ -147,10 +154,10 @@ for i = 1:predCount{1,1}
             % bias. 
             y = softmax*f' + bias';
             % 3m summary statistics of parameters
-            bias_mean = [bias_mean ; mean(bias)];
-            bias_std = [bias_std ; std(bias)];
             softmax_mean = [softmax_mean ; mean(softmax,1)];
             softmax_std = [softmax_std ; std(softmax,1)];
+            bias_mean = [bias_mean ; mean(bias)];
+            bias_std = [bias_std ; std(bias)];
             y_mean = [y_mean ; mean(y)];
             y_std = [y_std ; std(y)];
             y_95CIl = [y_95CIl ; quantile(y, 0.025)];
@@ -158,6 +165,8 @@ for i = 1:predCount{1,1}
             y_min = [y_min ; min(y)];
             y_max = [y_max ; max(y)];
             y_median = [y_median ; median(y)];
+            y_skew = [y_skew; skewness(y, 0)]; % sample skew
+            y_kurtosis = [y_kurtosis; kurtosis(y, 0)]; % sample kurtosis
 
         end
     end
@@ -183,8 +192,11 @@ fclose(fid);
 %%%% ----------------------- %%%%
 
 % 4a combine summary metrics into a dataframe
-results = [X, softmax_mean, softmax_std,bias_mean, bias_std, y_mean, y_std, y_95CIl, y_95CIu, y_min, y_max, y_median];
+results = [X, softmax_mean, softmax_std,bias_mean, bias_std, y_mean, y_std, ...
+    y_95CIl, y_95CIu, y_min, y_max, y_median, y_skew, y_kurtosis];
+
+%lambda0txt = num2str(lambda0)
 
 % 4b save as csv
-writematrix(results, append('BNE_outputs/individual_annual/BNE_',...
+writematrix(results, append('BNE_outputs/temp_annual/BNE_',...
     inputset, '_', string(len_scale),'_', YYYY, '_', fold, '.csv'))

@@ -1,0 +1,12 @@
+function [W] = cross_validate_BNE_spt(len_scale_space,len_scale_time)
+
+[W] = train_predict_BNE_spt('avgscmjscc',len_scale_space,len_scale_time, 'fold01')
+[W] = train_predict_BNE_spt('avgscmjscc',len_scale_space,len_scale_time, 'fold02')
+[W] = train_predict_BNE_spt('avgscmjscc',len_scale_space,len_scale_time, 'fold03')
+[W] = train_predict_BNE_spt('avgscmjscc',len_scale_space,len_scale_time, 'fold04')
+[W] = train_predict_BNE_spt('avgscmjscc',len_scale_space,len_scale_time, 'fold05')
+[W] = train_predict_BNE_spt('avgscmjscc',len_scale_space,len_scale_time, 'fold06')
+[W] = train_predict_BNE_spt('avgscmjscc',len_scale_space,len_scale_time, 'fold07')
+[W] = train_predict_BNE_spt('avgscmjscc',len_scale_space,len_scale_time, 'fold08')
+[W] = train_predict_BNE_spt('avgscmjscc',len_scale_space,len_scale_time, 'fold09')
+[W] = train_predict_BNE_spt('avgscmjscc',len_scale_space,len_scale_time, 'fold10')
