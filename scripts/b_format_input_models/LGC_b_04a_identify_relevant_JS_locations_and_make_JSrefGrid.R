@@ -1,4 +1,4 @@
-# File: LGC_b_04a_filter_JS_make_refGrid.R
+# File: LGC_b_04a_identify_relevant_JS_locations_and_make_JSrefGrid.R
 # Author: Lawrence Chillrud <lgc2139@cumc.columbia.edu>
 # Date: 8/20/21
 #
