@@ -43,15 +43,20 @@ plotSpatialOneBNEParameter <- function(
   parameter, 
   legYN = 'legY', 
   titleYN = 'titleY',
-  valueArray = 'unique scale'
+  valueScale = 'unique scale', 
+  mainTitle = 'plotTitle', 
+  plotAQS = 'noAQS', 
+  pointSize = 0.9, 
+  pointShape =21
   ){
 
   #--------------------------#
   #### 0. example values: ####
   #--------------------------#
   
-  # dta <- readBNEoutput(2010, 'avgscmjscc', 3.5, 'all')
-  #parameter <- 'bias_mean';  legYN <- 'LegY'
+  # dta <- bne2010.offset
+  #parameter <- 'pred_mean';  legYN <- 'LegY'
+  #   titleYN = 'titleY'; valueArray = 'unique scale'
  # parameter <- 'pred_sd'; legYN <- 'LegY'
   
   #-------------------------------#
@@ -71,10 +76,10 @@ plotSpatialOneBNEParameter <- function(
     sf::st_transform(crs=sf::st_crs(projString))
   
   # 1d. extract the name of the input model, if relevant
-  if (string::str_detect(parameter, 'w_mean')){
+  if (stringr::str_detect(parameter, 'w_mean')){
     input <- stringr::str_replace(parameter, 'w_mean', '')
   }
-  if (string::str_detect(parameter, 'w_sd')){
+  if (stringr::str_detect(parameter, 'w_sd')){
     input <- stringr::str_replace(parameter, 'w_sd', '')
   }
   
@@ -84,11 +89,11 @@ plotSpatialOneBNEParameter <- function(
   
   # 2a create titles 
   # we need a title for the legend for the the plot 
-  if (string::str_detect(parameter, 'w_mean')){
+  if (stringr::str_detect(parameter, 'w_mean')){
     legendTitle <- 'Weight'
     plotTitle <- paste0('Weight of ', input)
     
-    } else if (parameter == 'w_sd'){
+    } else if (stringr::str_detect(parameter,'w_sd')){
       legendTitle <- 'Weight SD'
       plotTitle <- paste0('Standard Deviation of ', input, ' Weight')
       
@@ -113,24 +118,30 @@ plotSpatialOneBNEParameter <- function(
     } else if (parameter == 'input_maxW'){
       legendTitle <- 'Most-Weighted'
       plotTitle <- 'Highest-Weighted inputs'
+    } else{
+      legendTitle <- parameter
+      plotTitle <- parameter
     }
   
   # 2b. get the relevant values 
-  if (valueArray == 'unique scale'){
-    p.min = min(dta$p); p.max = min(dta$p)
-    if (minVal >= 0){
+  if (valueScale == 'unique scale'){
+    p.min = min(dta$p); p.max = max(dta$p)
+    if (p.min >= 0){
       p.1 <- round(p.max*0.25, 2); p.2 = round(p.max*0.5, 2); p.3 = round(p.max*0.75, 2)
     } else{
        p.1 <- round(p.min/2, 2);  p.2 <- round(p.max/2, 2); 
     }
+    p.min <- round(p.min, 2); p.max <- round(p.max, 2)
   }
   
-  if(valueArray != 'unique scale'){
+  if(valueScale != 'unique scale'){
     # here you would extract the correct values from the object
+    p.min <- valueScale[1]; p.1 <- valueScale[2]; p.2 <- valueScale[3];
+    p.3 <- valueScale[4]; p.max <- valueScale[5]
   }
   
   # 2c. Set the aesthetic schemes 
-  if(stringr::str_detect(parameter, 'w_')){
+  if(stringr::str_detect(parameter, 'w_mean') | stringr::str_detect(parameter, 'w_sd')){
     fillScheme <- viridis::scale_fill_viridis(
       direction = -1, 
       breaks = c(0, 0.25, 0.5, 0.75, 1),
@@ -139,18 +150,20 @@ plotSpatialOneBNEParameter <- function(
       direction = -1, 
       breaks = c(0, 0.25, 0.5, 0.75, 1),
       limits = c(0, 1))
+    aqsCol <- 'black'
     
-  } else if(parameterName == 'bias_mean'){
-    fillScheme <- ggplot::scale_fill_gradient2(
+  } else if(parameter == 'bias_mean'){
+    fillScheme <- ggplot2::scale_fill_gradient2(
       low = "red", mid = "white",high = "blue", midpoint = 0, 
       breaks = c(p.min, p.1, 0, p.2, p.max),
       limits = c(p.min, p.max)) 
-    colorScheme <- ggplot::scale_color_gradient2(
+    colorScheme <- ggplot2::scale_color_gradient2(
       low = "red", mid = "white", high = "blue", midpoint = 0, 
       breaks = c(p.min, p.1, 0, p.2, p.max),
       limits = c(p.min, p.max)) 
+    aqsCol <- 'black'
     
-  } else if (parameter == 'pred_mean'){
+  } else if (parameter == 'pred_mean' | str_detect(parameter, '_pred')){
     fillScheme <- scico::scale_fill_scico(
       direction = -1, palette = 'hawaii',
       breaks = c(0, p.1, p.2, p.3, p.max),
@@ -159,8 +172,9 @@ plotSpatialOneBNEParameter <- function(
       direction = -1, palette = 'hawaii',
       breaks = c(0, p.1, p.2, p.3, p.max),
       limits = c(0, p.max))
+    aqsCol <- 'orchid'
     
-    } else if (parameter == 'pred_sd'){
+    } else if (parameter == 'pred_sd' | parameter == 'bias_sd' | parameter == 'pred_sd_scaled'){
     fillScheme <- viridis::scale_fill_viridis(
       direction = -1, option = 'magma',
       breaks = c(0, p.1, p.2, p.3, p.max),
@@ -169,13 +183,36 @@ plotSpatialOneBNEParameter <- function(
       direction = -1, option = 'magma',
       breaks = c(0, p.1, p.2, p.3, p.max),
       limits = c(0, p.max))
+    aqsCol <- 'steelblue4'
     
-    }  else if (parameterName == 'HighWI'){
+    } else if (parameter == 'HighWI'){
   cbp1 <- c("#E69F00", "#56B4E9", "#009E73",
             "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
-  fillScheme <- ggplot::scale_fill_manual(values=cbp1) 
-  colorScheme <- ggplot::scale_color_manual(values=cbp1) 
-    }
+  fillScheme <- ggplot2::scale_fill_manual(values=cbp1) 
+  colorScheme <- ggplot2::scale_color_manual(values=cbp1) 
+    } else if (p.min > 0 ){
+      fillScheme <- viridis::scale_fill_viridis(
+        direction = -1, option = 'magma',
+        breaks = c(0, p.1, p.2, p.3, p.max),
+        limits = c(0, p.max))
+      colorScheme <- viridis::scale_color_viridis(
+        direction = -1, option = 'magma',
+        breaks = c(0, p.1, p.2, p.3, p.max),
+        limits = c(0, p.max))
+      aqsCol <- 'steelblue4'
+      
+    } else if (p.min < 0 ){
+      fillScheme <- ggplot2::scale_fill_gradient2(
+        low = "red", mid = "white",high = "blue", midpoint = 0, 
+        breaks = c(p.min, p.1, 0, p.2, p.max),
+        limits = c(p.min, p.max)) 
+      colorScheme <- ggplot2::scale_color_gradient2(
+        low = "red", mid = "white", high = "blue", midpoint = 0, 
+        breaks = c(p.min, p.1, 0, p.2, p.max),
+        limits = c(p.min, p.max)) 
+      aqsCol <- 'black'
+      
+    } 
   
   # 2d. set legend position
   if(legYN == 'legY'){legPos <- 'right'}
@@ -189,19 +226,29 @@ plotSpatialOneBNEParameter <- function(
   #### 3. create plot: ####
   #-----------------------#
   
+  if(mainTitle == 'plotTitle'){pTitle <- plotTitle
+  } else {pTitle <- mainTitle}
+  
+  
+  if(is.data.frame(plotAQS)){
+    aqsPoint <- ggplot2::geom_sf(data = plotAQS, fill = aqsCol, color = aqsCol, size = pointSize)
+  } else {aqsPoint <- ggplot2::labs(x='', y='') }
+
+  
   # 3a. create plot object
-  p <- ggplot::ggplot() + 
-    ggplot::geom_sf(fill = NA)  + 
-    ggplot::geom_sf(data = dta, aes(fill= activeVar, color = activeVar), size = 0.9) + 
+  p <- ggplot2::ggplot() + 
+    ggplot2::geom_sf(fill = NA)  + 
+    ggplot2::geom_sf(data = dta, aes(fill= p, color = p), size = pointSize, shape = pointShape) + 
+    aqsPoint + 
     fillScheme + colorScheme +
-    ggplot::guides(fill = guide_colorbar(title = ParameterTitle), 
-           color = guide_colorbar(title = ParameterTitle)) + 
-    ggplot::ggtitle(PlotTitle) + 
-    ggplot::labs(x='', y='') +
-    ggplot::theme(plot.title = element_text(size = plotSize), 
+    ggplot2::guides(fill = guide_colorbar(title = legendTitle), 
+           color = guide_colorbar(title = legendTitle)) + 
+    ggplot2::ggtitle(pTitle) + 
+    ggplot2::labs(x='', y='') +
+    ggplot2::theme(plot.title = element_text(size = plotSize), 
                   plot.margin = unit(c(0, 0, 0, 0), "cm")) + 
-    ggplot::theme_void() + 
-    ggplot:: theme(legend.position = legPos, 
+    ggplot2::theme_void() + 
+    ggplot2:: theme(legend.position = legPos, 
           legend.title  = element_text(size = 15)) 
   
   # 3b. return plot

@@ -177,3 +177,13 @@ refGrid %>%
   fst::write_fst(here::here('data_ancillary', 'generated',  
                             'refGrid_0125Deg_Centroids.fst'))
 
+# confirm that it looks good. 
+refGrid <-
+  fst::read_fst(here::here('data_ancillary', 'generated',  
+                            'refGrid_0125Deg_Centroids.fst'))
+# 3d. transform geographical coordinates to Lambert Azimuth Equal Area Projection
+refGrid <- refGrid %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs=st_crs("epsg:4326")) %>% 
+  sf::st_transform(crs=st_crs(projString))
+
+plot(refGrid)

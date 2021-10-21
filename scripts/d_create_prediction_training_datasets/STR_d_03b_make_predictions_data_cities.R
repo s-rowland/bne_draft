@@ -63,7 +63,7 @@ for (i in 1:length(YYYYlist)){
   
   refGrid <- readr::read_csv(here::here('BNE_inputs', 'prediction_datasets',  
                                       'JSrefGrid', 
-                                      paste0('js_refGridPremade_', YYYYlist[i], '.csv'))) %>% 
+                                      paste0('js_cities_', YYYYlist[i], '.csv'))) %>% 
     rename(obs_pm2_5 = js_pred)
                                       
   # 2A.a. add the year to the refGrid
@@ -130,13 +130,13 @@ for (i in 1:length(YYYYlist)){
     mutate(time = YYYYlist[i]) %>%
     dplyr::select(lat, lon, time, av_pred, gs_pred, cmaq_outs_pred, js_pred, caces_pred, ref_id) %>%
     readr::write_csv(here::here('BNE_inputs', 'prediction_datasets', 'individual_annual', 
-                                paste0('predictions_avgscmjscc_', YYYYlist[i], '_all.csv')))
+                                paste0('predictions_avgscmjscc_', YYYYlist[i], '_cities.csv')))
   
   # 2C.b. save number of observations 
   # we use the number of observations when we use trained BNE to generate predictions
   data.frame(num_point = nrow(refGrid.yyyy)) %>% 
     readr::write_csv(here::here('BNE_inputs', 'prediction_datasets', 'individual_annual', 
-                                paste0('predCount_avgscmjscc_', YYYYlist[i], '_all.csv')))
+                                paste0('predCount_avgscmjscc_', YYYYlist[i], '_cities.csv')))
 
 }
 

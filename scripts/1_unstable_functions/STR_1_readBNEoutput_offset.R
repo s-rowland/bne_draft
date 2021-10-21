@@ -22,35 +22,30 @@
 #' @export
 #' @importFrom magrittr %>%
 
-readBNEoutput_testFold <- function(YYYY, inputSet, kernel_sp, activeFold){
+readBNEoutput_offset <- function(YYYY, inputSet, kernel_sp, fold, offset){
   
   #--------------------#
   #### 1. load PPD: ####
   #--------------------#
   
   # 1a set the names of the columns 
-  ColNames <- c('lon', 'lat',paste0('w_mean', '_', inputSet),
+  ColNames <- c('lat', 'lon',paste0('w_mean', '_', inputSet),
                 paste0('w_sd', '_', inputSet), 'bias_mean', 'bias_sd', 
-                'pred_mean', 'pred_sd', 'pred_95CIl', 'pred_95CIu', 
+                'pred_mean', 'pred_sd', 'pred_95CIl', 'pred_95CIu',  
                 'pred_min', 'pred_max', 'pred_median')
   
   # 1b create the runID that uniquely identifies this BNE run 
-  runID <- paste0(paste(inputSet, collapse = ''), '_', kernel_sp, '_', YYYY,   '_', activeFold)
+  runID <- paste0(paste(inputSet, collapse = ''), '_', kernel_sp, '_', YYYY,  '_', fold)
   
   # 1c read the BNE output 
-  BNEoutput <- readr::read_csv(here::here('BNE_outputs', 'individual_annual',
+  if(offset == 'noOffset'){
+    dir.outputs <- 'individual_annual_noOffset'
+    } else { dir.outputs <- 'individual_annual'}
+  BNEoutput <- readr::read_csv(here::here('BNE_outputs', dir.outputs,
                                    paste0('BNE_', runID, '.csv')), 
                         col_names = ColNames) %>%
     mutate(run_id = runID)
   
-  
-  groundTruth <- readr::read_csv(here::here('BNE_inputs', 'prediction_datasets', 'individual_annual',
-                                            paste0('predictions_avgscmjscc_', YYYY,  '_', activeFold, '.csv'))) %>% 
-    dplyr::select(obs_pm2_5, region) %>% 
-    rename(aqs = obs_pm2_5)
-  
-  # 1c. combine
-  BNEoutput <- bind_cols(groundTruth, BNEoutput)
   # 1d return that dataframe of BNE output 
   return(BNEoutput)
 }

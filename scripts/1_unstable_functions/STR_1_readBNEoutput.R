@@ -22,25 +22,37 @@
 #' @export
 #' @importFrom magrittr %>%
 
-readBNEoutput <- function(YYYY, inputSet, kernel_sp, fold){
+readBNEoutput <- function(spT = 'spatial', 
+                          YYYY = 2010, 
+                          inputSet = c('av', 'gs', 'cm', 'js', 'cc'), 
+                          lenScaleSpace = 3.5, 
+                          lenScaleTime = 'spatialOnly',
+                          fold = 'all'){
+  
+  # exmaple values 
+  #spT = 'spatial'; YYYY = 2010; inputSet = c('av', 'gs', 'cm', 'js', 'cc') 
+  #lenScaleSpace = 3.5; lenScaleTime = '0.008'; fold = 'fold01'
   
   #--------------------#
   #### 1. load PPD: ####
   #--------------------#
   
   # 1a set the names of the columns 
-  ColNames <- c('lon', 'lat',paste0('w_mean', '_', inputSet),
+  ColNames <- c('lat', 'lon', paste0('w_mean', '_', inputSet),
                 paste0('w_sd', '_', inputSet), 'bias_mean', 'bias_sd', 
                 'pred_mean', 'pred_sd', 'pred_95CIl', 'pred_95CIu',  
-                'pred_min', 'pred_max', 'pred_median')
+                'pred_min', 'pred_max', 'pred_median', 'pred_skew', 'pred_kurtosis')
   
   # 1b create the runID that uniquely identifies this BNE run 
-  runID <- paste0(paste(inputSet, collapse = ''), '_', kernel_sp, '_', YYYY,   '_', fold)
+  if(spT == 'spatial') {parameterString <- paste0(lenScaleSpace)}
+  if(spT == 'spatiotemp') {parameterString <- paste0(lenScaleSpace, '_', lenScaleTime)}
+  runID <- paste0(paste(inputSet, collapse = ''), '_', parameterString, '_', YYYY, '_', fold)
   
   # 1c read the BNE output 
-  BNEoutput <- readr::read_csv(here::here('BNE_outputs', 'individual_annual',
+  BNEoutput <- readr::read_csv(here::here('BNE_outputs', 
+                                          paste0(spT, '_annual'),
                                    paste0('BNE_', runID, '.csv')), 
-                        col_names = ColNames) %>%
+                        col_names = ColNames, skip = 1) %>%
     mutate(run_id = runID)
   
   # 1d return that dataframe of BNE output 

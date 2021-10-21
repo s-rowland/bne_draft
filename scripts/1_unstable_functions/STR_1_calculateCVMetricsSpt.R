@@ -18,14 +18,18 @@
 #' @importFrom magrittr %>%
 
 
-calculateCVMetrics_lambda0 <- function(inputSet, kernel_sp, offset, region, season){
+calculateCVMetricsSpt <- function(inputSet = c('av', 'gs', 'cm', 'js', 'cc'), 
+                                  lenScaleSpace = 3.5, 
+                                  lenScaleTime = 'spatialOnly', 
+                                  region =  'all', 
+                                  season = 'all'){
   
   #--------------------------#
   #### 0. example values: ####
   #--------------------------#
   
-  #  inputSet <- c('av', 'gs', 'cm', 'js', 'cc')
-  # kernel_sp <- 3.5; region <- 4; season <- 'all'
+  # inputSet = c('av', 'gs', 'cm', 'js', 'cc'); lenScaleSpace = 3.5
+  # lenScaleTime = 0.008; region =  'all'; season = 'all'
   
   #---------------------------#
   #### 1. combine metrics: ####
@@ -35,20 +39,27 @@ calculateCVMetrics_lambda0 <- function(inputSet, kernel_sp, offset, region, seas
   inputSetList <- list(inputSet, inputSet, inputSet, inputSet, inputSet, inputSet)
   foldList <- c(paste0('fold', str_pad(1:10, 2, 'left', '0')))
    
-  bneOut <- pmap(list(rep(2010:2015, 10), 
+  bneOut <- pmap(list(rep(rep('spatiotemp',6), 10),
+                      rep(2010:2015, 10), 
                       rep(inputSetList, 10), 
-                      rep(rep(kernel_sp, 6), 10),
-                      sort(rep(foldList, 6)), 
-                      rep(rep(lambda0, 6), 10)), 
+                      rep(rep(lenScaleSpace, 6), 10),
+                      rep(rep(lenScaleTime, 6), 10),
+                      sort(rep(foldList, 6))), 
                  readBNEoutput) 
-  bneOut <- pmap(
-    
-  ) %>%
+  bneOut <- pmap(list(bneOut, 
+                      rep(2010:2015, 10),
+                      sort(rep(foldList, 6))), 
+                 addGroundTruth) %>%
     bind_rows() 
   
   # 1b. add column for year 
-  bneOut <- bneOut %>% 
-    tidyr::separate(run_id, c('inputSet', 'kernel_sp', 'year', 'fold'), sep = '_')
+ if (lenScaleTime == 'spatialOnly'){
+   bneOut <- bneOut %>% 
+     tidyr::separate(run_id, c('inputSet', 'len_scale_sp', 'year', 'fold'), sep = '_')
+ } else {
+   bneOut <- bneOut %>% 
+     tidyr::separate(run_id, c('inputSet', 'len_scale_sp', 'len_scale_t', 'year', 'fold'), sep = '_')
+ }
   
   #--------------------------------------#
   #### 2. isolate points of interest: ####
@@ -99,7 +110,8 @@ calculateCVMetrics_lambda0 <- function(inputSet, kernel_sp, offset, region, seas
   coverage <- mean(bneOut$coverage)
   
   # 3h. combine metrics into table 
-  metrics <- list(region = region, season = season, 
+  metrics <- data.frame(len_scale_sp = len_scale_sp, len_scale_t = len_scale_t,
+    region = region, season = season, 
                   ME = round(ME, 2), MAE = round(MAE, 2), RMSE = round(RMSE, 2), 
                   Rsq = round(Rsq, 2), coverage = round(coverage, 2), 
                   corr = round(corr, 2), slope = round(slope, 2))

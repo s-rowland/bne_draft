@@ -64,6 +64,10 @@ for (i in 1:length(YYYYlist)){
   refGrid <- readr::read_csv(here::here('BNE_inputs','training_datasets', "EPA-JS_training_data", 
                                         paste0("epa-js_", YYYYlist[i], ".csv"))) 
                                       
+  # dirty: remove the virgin island monitor 
+  refGrid <- refGrid %>% 
+    filter(lat > 18)
+  
   # 2A.a. add the year to the refGrid
   refGrid.yyyy <- refGrid %>% 
     dplyr::select(-js_pred) %>%
@@ -125,6 +129,7 @@ for (i in 1:length(YYYYlist)){
   
   # 2C.a. save results
   refGrid.yyyy %>% 
+    dplyr::select(lat, lon, year, obs_pm2_5, av_pred, gs_pred, cmaq_outs_pred, js_pred, caces_pred, ref_id ) %>% 
     readr::write_csv(here::here('BNE_inputs', 'training_datasets', 'individual_annual', 
                                 paste0('training_avgscmjscc_', YYYYlist[i], '_all.csv')))
 }
