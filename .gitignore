@@ -49,6 +49,9 @@ BNE_outputs/*
 BNE_plots/*
 data_ancillary/*
 externalValidation_data/*
+inputs/*
+outputs/*
+other_outputs/*
 
 # Researcher-specific projects
 examine_MERRA/*
