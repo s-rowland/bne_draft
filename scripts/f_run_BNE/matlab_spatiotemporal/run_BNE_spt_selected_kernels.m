@@ -1,0 +1,15 @@
+%[W] = train_predict_BNE_spt('avgscmjscc',0.1, 0.01, 'cities')
+%[W] = train_predict_BNE_spt('avgscmjscc',0.5, 0.1, 'cities')
+%[W] = train_predict_BNE_spt('avgscmjscc',1, 0.01, 'cities')
+[W] = train_predict_BNE_spt('avgscmjscc',2.5, 0.01, 'all')
+[W] = train_predict_BNE_spt('avgscmjscc',2.5, 0.1, 'all')
+%[W] = train_predict_BNE_spt2('avgscmjscc',1, 0.01, 1, 0.01, 'cities')
+
+
+%[W] = train_predict_BNE_sp('2013', 'avgscmjscc',2.5, 'NYS')
+%[W] = train_predict_BNE_sp('2010', 'avgscmjscc',2.5, 'all')
+%[W] = train_predict_BNE_sp('2011', 'avgscmjscc',2.5, 'all')
+%[W] = train_predict_BNE_sp('2012', 'avgscmjscc',2.5, 'all')
+%[W] = train_predict_BNE_sp('2014', 'avgscmjscc',2.5, 'all')
+%[W] = train_predict_BNE_sp('2015', 'avgscmjscc',2.5, 'all')
+%[W] = train_predict_BNE_spt('avgscmjscc',0.1, 01, 'all')

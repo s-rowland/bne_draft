@@ -72,7 +72,7 @@ w0 = zeros(num_rand_feat,1);
 % 1e create the random features
 % 1e.i intermediate step for spatial 
 Z = randn(num_rand_feat,dimX);
-% 1e.i intermediate step for spatial 
+% 1e.i intermediate step for time 
 Zt = randn(num_rand_feat,1);
 % 1e.ii intermediate step - the 'key' to translating between latlon & RFF
 % not exactly
@@ -83,8 +83,8 @@ piZ = 2*pi*rand(num_rand_feat,1);
 % and lambda0 relates to the prior of the offset 
 % the lambdas act as penalties
 noise = var(y)/8; %% Set SNR to 8. This can be changed.
-lambda = .1;
-lambda0 = .1;
+lambda = .0005;
+lambda0 = .0005;
 
 % 1g Number of data points to randomly sample per model parameter update
 % this line is not in the spatial model

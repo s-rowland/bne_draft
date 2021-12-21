@@ -30,7 +30,7 @@ function [W] = train_predict_BNE_spt(inputset,len_scale_space,len_scale_time, fo
 %%%% ------------ %%%%
 
 % 1a additional features that are consistent across model runs
-num_rand_feat = 500;
+num_rand_feat = 1000;
 %num_models = 5;
 
 % 1b bring in training data
@@ -77,7 +77,7 @@ num_models = size(trainPreds,2);
 % offset term 
 muW = [W(:) ; w0];
 % 2b set the number of samples that we will take 
-num_samp = 250;
+num_samp = 500;
 % 2c take the samples. we generate random numbers based on gaussian
 % distributions, where the means are the mean values and the variances are 
 % stored in SigW, which we calculate in the second half of the BNE function
@@ -111,6 +111,8 @@ for time =  1:6 %temp:30:temp+365
     y_std = zeros(size(X,1),1);
     y_95CIl = zeros(size(X,1),1);
     y_95CIu = zeros(size(X,1),1);
+    y_68CIl = zeros(size(X,1),1);
+    y_68CIu = zeros(size(X,1),1);
     y_min = zeros(size(X,1),1);
     y_max = zeros(size(X,1),1);
     y_median = zeros(size(X,1),1);
@@ -135,6 +137,8 @@ for time =  1:6 %temp:30:temp+365
         y_std(i) = std(y);
         y_95CIl(i) = quantile(y, 0.025);
         y_95CIu(i) = quantile(y, 0.975);
+        y_68CIl(i) = quantile(y, 0.16);
+        y_68CIu(i) = quantile(y, 0.84);
         y_min(i) = min(y);
         y_max(i) = max(y);
         y_median(i) = median(y);
@@ -154,6 +158,7 @@ for time =  1:6 %temp:30:temp+365
         array2table(bias_mean), array2table(bias_std), ...
         array2table(y_mean), array2table(y_std), ...
         array2table(y_95CIl), array2table(y_95CIu), ...
+        array2table(y_68CIl), array2table(y_68CIu), ...
         array2table(y_min), array2table(y_max), ...
         array2table(y_median), array2table(y_skew), array2table(y_kurtosis)];
 

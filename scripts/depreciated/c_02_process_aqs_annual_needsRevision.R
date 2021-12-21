@@ -19,7 +19,7 @@
 # 0a Load package required for this script
 if(!exists("Ran_a_00")){
   here::i_am("README.rtf")
-  source(here::here('scripts', 'a_set_up', "a_00_setUp_env.R"))
+  source(here::here('scripts', 'a_set_up', "a_00_set_up_env.R"))
 }
 
 ####********************
@@ -27,7 +27,7 @@ if(!exists("Ran_a_00")){
 ####********************
 
 # 1a Read the aqs data 
-dta <- read_csv(here::here('data_ground_truth', 'raw', 
+dta <- read_csv(here::here('BNE_inputs', 'ground_truth', 'raw', 
                            'daily_88101_2010.csv'))
  
 # 1b Clean up the names 
@@ -39,9 +39,16 @@ dta <- dta %>%
 #### 2: Curate Monitors ####
 ####************************
 
+FL <- dta %>% filter(state_code == 12)
+
+FL <- FL %>% st_as_sf(coords = c('lat', 'lon'))
+plot(FL)
+
 # 2a Keep only those with observation percent greater than or equal to 75% 
 dta <- dta %>% 
   filter(observation_percent >= 75)
+
+
 
 # 2b Keep only those with a 24-hr sample duration 
 dta <- dta %>% 
@@ -77,13 +84,15 @@ dta <- dta %>%
   mutate(lon = str_sub(lon, 3), 
          lat = str_sub(lat, 0, -2))
 
-
 # 2c Keep only variables of interest 
 dta <- dta %>% 
   dplyr::select(lat, lon, aqs, time, site_num)
 
-a <- dta %>% dplyr::select(lat, lon, site_num) %>% distinct() %>% 
-  group_by(site_num) %>% summarize(count = n())
+a <- dta %>% 
+  dplyr::select(lat, lon, site_num) %>% 
+  distinct() %>% 
+  group_by(site_num) %>% 
+  summarize(count = n())
 
 # what does Lawrence do if there are two observations per site?
 # 2e Save results

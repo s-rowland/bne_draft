@@ -1,4 +1,4 @@
-function [W] = train_predict_BNE_t_noOffset(YYYY,inputset,len_scale, fold)
+function [W] = train_predict_BNE_sp_noOffset(YYYY,inputset,len_scale, fold)
 % % 
 % % === Inputs ===
 % % 
@@ -53,7 +53,7 @@ trainPred = training{:,5:9};
 % note also since this is a maximum a posteriori model, not MCMC or VI, we
 % get the best-fit values and not whole distributions. Distributions are
 % estimated in the prediction phase
-[W,w0,SigW,Z,piZ] = BNE_t_noOffset(trainAqs, trainLatlon, trainPred, num_rand_feat, len_scale)
+[W,w0,SigW,Z,piZ] = BNE_sp_noOffset(trainAqs, trainLatlon, trainPred, num_rand_feat, len_scale)
 
 %%%% -------------------------- %%%%
 %%%% 2: Prepare for Predictions %%%%
@@ -190,5 +190,5 @@ fclose(fid);
 results = [X, softmax_mean, softmax_std,bias_mean, bias_std, y_mean, y_std, y_95CIl, y_95CIu, y_min, y_max, y_median];
 
 % 4b save as csv
-writematrix(results, append('BNE_outputs/temp_annual_noOffset/BNE_',...
+writematrix(results, append('BNE_outputs/spatial_annual_noOffset/BNE_',...
     inputset, '_', string(len_scale),'_', YYYY, '_', fold, '.csv'))

@@ -48,10 +48,10 @@ aggregate_cmqout <- function(YYYY){
     janitor::clean_names()
   
   # 1b. rename the variables according to the year
-  if (YYYY != 2015){
+  if (YYYY < 2015){
     cmq <- cmq %>% 
       dplyr::rename(lat = latitude, lon = longitude, pred = pm25_daily_average_ug_m3) 
-  } else if (YYYY == 2015) {
+  } else if (YYYY >= 2015) {
     cmq <- cmq %>% 
       dplyr::rename(lat = latitude, lon = longitude, pred = prediction)
   }

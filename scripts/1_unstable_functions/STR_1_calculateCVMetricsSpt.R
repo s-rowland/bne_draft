@@ -19,36 +19,40 @@
 
 
 calculateCVMetricsSpt <- function(inputSet = c('av', 'gs', 'cm', 'js', 'cc'), 
-                                  lenScaleSpace = 3.5, 
+                                  lenScaleSpace = 1.5, 
                                   lenScaleTime = 'spatialOnly', 
                                   region =  'all', 
-                                  season = 'all'){
+                                  season = 'all', 
+                                  yearRange = 2010:2016){
   
   #--------------------------#
   #### 0. example values: ####
   #--------------------------#
   
+  #inputSet <- c('av', 'gs', 'cm', 'js', 'cc', 'me')
   # inputSet = c('av', 'gs', 'cm', 'js', 'cc'); lenScaleSpace = 3.5
-  # lenScaleTime = 0.008; region =  'all'; season = 'all'
+  # lenScaleTime =1; region =  'all'; season = 'all'
   
   #---------------------------#
   #### 1. combine metrics: ####
   #---------------------------#
   
   # 1a. Read the bne outputs, combined with ground truth
-  inputSetList <- list(inputSet, inputSet, inputSet, inputSet, inputSet, inputSet)
+  #inputSetList <- list(inputSet, inputSet, inputSet, inputSet, inputSet, inputSet)
+  
+   #rep(list(inputSet), 6)
+  
   foldList <- c(paste0('fold', str_pad(1:10, 2, 'left', '0')))
    
-  bneOut <- pmap(list(rep(rep('spatiotemp',6), 10),
-                      rep(2010:2015, 10), 
-                      rep(inputSetList, 10), 
-                      rep(rep(lenScaleSpace, 6), 10),
-                      rep(rep(lenScaleTime, 6), 10),
-                      sort(rep(foldList, 6))), 
+  bneOut <- pmap(list(rep(yearRange, 10), 
+                      list(inputSet), 
+                      rep(rep(lenScaleSpace, length(yearRange)), 10),
+                      rep(rep(lenScaleTime, length(yearRange)), 10),
+                      sort(rep(foldList, length(yearRange)))), 
                  readBNEoutput) 
   bneOut <- pmap(list(bneOut, 
-                      rep(2010:2015, 10),
-                      sort(rep(foldList, 6))), 
+                      rep(yearRange),
+                      sort(rep(foldList, length(yearRange)))), 
                  addGroundTruth) %>%
     bind_rows() 
   
@@ -110,11 +114,11 @@ calculateCVMetricsSpt <- function(inputSet = c('av', 'gs', 'cm', 'js', 'cc'),
   coverage <- mean(bneOut$coverage)
   
   # 3h. combine metrics into table 
-  metrics <- data.frame(len_scale_sp = len_scale_sp, len_scale_t = len_scale_t,
+  metrics <- data.frame(len_scale_sp = lenScaleSpace, len_scale_t = lenScaleTime,
     region = region, season = season, 
-                  ME = round(ME, 2), MAE = round(MAE, 2), RMSE = round(RMSE, 2), 
-                  Rsq = round(Rsq, 2), coverage = round(coverage, 2), 
-                  corr = round(corr, 2), slope = round(slope, 2))
+    Rsq = round(Rsq, 4), coverage = round(coverage, 4), 
+    RMSE = round(RMSE, 2), MAE = round(MAE, 2), slope = round(slope, 2), 
+    ME = round(ME, 2), corr = round(corr, 2))
   
   # 3g. return Metrics 
   return(metrics)

@@ -132,64 +132,89 @@ once you put them back together.
 # Conventions for Sharing Resources
 
 ## Folder Structure 
-    + Readme file
-    + Literature
-    + Data Tracker
-        + Spreadsheet of models, relevant references and contacts 
-        + literature references for each input model, ground truth, and external validation datasets
-    + BNE_inputs 
-      + input_models 
-          + raw
-              + Descriptions of Data Sources 
-              + [Input Model Name]_daily_raw
-              + [Input Model Name]_annual_raw
-          + formatted
-              + [Input Model Name]_daily_formatted
-              + [Input Model Name]_annual_formatted
-          + combined
-              + InputModels_daily_combined
-              + InputModels_annual_combined
-      + ground_truth
-          + raw
-              + Descriptions of Data Sources 
-              + [Input Model Name]_daily_raw
-              + [Input Model Name]_annual_raw
-          + formatted
-              + [Input Model Name]_daily_formatted
-              + [Input Model Name]_annual_formatted
-      + training_data 
-          + Combined
-      + reference_grid 
-          + Combined
-    + external_validation_data 
-        + raw
-            + Descriptions of Data Sources 
-            + [EVl Name]_daily_raw
-            + [EV Name]_annual_raw
-        + formatted
-            + [EV Name]_daily_formatted
-            + [EV Name]_annual_formatted
-    +BNE_outputs
-        + name of the run 
-        + log files describing the run 
-    +ancillary_data
-    +scripts 
-        0) functions
-        1) unstable_functions
-        a) set_up 
-        b) format_input_models 
-        c) format_ground_truth 
-        d) format_training_data
-        e) format_external_validation_data 
-        f) run_BNE 
-        g) summarize_BNE_outputs
-        h) perform_cross_validation 
-        i) perform_external_validation
-        j) create_documentation
-    + Researcher-Specific Folders
-        i) Project-Specific Scripts 
-        ii) Project-Specific Data 
-        iii) Project-Specific Outputs
+* Readme file
+* Literature
+* Data Tracker
+    * Spreadsheet of models, relevant references and contacts 
+    * literature references for each input model, ground truth, and external validation datasets
+* inputs 
+    * pollutant (pm25, o3, nox)
+        * base_models 
+            * annual
+                * model
+                    * metadata
+                    * data files
+            * daily
+                * model
+                    * metadata
+                    * data files
+        * ground_truth
+            * raw
+                * annual
+                    * metadata
+                    * data files
+                * daily
+                    * metadata
+                    * data files
+            * formatted
+                * annual
+                    * data files
+                * daily
+                    * data files
+       * keys
+          * data files
+       * reference_grids
+          * data files
+       * training_datasets
+          * annual 
+              * data file (one file with all time steps)
+              * data file with a column for leave-out folds
+          * daily
+              * data file (one file with all time steps)
+              * data file with a column for leave-out folds
+       * prediction_datasets
+          * annual
+              * data files (one per time step)
+          * daily
+              * data files (one per time step)
+
+    * outputs
+        * pollutant (pm25, o3, nox)
+            * daily
+                * results of run (name describes model features) 
+                * log files describing the run 
+            * annual
+                * results of run (name describes model features) 
+                * log files describing the run 
+* external_validation_data 
+    * raw
+        * Descriptions of Data Sources 
+        * [EVl Name]_daily_raw
+        * [EV Name]_annual_raw
+    * formatted
+        * [EV Name]_daily_formatted
+        * [EV Name]_annual_formatted
+* ancillary_data
+* scripts 
+    0) functions
+    1) unstable_functions
+    a) set_up 
+    b) format_input_models 
+    c) format_ground_truth 
+    d) format_training_data
+    e) format_external_validation_data 
+    f) run_BNE 
+    g) summarize_BNE_outputs
+    h) perform_cross_validation 
+    i) perform_external_validation
+    j) create_documentation
+    k) depreciated 
+        * former_code
+        * internal_workflow
+* Researcher-Specific Folders
+    i) Project-Specific Scripts 
+    ii) Project-Specific Data 
+    iii) Project-Specific Outputs
 
 ## Projection for CONUS Application 
 * For the CONUS application we will use the US National Atlas Equal Area projection. 

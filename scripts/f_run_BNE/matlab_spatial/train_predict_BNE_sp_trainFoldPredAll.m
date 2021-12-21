@@ -1,4 +1,4 @@
-function [W] = train_predict_BNE_t(YYYY, inputset,len_scale, fold)
+function [W] = train_predict_BNE_sp_trainFoldPredAll(YYYY, inputset,len_scale, fold)
 % % 
 % % === Inputs ===
 % % 
@@ -54,7 +54,7 @@ trainPred = training{:,5:9};
 % note also since this is a maximum a posteriori model, not MCMC or VI, we
 % get the best-fit values and not whole distributions. Distributions are
 % estimated in the prediction phase
-[W,w0,SigW,Z,piZ] = BNE_t(trainAqs, trainLatlon, trainPred, num_rand_feat, len_scale)
+[W,w0,SigW,Z,piZ] = BNE_sp(trainAqs, trainLatlon, trainPred, num_rand_feat, len_scale)
 
 %%%% -------------------------- %%%%
 %%%% 2: Prepare for Predictions %%%%
@@ -62,14 +62,14 @@ trainPred = training{:,5:9};
 
 % 2a create an id for reading in data line by line.
 fid = fopen(append('BNE_inputs/prediction_datasets/individual_annual/predictions_', ...
-     inputset, '_', YYYY, '_', fold, '.csv'),'r');
+     inputset, '_', YYYY, '_', 'all', '.csv'),'r');
  
 % 2b makes an object we can use from the fid
 line = str2num(fgetl(fid));
 
 % 2c get the number of observations in the prediction dataset
 predCount = readtable(append('BNE_inputs/prediction_datasets/individual_annual/predCount_',...
-     inputset, '_', YYYY, '_', fold, '.csv'));
+     inputset, '_', YYYY, '_', 'all', '.csv'));
 
 % 2d set seed 
 rng(20);
@@ -198,5 +198,5 @@ results = [X, softmax_mean, softmax_std,bias_mean, bias_std, y_mean, y_std, ...
 %lambda0txt = num2str(lambda0)
 
 % 4b save as csv
-writematrix(results, append('BNE_outputs/temp_annual/BNE_',...
-    inputset, '_', string(len_scale),'_', YYYY, '_', fold, '.csv'))
+writematrix(results, append('BNE_outputs/spatial_annual/BNE_',...
+    inputset, '_', string(len_scale),'_', YYYY, '_', fold, '_allPred.csv'))

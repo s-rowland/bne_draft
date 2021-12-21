@@ -1,4 +1,4 @@
-function [W,w0,SigW,Z,piZ] = BNE_t_original(y,X,models,num_rand_feat,len_scale)
+function [W,w0,SigW,Z,piZ] = BNE_sp(y,X,models,num_rand_feat,len_scale, resid)
 % % 
 % % === Inputs ===
 % % 
@@ -21,50 +21,133 @@ function [W,w0,SigW,Z,piZ] = BNE_t_original(y,X,models,num_rand_feat,len_scale)
 % %     Z & piZ : The random variables used to calculate the random
 % %                features (Phi in code). Need to use the same ones for prediction.
 
+%%%% ------------------------------ %%%%
+%%%% 0: Set Up Objects for Test Run %%%%
+%%%% ------------------------------ %%%%
+
+% Set some initial parameteres
+% YYYY = '2015';
+% inputset = 'avgscmjscc';
+% len_scale = 0.5';
+% fold = 'all';
+% resid = 'resid'
+% read data
+% training = readtable(append('BNE_inputs/training_datasets/individual_annual/training_', 'avgscmjscc_', YYYY, '_', fold, '.csv'));
+% break up training data into its components 
+% third column is year 
+% y = training{:,4};
+% X = training{:,1:2};
+% models = training{:,5:9};
+% num_rand_feat = 500;
+
+%%%% --------- %%%%
+%%%% Begin BNE %%%%
+%%%% --------- %%%%
+
+%%%% ------------------------- %%%%
+%%%% 1: Create Initial Objects %%%%
+%%%% ------------------------- %%%%
+
+% 1a extract the number of training points and the number of input models 
 [num_obs,num_models] = size(models);
+
+% 1b number of space dimensions
 dimX = size(X,2);
 
+% 1c an all-zero matrix that will be filled with weights 
+% dimensions are 500 rows(one per random feature) and 
+% 5 columns (one per input model) 
+% remember, with this random features approach, each point in spacetime has
+% a particular value for each of the 500 features (sorta similar to natural
+% spline). 
 W = zeros(num_rand_feat,num_models);
+
+% 1d an all-zero vector for the offset term 
 w0 = zeros(num_rand_feat,1);
 
+% 1e create the random features
+% 1e.i intermediate step
 Z = randn(num_rand_feat,dimX);
+% 1e.ii intermediate step - the 'key' to translating between latlon & RFF
 piZ = 2*pi*rand(num_rand_feat,1);
-
+% 1e.iii locations of training points expressed as the random features
 Phi = sqrt(2/num_rand_feat)*cos(Z*X'/len_scale + piZ*ones(1,num_obs));
 
+% 1f set three hyperparameters. 
+% lambda relates to the prior of the weights
+% and lambda0 relates to the prior of the offset 
+% the lambdas act as penalties
 noise = var(y)/8; %% Set SNR to 8. This can be changed.
 lambda = .1;
 lambda0 = .1;
 
-% %  === OPTIMIZE W AND w0 ===
-for iter = 1:1000
+%%%% -------------------- %%%%
+%%%% 2: OPTIMIZE W AND w0 %%%%
+%%%% -------------------- %%%%
+
+for iter = 1:5000
+    
+    % determine the size of the steps we will take in the direction of the
+    % gradient 
     step_size = .1/sqrt(num_obs);
     
+    % inner loop
     for step = 1:5
+        % 2b calculate log of weight of each model, at each training point
         dotWPhi = W'*Phi;
+        % 2c exponentiate to get weight
         softmax = exp(dotWPhi);
+        % 2d constrain the weights to be between 0 and 1
         softmax = softmax./repmat(sum(softmax,1),num_models,1);
+        % 2e weighted average of models- 'base ensemble'
         model_avg = sum(softmax.*models',1);
+        % 2f calculate bias term
         bias = w0'*Phi;
+        % 2g error with current parameters
         error = y' - model_avg - bias;
+        % 2h determine gradient (direction to step towards to reduce error)
         grad = Phi*((1/noise)*repmat(error,num_models,1).*(models' - repmat(model_avg,num_models,1)).*softmax)' - lambda*W;
+        % 2g take a step in the direction of the gradient
         W = W + step_size*grad;
     end
+    
+    % now we update the offset, after tuning the others for a bit
+    % 3a calculate log of weight of each model, at each training point
     dotWPhi = W'*Phi;
+    % 3b exponentiate to get weight
     softmax = exp(dotWPhi);
+    % 3c constrain the weights to be between 0 and 1
     softmax = softmax./repmat(sum(softmax,1),num_models,1);
+    % 3d weighted average of models- 'base ensemble'
     model_avg = sum(softmax.*models',1);
+    % 3e difference of 'base ensemble' and obs
     residual = y - model_avg';
-    w0 = inv(lambda0*noise*eye(num_rand_feat) + Phi*Phi')*(Phi*residual);
+    % 3f offset term
+    % start with the last term 
+    % we translate the residuals from latlon to the 500 RFF 
+    % then we add up the amount of residual for each feature with the
+    % matrix multiplication 
+    % the inversion and the lambda0*noise is about penalizing the offset
+    switch resid
+        case 'resid' 
+            w0 = inv(lambda0*noise*eye(num_rand_feat) + Phi*Phi')*(Phi*residual);
+        case 'noResid'
+            w0 = zeros(num_rand_feat,1);
+    end 
+    %end
+    % 3g error (but we don't use it) 
+    % do we update the noise?
     error = y' - model_avg - bias;
-%     if iter > 100
-%         noise = mean(error(:).^2);
-%     end
+
+    %if iter > 100
+     %    noise = mean(error(:).^2);
+     %end
     display(['Iteration ' num2str(iter) ' ::: MSE ' num2str(mean(error(:).^2))]);
 end
 
 
 % % === CALCULATE THE COVARIANCE ===
+% this is used to generate the samples in the prediction step
 
 bool_global_cov = 1;
 dotWPhi = W'*Phi;

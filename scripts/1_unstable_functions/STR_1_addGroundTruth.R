@@ -24,6 +24,8 @@
 
 addGroundTruth <- function(bneOut, YYYY, activeFold){
   
+  #bneOut <- readBNEoutput(2010, c('av', 'gs', 'cm', 'js', 'cc'), 3.5, 1, 'fold01')
+  # YYYY <- 2010; activeFold <- 'fold01'
   #--------------------#
   #### 1. load PPD: ####
   #--------------------#

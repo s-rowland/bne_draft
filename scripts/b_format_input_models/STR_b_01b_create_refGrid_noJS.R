@@ -98,6 +98,9 @@ rm(list = rmList)
 conus <- sf::st_read(here::here('data_ancillary', 'formatted', 'spatial_outlines', 
                             'conus.shp'))
 
+#### Fix this so that North Carolina doesn't have  alittle corner
+
+
 # 3b. identify points with extreme lat or lon that might be outside of conus
 dta <- dta %>% 
   dplyr::mutate(lat_extr = if_else(lat < quantile(dta$lat, 0.33)[1] | 

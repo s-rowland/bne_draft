@@ -43,7 +43,8 @@ loadData <- function(path, dataset) {
   
   # 0a. soft-check on the dataset being asked for. 
   datasets <- c("EPA", "CMAQINS", "CMAQOUTS", "AV", "GS", "CACES", "JSSITES", 
-                "JSEPAKEY", "JSREF", "CMAQOUTS_annual", "JS_annual", "AQS_annual")
+                "JSEPAKEY", "JSREF", "CMAQOUTS_annual", "JS_annual", "AQS_annual",
+                'CAMS', 'MERRA_annual', 'MERRA_daily')
   if (!dataset %in% datasets) stop("The dataset specified was not recognized. See documentation.")
 
   #-------------------------#
@@ -184,6 +185,52 @@ loadData <- function(path, dataset) {
       dplyr::rename(pred = pred_wght) %>%
       dplyr::select(lat, lon, fips, year, pred)
 
+  } else if (dataset == "CAMS") {
+    rasterObj <- raster::raster(path)
+    
+    # double check that you grab the right area
+    #ad <- calc(rasterObj, fun=function(x){log(x)})
+    #plot(ad)
+    
+    conusExtent <- raster::extent(365-134.8, 365-66.9, 24.4, 49.5) # CONUS
+    conus <- raster::crop(rasterObj, conusExtent)
+    conus.coords <- raster::coordinates(conus)
+    conus.pm <- raster::extract(conus, conus.coords)
+    capture_date <- stringr::str_split(stringr::str_split(path, "_raw/")[[1]][2], "adj")[[1]][1]
+    
+    d <- tibble::tibble(lon = conus.coords[,"x"], lat = conus.coords[,"y"], pred = conus.pm) %>% 
+      na.omit() %>%
+      dplyr::mutate(year = stringr::str_sub(capture_date, 1, 4)) %>%
+      dplyr::select(lat, lon, year, pred)
+    
+  } else if (dataset == "MERRA_annual") {
+    
+    # read in the raster
+    rasterObj <- raster::raster(path)
+    
+    # split data into conus and alaska components
+    # renamed usa to conus bc alaska is within usa
+    conusExtent <- raster::extent(-124.8, -66.9, 24.4, 49.5) # CONUS
+    alaskaExtent <- raster::extent(-179.2, -129.9, 51.1, 71.5) # ALASKA
+    
+    conus <- raster::crop(rasterObj, conusExtent)
+    alaska <- raster::crop(rasterObj, alaskaExtent)
+    conus.coords <- raster::coordinates(conus)
+    alaska.coords <- raster::coordinates(alaska)
+    conus.pm <- raster::extract(conus, conus.coords)
+    alaska.pm <- raster::extract(alaska, alaska.coords)
+    
+    # extract date from the path name 
+    # renamed date because date is a function in base R 
+    capture_date <- stringr::str_sub(stringr::str_split(path, "adjPM25sum")[[1]][1],-4, -1)
+    
+    # create dataframe with conus and Alaska predictions
+    d <- rbind(tibble::tibble(lon = conus.coords[,"x"], lat = conus.coords[,"y"], pred = conus.pm), 
+               tibble::tibble(lon = alaska.coords[,"x"], lat = alaska.coords[,"y"], pred = alaska.pm)) %>% 
+      na.omit() %>%
+      dplyr::mutate(year = stringr::str_sub(capture_date, 1, 4)) %>%
+      dplyr::select(lat, lon, year, pred)
+    
     # Non- prediction datasets
   } else if (dataset == "JSSITES") {
 

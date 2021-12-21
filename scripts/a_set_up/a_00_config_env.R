@@ -13,11 +13,11 @@
 # 3: Load Functions 
 # 4: Make CONUS Outline
 
-####********************
+##--------------------##
 #### 0: Preparation ####
-####********************
+##--------------------##
 
-# 0a Indicate that the script was run
+# 0a. indicate that the script was run
 # although it is intuitive to run this at the end of the script, 
 # that creates a recursion with the functions
 Ran_a_00 <- "Ran_a_00"
@@ -55,6 +55,7 @@ p_load(tidyverse, lubridate, magrittr, janitor, # tidyverse packages
 #projString <- "epsg:5070"
 #projStringRas <- "+init=epsg:5070"
 projString <- "epsg:2163"
+refCRS<- "epsg:2163"
 #projStringRas <- "+init=epsg:2163"
 
 ####*************************

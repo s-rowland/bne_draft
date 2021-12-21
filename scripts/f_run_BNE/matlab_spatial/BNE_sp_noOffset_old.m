@@ -1,4 +1,4 @@
-function [W,w0,SigW,Z,piZ] = BNE_t_noOffset(y,X,models,num_rand_feat,len_scale)
+function [W,w0,SigW,Z,piZ] = BNE_sp_noOffset(y,X,models,num_rand_feat,len_scale)
 % % 
 % % === Inputs ===
 % % 

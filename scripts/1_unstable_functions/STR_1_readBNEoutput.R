@@ -6,10 +6,10 @@
 
 #' \code{readBNEoutput} loads outputs from a single BNE run, and assigns a 
 #' column with run_id, a unique identifier for that run. For now, we specify run 
-#' based on the year of the run, input models, the kernel_sp, and the folds. 
+#' based on the year of the run, base models, the kernel_sp, and the folds. 
 #' 
 #' @param YYYY An integer giving the year of predictions for the model.
-#' @param inputSet A vector of strings, where each string is the acronym of a model. 
+#' @param baseModelSet A vector of strings, where each string is the acronym of a base model. 
 #' Should be in the order that the models are presented in the training & prediction dataset.
 #' @param kernel_sp An integer giving the size of the spatial kernel of BNE.
 #' @param fold A string determining which data the model was trained on - 'all' 
@@ -22,15 +22,15 @@
 #' @export
 #' @importFrom magrittr %>%
 
-readBNEoutput <- function(spT = 'spatial', 
-                          YYYY = 2010, 
-                          inputSet = c('av', 'gs', 'cm', 'js', 'cc'), 
+readBNEoutput <- function(YYYY = 2010, 
+                          baseModelSet = c('av', 'gs', 'cm', 'js', 'cc'), 
                           lenScaleSpace = 3.5, 
                           lenScaleTime = 'spatialOnly',
-                          fold = 'all'){
+                          fold = 'all', 
+                          residualProcess = 'resid'){
   
   # exmaple values 
-  #spT = 'spatial'; YYYY = 2010; inputSet = c('av', 'gs', 'cm', 'js', 'cc') 
+  #spT = 'spatial'; YYYY = 2010; baseModelSet = c('av', 'gs', 'cm', 'js', 'cc') 
   #lenScaleSpace = 3.5; lenScaleTime = '0.008'; fold = 'fold01'
   
   #--------------------#
@@ -38,21 +38,31 @@ readBNEoutput <- function(spT = 'spatial',
   #--------------------#
   
   # 1a set the names of the columns 
-  ColNames <- c('lat', 'lon', paste0('w_mean', '_', inputSet),
-                paste0('w_sd', '_', inputSet), 'bias_mean', 'bias_sd', 
-                'pred_mean', 'pred_sd', 'pred_95CIl', 'pred_95CIu',  
-                'pred_min', 'pred_max', 'pred_median', 'pred_skew', 'pred_kurtosis')
+  ColNames <- c('lat', 'lon', paste0('w_mean', '_', baseModelSet),
+                paste0('w_sd', '_', baseModelSet), 'bias_mean', 'bias_sd', 
+                'pred_mean', 'pred_sd', 'pred_95CIl', 'pred_95CIu',  'pred_68CIl', 'pred_68CIu', 
+                'pred_min', 'pred_max', 'pred_median', 'pred_skew', 'pred_kurtosis', 'ens_mean', 'ens_sd')
   
   # 1b create the runID that uniquely identifies this BNE run 
-  if(spT == 'spatial') {parameterString <- paste0(lenScaleSpace)}
-  if(spT == 'spatiotemp') {parameterString <- paste0(lenScaleSpace, '_', lenScaleTime)}
-  runID <- paste0(paste(inputSet, collapse = ''), '_', parameterString, '_', YYYY, '_', fold)
+  if(lenScaleTime == 'spatialOnly') {
+    parameterString <- paste0(lenScaleSpace)
+    spt <- 'spatial'; skipCount <- 0
+  } else {
+    parameterString <- paste0(lenScaleSpace, '_', lenScaleTime)
+    spt <- 'spatiotemp'; skipCount <- 1
+  }
+  
+  
+  if(residualProcess == 'resid'){resid <- ''}
+  if(residualProcess == 'noResid'){resid <- '_noResid'}
+  
+  runID <- paste0(paste(baseModelSet, collapse = ''), '_', parameterString, '_', YYYY, '_', fold, resid)
   
   # 1c read the BNE output 
   BNEoutput <- readr::read_csv(here::here('BNE_outputs', 
-                                          paste0(spT, '_annual'),
+                                          paste0(spt, '_annual'),
                                    paste0('BNE_', runID, '.csv')), 
-                        col_names = ColNames, skip = 1) %>%
+                        col_names = ColNames, skip = skipCount) %>%
     mutate(run_id = runID)
   
   # 1d return that dataframe of BNE output 
