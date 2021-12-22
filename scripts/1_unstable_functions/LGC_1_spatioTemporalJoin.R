@@ -95,7 +95,10 @@ spatioTemporalJoin <- function(
   ####     1. setup:      ####
   #### ------------------ ####
   # 1a. general setup:
-  model_pred <- paste(modelName, "pred", sep = "_")
+  # str change: I think 'pred' should go first so that BaseModel name is a suffix
+  # more parallel with how the bne output variables are named, so that plotting etc can be consistent
+  model_pred <- paste("pred", modelName, sep = "_")
+  # model_pred <- paste(modelName, "pred", sep = "_")
   
   # 1b. time-step calculations:
   refDateVars <- setdiff(refCols, expRefCols)
