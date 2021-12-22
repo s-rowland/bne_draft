@@ -2,18 +2,21 @@
 # Author: Sebastian T. Rowland <sr3463@cumc.columbia.edu>
 # Date: 12/21/2021
 
-#' \code{plotOneParameterSpatial} makes a plot of a single parameter, typically from 
-#' a BNE run. The parameter could be, for example the weight of a particular model,
+# note: this code is designed to handle just one time point, but can handle BNE 
+# outputs from any version
+
+#' \code{plotOneParameterSpatial} makes a plot of a single parameterName, typically from 
+#' a BNE run. The parameterName could be, for example the weight of a particular model,
 #' or the predictive uncertainty. The code can also accept base model predictions, 
 #' AQS observations, disagreement among base models, etc. A key feature is that 
-#' the user can set the legen scale and break to ensure consistent plotting across plots.
+#' the user can set the legend scale and break to ensure consistent plotting across plots.
 #' 
-#' @param dta The dataset containing the parameter we will plot. Must have columns 
-#' for lat and lon. Typical dta is the dataset of BNE PPD parameter summaries. 
+#' @param dta The dataset containing the parameterName we will plot. Must have columns 
+#' for lat and lon. Typical dta is the dataset of BNE PPD parameterName summaries. 
 #' An upcoming version could include option to average spatiotemporal dataset.
-#' @param parameterName A string of the parameter of interest, such as 'w_mean_av' 
-#' for the mean of the weight of the av input model. Valid names follow this pattern: 
-#' {[parameter] _ [metric] _ [base model]} Some possible parameter names are:
+#' @param parameterName A string of the parameterName of interest, such as 'w_mean_av' 
+#' for the mean of the weight of the av base model. Valid names follow this pattern: 
+#' {[parameter] _ [metric] _ [base model]} Some possible parameterName names are:
 #' w (weight) 
 #' ens (core ensemble; the model combination from BNE)
 #' res (residual process) 
@@ -25,14 +28,14 @@
 #' will calculate breakpoints from just the values in the dataset.
 #' @param legYN A string determining whether to include a legend. 
 #' Default is to include a legend. Possible values are 'legY' and 'legN'.
-#' @param legTitle The title of the legend. 'defaultLegendTitle' means the function
-#' will use the pre-set legend title based on the parameter name
-#' @param mainTitle The title of the plot. 'defaultMainTitle' means the function
-#' will use the pre-set title based on the parameter name. " " will yield a blank title
+#' @param legTitle The title of the legend. 'default legendTitle' means the function
+#' will use the pre-set legend title based on the parameterName name
+#' @param mainTitle The title of the plot. 'default mainTitle' means the function
+#' will use the pre-set title based on the parameterName name. " " will yield a blank title
 #' @param extraPointObj An optional dataframe with additional points to plot, e.g, AQS monitors. 
 #' Must have lat and lon columns. Color chosen based on parameterName
 #' @param borderObj An optional simple features object of a border for the plot.
-#' Color chosen based on parameter name
+#' Color chosen based on parameterName name
 #' @param pointSize The size of the points. Can adjust this to increase resolution
 #' @param pointShape Shape of the points. Pretty much always circles; 
 #' the rectangles look even worse 
@@ -46,11 +49,11 @@
 
 plotOneParameterSpatial <- function(
   dta, 
-  parameter, 
+  parameterName, 
   valueScale = 'unique scale', 
   legYN = 'legY', 
-  legTitle = 'defaultLegendTitle', 
-  mainTitle = 'defaultMainTitle',
+  legTitle = 'default legendTitle', 
+  mainTitle = 'default mainTitle',
   extraPointObj = 'noExtraPoints', 
   borderObj = 'noBorder',
   pointSize = 0.9, 
@@ -61,18 +64,18 @@ plotOneParameterSpatial <- function(
   #### 0. example values: ####
   #--------------------------#
   
-  # dta <- bne.conus.2010
-  #parameter <- 'ens_sd_diff';  legYN <- 'LegY'
+  # dta <- bne.out
+  # parameterName <- 'res_mean';  legYN <- 'LegY'
   #   titleYN = 'titleY'; valueScale = valueVec.SD
- # parameter <- 'pred_sd'; legYN <- 'LegY'
+ # parameterName <- 'pred_sd'; legYN <- 'LegY'
   
   #-------------------------------#
   #### 1. wrangle BNE outputs: ####
   #-------------------------------#
   
-  # 1a. Rename the parameter of interest 
+  # 1a. Rename the parameterName of interest 
   dta <- dta %>% 
-    dplyr::rename(p := !!parameter)
+    dplyr::rename(p := !!parameterName)
     
   # 1b. Convert to  simple feature
   dta <- dta %>% 
@@ -82,10 +85,11 @@ plotOneParameterSpatial <- function(
   dta <- dta %>% 
     sf::st_transform(crs=sf::st_crs(projString))
   
-  # 1d. extract the name of the input model, if relevant
+  # 1d. extract the name of the base model, if relevant
   if (stringr::str_detect(parameterName, 'w_mean') | 
-      stringr::str_detect(parameterName, 'w_sd')) {
-    input <- stringr::str_split_fixed(parameterName, '_', 3)[3]
+      stringr::str_detect(parameterName, 'w_sd') | 
+      stringr::str_detect(parameterName, 'w_dist')) {
+    baseModel <- stringr::str_split_fixed(parameterName, '_', 3)[3]
   }
 
   #--------------------------------#
@@ -100,11 +104,15 @@ plotOneParameterSpatial <- function(
   # we only use these if the user does not define a title
   if (stringr::str_detect(parameterName, 'w_mean')) {
     legTitle.default <- 'Weight'
-    mainTitle.default <- paste0('Weight of ', input)
+    mainTitle.default <- paste0('Weight of ', baseModel)
     
     } else if (stringr::str_detect(parameterName,'w_sd')) {
       legTitle.default <- 'Weight SD'
-      mainTitle.default <- paste0('Uncertainty of ', input, ' Weight')
+      mainTitle.default <- paste0('Uncertainty of ', baseModel, ' Weight')
+      
+    } else if (stringr::str_detect(parameterName,'w_dist')) {
+      legTitle.default <- 'Dist from Prior'
+      mainTitle.default <- paste0('Distance of ', baseModel, ' Weight from Prior')
       
     } else if (parameterName == 'ens_mean') {
       legTitle.default <- expression(atop('Model', atop('Combination', 
@@ -126,7 +134,8 @@ plotOneParameterSpatial <- function(
                                                                  '('*mu*g/m^3*')')))
       mainTitle.default <- 'Uncertainty of Residual Process' 
       
-    } else if (parameterName == 'pred_mean' | str_detect(parameterName, '_pred')) {
+    } else if (parameterName == 'pred_mean' | 
+               stringr::str_detect(parameterName, '_pred')) {
       legTitle.default <- expression(atop(atop(' ', 'Predicted'),
                                  atop('PM'[2.5], '('*mu*g/m^3*')')))
       mainTitle.default <- expression('Predicted'~'Concentration'~'of'~'PM'[2.5])
@@ -149,15 +158,15 @@ plotOneParameterSpatial <- function(
       legTitle.default <- 'Uncertainty (%)'
       mainTitle.default <-'Uncertainty Scaled by Predicted Concentration'
       
-    } else if (str_detect(parameterName, 'err_')) {
+    } else if (stringr::str_detect(parameterName, 'err_')) {
       legTitle.default <- expression( atop('Error', '('*mu*g/m^3*')'))
       mainTitle.default <-'Error'
       
-    } else if (str_detect(parameterName, 'rmse_')) {
+    } else if (stringr::str_detect(parameterName, 'rmse_')) {
       legTitle.default <- expression( atop('RMSE', '('*mu*g/m^3*')'))
       mainTitle.default <-'RMSE'
       
-    } else if (str_detect(parameterName, 'me_')) {
+    } else if (stringr::str_detect(parameterName, 'me_')) {
       legTitle.default <- expression( atop('Mean Error', '('*mu*g/m^3*')'))
       mainTitle.default <-'Mean Error'
       
@@ -167,8 +176,8 @@ plotOneParameterSpatial <- function(
     }
   
   # 2A.b. set the titles we will use for the plot
-  if (legTitle == 'defaultLegendTitle') {legTitle <- legTitle.default}
-  if (mainTitle == 'defaultMainTitle' ) {mainTitle <- mainTitle.default}
+  if (legTitle == 'default legendTitle') {legTitle <- legTitle.default}
+  if (mainTitle == 'default mainTitle') {mainTitle <- mainTitle.default}
   
   # 2A.c. set legend position
   if(legYN == 'legY') {legPos <- 'right'}
@@ -179,12 +188,12 @@ plotOneParameterSpatial <- function(
   #----------------------------------#
   
   # 2B.a. extract the values from the dataset, if appropriate
-  # unique scale means we get a scale specific for this parameter, for this bne run
+  # unique scale means we get a scale specific for this parameterName, for this bne run
   # for w_mean we usually want the potential min (0) and potential max (1)
   if (valueScale[1] == 'unique scale') {
     p.min <- round(min(dta$p), 2)
     p.max <- round(max(dta$p), 2) 
-    if (stringr::str_detect(parameter, 'w_mean')) {
+    if (stringr::str_detect(parameterName, 'w_mean')) {
       p.min <- 0; p.max <- 1
     }
     p.breaks <- c(p.min, 
@@ -202,7 +211,7 @@ plotOneParameterSpatial <- function(
   }
 
   # 2B.c add zero if appropriate 
-  if (p.min < 0) {p.breaks <- order(c(0, p.breaks), decreasing = FALSE)}
+  if (p.min < 0) {p.breaks <- sort(c(0, p.breaks), decreasing = FALSE)}
  
    #---------------------------------#
   #### 2C. set aesthetic schemes: ####
@@ -213,8 +222,8 @@ plotOneParameterSpatial <- function(
   # which is viridis for positive-only parameters and 
   # and red (negative), white (zero), and blue (positive) for parameters that go negative
   # we also set the colors for the extra points and border
-  if(stringr::str_detect(parameter, 'w_mean') | 
-     stringr::str_detect(parameter, 'w_sd')) {
+  if(stringr::str_detect(parameterName, 'w_mean') | 
+     stringr::str_detect(parameterName, 'w_sd')) {
     fillScheme <- viridis::scale_fill_viridis(
       direction = -1, 
       breaks = c(p.breaks),
@@ -226,46 +235,46 @@ plotOneParameterSpatial <- function(
     extraPointCol <- 'black'
     borderCol <- 'black'
     
-  } else if(parameter == 'bias_mean') {
+  } else if(parameterName == 'res_mean') {
     fillScheme <- ggplot2::scale_fill_gradient2(
       low = "red", mid = "white",high = "blue", midpoint = 0, 
-      breaks = c(p.min, p.1, 0, p.2, p.max),
+      breaks = c(p.breaks),
       limits = c(p.min, p.max)) 
     colorScheme <- ggplot2::scale_color_gradient2(
       low = "red", mid = "white", high = "blue", midpoint = 0, 
-      breaks = c(p.min, p.1, 0, p.2, p.max),
+      breaks = c(p.breaks),
       limits = c(p.min, p.max)) 
     extraPointCol <- 'black'
     borderCol <- 'black'
     
-  } else if (parameter == 'pred_mean' | 
-             str_detect(parameter, '_pred')) {
+  } else if (parameterName == 'pred_mean' | 
+             stringr::str_detect(parameterName, '_pred')) {
     fillScheme <- scico::scale_fill_scico(
       direction = -1, palette = 'hawaii',
-      breaks = c(0.1, p.1, p.2, p.3, p.max),
+      breaks = c(p.breaks),
       limits = c(0.1, p.max))
     colorScheme <- scico::scale_color_scico(
       direction = -1, palette = 'hawaii',
-      breaks = c(0.1, p.1, p.2, p.3, p.max),
+      breaks = c(p.breaks),
       limits = c(0.1, p.max))
     extraPointCol <- 'orchid'
     borderCol <- 'orchid'
     
-    } else if (parameter == 'pred_sd' | 
-               parameter == 'bias_sd' |
-               parameter == 'pred_sd_scaled') {
+    } else if (parameterName == 'pred_sd' | 
+               parameterName == 'res_sd' |
+               parameterName == 'pred_sd_scaled') {
     fillScheme <- viridis::scale_fill_viridis(
       direction = -1, option = 'magma',
-      breaks = c(p.min, p.1, p.2, p.3, p.max),
+      breaks = c(p.breaks),
       limits = c(p.min, p.max))
     colorScheme <- viridis::scale_color_viridis(
       direction = -1, option = 'magma',
-      breaks = c(p.min, p.1, p.2, p.3, p.max),
+      breaks = c(p.breaks),
       limits = c(p.min, p.max))
     extraPointCol <- 'steelblue4'
     borderCol <- 'steelblue4'
     
-    } else if (parameter == 'base_maxW') {
+    } else if (parameterName == 'base_maxW') {
   cbp1 <- c("#E69F00", "#56B4E9", "#009E73",
             "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
   fillScheme <- ggplot2::scale_fill_manual(values=cbp1) 
@@ -274,11 +283,11 @@ plotOneParameterSpatial <- function(
     } else if (p.min >= 0 ) {
       fillScheme <- viridis::scale_fill_viridis(
         direction = -1, option = 'magma',
-        breaks = c(0, p.1, p.2, p.3, p.max),
+        breaks = c(p.breaks),
         limits = c(0, p.max))
       colorScheme <- viridis::scale_color_viridis(
         direction = -1, option = 'magma',
-        breaks = c(0, p.1, p.2, p.3, p.max),
+        breaks = c(p.breaks),
         limits = c(0, p.max))
       extraPointCol <- 'steelblue4'
       borderCol <- 'steelblue4'
@@ -286,11 +295,11 @@ plotOneParameterSpatial <- function(
     } else if (p.min < 0 ) {
       fillScheme <- ggplot2::scale_fill_gradient2(
         low = "red", mid = "white",high = "blue", midpoint = 0, 
-        breaks = c(p.min, p.1, 0, p.2, p.max),
+        breaks = c(p.breaks),
         limits = c(p.min, p.max)) 
       colorScheme <- ggplot2::scale_color_gradient2(
         low = "red", mid = "white", high = "blue", midpoint = 0, 
-        breaks = c(p.min, p.1, 0, p.2, p.max),
+        breaks = c(p.breaks),
         limits = c(p.min, p.max)) 
       extraPointCol <- 'black'
       borderCol <- 'black'
@@ -319,8 +328,8 @@ plotOneParameterSpatial <- function(
     }
   
   # I don't think we need this
-  #if(parameter != 'base_maxW') {
-    guideScheme <-     ggplot2::guides(fill = guide_colorbar(title = legTitle), 
+  #if(parameterName != 'base_maxW') {
+    guideScheme <- ggplot2::guides(fill = guide_colorbar(title = legTitle), 
                                        color = guide_colorbar(title = legTitle)) 
   #} else {
   #  guideScheme <- ggplot2::labs(x='', y='')
@@ -344,16 +353,3 @@ plotOneParameterSpatial <- function(
   # 3d. return plot
   print(p.gg)
 }  
-
-
-# test
-#YYYY <- 2012;  inputSet <- c('AV', 'GS', 'CM', 'JS',  'CC');
-# parameterName <- 'bias_mean'; input <- ''
-# parameterName <- 'w_mean'; input <- 'AV'
-#png('~/Desktop/test.png')
-
-#plotSpatial_oneBNEParameter(2012, 'AVGSCMJSCC', 
- #                           'bias_mean', '', 'test')
-#dev.off()
-#plotSpatial_oneBNEParameter(2012, c('AV', 'GS', 'CM', 'JS',  'CC'), 
- #                           'w_mean', 'AV')
