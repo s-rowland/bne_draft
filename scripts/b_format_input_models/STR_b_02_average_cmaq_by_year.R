@@ -32,7 +32,7 @@
 
 if(!exists("Ran_a_00")){
   here::i_am("README.md")
-  source(here::here('scripts', 'a_set_up', "a_00_set_up_env.R"))
+  source(here::here('scripts', 'a_set_up', "a_00_config_env.R"))
 }
 
 #--------------------------------#

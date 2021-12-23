@@ -224,7 +224,9 @@ once you put them back together.
 * At the start of the work day, pull in the most recent version of the whole repo. 
 * At the end of the day, push that version to GitHub. 
 * If you create a file and you are still working on it, and you do not want anyone else to modify it, you have three options: a) exclude the file when you push, b) put the file in a personal project folder, or c) begin the file with your initials (this option is most useful for functions) 
-* If you are working on a file and you do not want anyone to modify it, either put it in a personal project folder, or begin the file with your initials. 
+* If you are working on a file and you do not want anyone to modify it, either put it in a personal project folder, or begin the file with your initials ('lock the code'). 
+* If you need to modify code authored by another researcher, but the code is 'locked' (file name begins with their initials), you can either make a copy of the code and modify that copy, or directly ask the author for permission (and explain what changes you plan to make).
+* We follow this locking convention to reduce the probability that two researchers end up with different versions of a code, which makes version control messy. 
 
 
 # Conventions for Storing Data 

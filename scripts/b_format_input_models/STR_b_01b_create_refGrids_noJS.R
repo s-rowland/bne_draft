@@ -30,5 +30,3 @@ if(!exists("Ran_a_00")){
 create_refGrid_noJS(AOI = 'conus', makePlot = TRUE, targetDir = '~/Desktop')
 create_refGrid_noJS(AOI = 'NYS', makePlot = TRUE, targetDir = '~/Desktop')
 create_refGrid_noJS(AOI = 'cities', makePlot = TRUE, targetDir = '~/Desktop')
-
-

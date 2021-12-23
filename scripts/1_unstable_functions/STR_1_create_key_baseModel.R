@@ -32,13 +32,13 @@ create_baseModelKey <- function(ref.df, refName, baseModel.df, baseModelName,
   #### 0. example arguments and error catching ####
   #### --------------------------------------- ####
   
-  if (sum(str_detect(names(ref.df), 'lat')) != 1 | 
-      sum(str_detect(names(ref.df), 'lon')) != 1 | 
-      sum(str_detect(names(baseModel.df), 'lat')) != 1 | 
-      sum(str_detect(names(baseModel.df), 'lon')) != 1) {
+  if (!stringr::str_detect(paste(names(ref.df), collapse = ''), 'lat') | 
+      !stringr::str_detect(paste(names(ref.df), collapse = ''), 'lon') | 
+      !stringr::str_detect(paste(names(baseModel.df), collapse = ''), 'lat') | 
+      !stringr::str_detect(paste(names(baseModel.df), collapse = ''), 'lon')) {
     stop("At least one dataset is missing location data. See documentation.")
   }
-  
+
   if (!timeScale %in% c('annual', 'monthly','daily')) stop('rephrase the timeScale. See Documentation')
   
   #### ------------------ ####
@@ -47,11 +47,28 @@ create_baseModelKey <- function(ref.df, refName, baseModel.df, baseModelName,
   
   # 1a. rename the variables so easier to keep track of during the join
   # and keep only unique locations
-  refLoc.df <- ref.df %>% 
-    dplyr::mutate(ref_id = row_number()) %>% 
+  ref.df <- ref.df %>% 
     dplyr::rename(ref_lat = lat, ref_lon = lon) %>%
-    dplyr::select(ref_id, ref_lat, ref_lon) %>%
-    dplyr::distinct()
+    dplyr::mutate(ref_id = row_number()) 
+    
+  if(stringr::str_detect(paste(names(ref.df), collapse = ''), 'day') & 
+     stringr::str_detect(paste(names(ref.df), collapse = ''), 'month') & 
+     stringr::str_detect(paste(names(ref.df), collapse = ''), 'year')) {
+    ref.df <- ref.df %>% 
+     dplyr::select(ref_lat, ref_lon, ref_id, day, month, year)
+  } else if(stringr::str_detect(paste(names(ref.df), collapse = ''), 'month') & 
+     stringr::str_detect(paste(names(ref.df), collapse = ''), 'year')) {
+    ref.df <- ref.df %>% 
+      dplyr::select(ref_lat, ref_lon, ref_id, month, year)
+  } else if(stringr::str_detect(paste(names(ref.df), collapse = ''), 'year')) {
+    ref.df <- ref.df %>% 
+      dplyr::select(ref_lat, ref_lon, ref_id, year)
+  }
+  
+  # get the unique refLoc locations 
+  refLoc.df <- ref.df %>% 
+    dplyr::select(ref_lat, ref_lon) %>% 
+    distinct()
   
   baseModelLoc.df <- baseModel.df %>% 
     dplyr::mutate(baseModel_id = row_number()) %>% 
@@ -92,7 +109,7 @@ create_baseModelKey <- function(ref.df, refName, baseModel.df, baseModelName,
   
   # 3d. save results
   ref_baseModel_key %>% 
-    readr::write_csv(here::here('BNE_inputs','keys', 
+    fst::write_fst(here::here('BNE_inputs','keys', 
                                 paste0(refName, '_', baseModelName, '_key_nn_',
-                                       timeScale, '.csv')))
+                                       timeScale, '.fst')))
 }
