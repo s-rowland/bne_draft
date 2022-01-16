@@ -31,7 +31,7 @@ function [W] = train_predict_BNE_sp(YYYY, inputset,len_scale, fold, resid)
 %%%% ------------ %%%%
 
 % 1a additional features that are consistent across model runs
-num_rand_feat = 4000;
+num_rand_feat = 1000;
 
 num_models = strlength(inputset)/2;
 
@@ -39,6 +39,8 @@ num_models = strlength(inputset)/2;
 if strcmp(fold, 'NYS')
     trainFold = 'all'
 elseif strcmp(fold, 'cities')
+    trainFold = 'all'
+elseif strcmp(fold, 'monitors')
     trainFold = 'all'
 else 
     trainFold = fold
@@ -212,8 +214,8 @@ fclose(fid);
 %%%% ----------------------- %%%%
 
 % 4a combine summary metrics into a dataframe
-results = [X, softmax_mean, softmax_std,bias_mean, bias_std, y_mean, y_std, ...
-    y_95CIl, y_95CIu, y_68CIl, y_68CIu,y_min, y_max, y_median, y_skew, y_kurtosis, ens_mean, ens_std];
+results = [X, softmax_mean, softmax_std, ens_mean, ens_std, bias_mean, bias_std, y_mean, y_std, ...
+    y_95CIl, y_95CIu, y_68CIl, y_68CIu,y_min, y_max, y_median, y_skew, y_kurtosis];
 
 switch resid
     case 'resid'
@@ -223,5 +225,5 @@ switch resid
 end
 
 % 4b save as csv
-writematrix(results, append('BNE_outputs/spatial_annual/BNE_',...
+writematrix(results, append('outputs/spatial_annual/BNE_',...
     inputset, '_', string(len_scale),'_', YYYY, '_', fold, last))

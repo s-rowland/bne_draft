@@ -1,4 +1,4 @@
-function [W,w0,SigW,Z,piZ, Zt] = BNE_spt(y,X,time,models,num_rand_feat,len_scale_space,len_scale_time)
+function [W,w0,SigW,Z,piZ, Zt] = BNE_spt(y,X,time,models,num_rand_feat,len_scale_space,len_scale_time, resid)
 % % Implements a stochastic optimization (MAP inference) version of BNE.
 % %
 % % === Inputs ===
@@ -83,8 +83,8 @@ piZ = 2*pi*rand(num_rand_feat,1);
 % and lambda0 relates to the prior of the offset 
 % the lambdas act as penalties
 noise = var(y)/8; %% Set SNR to 8. This can be changed.
-lambda = .0005;
-lambda0 = .0005;
+lambda = 0.0005;
+lambda0 = 0.0005;
 
 % 1g Number of data points to randomly sample per model parameter update
 % this line is not in the spatial model
@@ -161,6 +161,12 @@ for iter = 1:2000 % should be 20k
     % 2d.viii not sure 
     w0 = w0tmp/sqrt(iter) + (1-1/sqrt(iter))*w0;
     
+    switch resid
+        case 'resid' 
+            w0 = w0;
+        case 'noResid'
+            w0 = zeros(num_rand_feat,1);
+    end 
     % 2e Display progress of algorithm
     error = y(idx)' - model_avg - bias;
     err = mean(error(:).^2)/10 + 9*err/10;

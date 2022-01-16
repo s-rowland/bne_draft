@@ -28,8 +28,8 @@ addGroundTruth <- function(bneOut, YYYY, activeFold){
   #--------------------#
 
 # 1a. read ground truth data set  
-  groundTruth <- readr::read_csv(here::here('BNE_inputs', 'prediction_datasets', 
-                                            'individual_annual',
+  groundTruth <- readr::read_csv(here::here('inputs', 'pm25', 'prediction_datasets', 
+                                            'annual_individual',
                                             paste0('predictions_avgscmjscc_', YYYY, 
                                                    '_', activeFold, '.csv'))) %>% 
     dplyr::select(obs_pm2_5, region) %>% 

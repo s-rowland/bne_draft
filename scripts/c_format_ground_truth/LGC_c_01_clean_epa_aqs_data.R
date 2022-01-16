@@ -178,7 +178,8 @@ for (i in 1:nrow(ad75)) {
 
 adSeason75 <- cbind(ad75, season75) %>% filter(season75 == 1) %>% select(!season75)
 ddSeason75 <- dd75 %>% filter(Monitor.Years %in% adSeason75$Monitor.Years)
-adCompact75 <- ad75 %>% mutate(Arithmetic.Mean.Seasonal = ifelse(season75 == 1, Arithmetic.Mean, NA))
+adCompact75 <- ad75 %>% 
+  mutate(Arithmetic.Mean.Seasonal = ifelse(season75 == 1, Arithmetic.Mean, NA))
 dailySeason75 <- (dd75 %>% mutate(season75_b = Monitor.Years %in% adSeason75$Monitor.Years) %>% select(season75_b)) * 1
 ddCompact75 <- dd75 %>% mutate(Arithmetic.Mean.Seasonal = ifelse(dailySeason75 == 1, Arithmetic.Mean, NA))
 

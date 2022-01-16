@@ -83,7 +83,7 @@ plotOneParameterSpatial <- function(
   
   # 1c. Transform geographical coordinates to Albers Projection
   dta <- dta %>% 
-    sf::st_transform(crs=sf::st_crs(projString))
+    sf::st_transform(crs=sf::st_crs(refCRS))
   
   # 1d. extract the name of the base model, if relevant
   if (stringr::str_detect(parameterName, 'w_mean') | 
@@ -313,7 +313,7 @@ plotOneParameterSpatial <- function(
   if(is.data.frame(extraPointObj)){
     extraPointObj <- extraPointObj %>% 
       sf::st_as_sf(coords = c("lon", "lat"), crs=sf::st_crs("epsg:4326")) %>% 
-      sf::st_transform(crs=sf::st_crs(projString))
+      sf::st_transform(crs=sf::st_crs(plotCRS))
     extraPoint.gg <- ggplot2::geom_sf(data = extraPointObj, fill = extraPointCol, 
                                  color = extraPointCol, size = pointSize)
   } else {

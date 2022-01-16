@@ -78,8 +78,8 @@ Phi = sqrt(2/num_rand_feat)*cos(Z*X'/len_scale + piZ*ones(1,num_obs));
 % and lambda0 relates to the prior of the offset 
 % the lambdas act as penalties
 noise = var(y)/8; %% Set SNR to 8. This can be changed.
-lambda = .1;
-lambda0 = .1;
+lambda = 0.1;
+lambda0 = 0.1;
 
 %%%% -------------------- %%%%
 %%%% 2: OPTIMIZE W AND w0 %%%%

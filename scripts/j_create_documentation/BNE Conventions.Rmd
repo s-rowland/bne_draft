@@ -199,7 +199,7 @@ once you put them back together.
     0) functions
     1) unstable_functions
     a) set_up 
-    b) format_input_models 
+    b) format_base_models 
     c) format_ground_truth 
     d) format_training_data
     e) format_external_validation_data 

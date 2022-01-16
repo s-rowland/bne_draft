@@ -47,9 +47,9 @@ readBNEoutput <- function(YYYY = 2010,
   
   # 1a. set the names of the columns 
   ColNames <- c('lat', 'lon', paste0('w_mean', '_', baseModelSet),
-                paste0('w_sd', '_', baseModelSet), 'res_mean', 'res_sd', 
+                paste0('w_sd', '_', baseModelSet),  'ens_mean', 'ens_sd', 'res_mean', 'res_sd', 
                 'pred_mean', 'pred_sd', 'pred_95CIl', 'pred_95CIu',  'pred_68CIl', 'pred_68CIu', 
-                'pred_min', 'pred_max', 'pred_median', 'pred_skew', 'pred_kurtosis', 'ens_mean', 'ens_sd')
+                'pred_min', 'pred_max', 'pred_median', 'pred_skew', 'pred_kurtosis')
   
   # 1b. make some objects that differ by spatial versus spatiotemporal
   if(lenScaleTime == 'spatialBNE') {
@@ -70,7 +70,7 @@ readBNEoutput <- function(YYYY = 2010,
   runID <- paste0(paste(baseModelSet, collapse = ''), '_', parameterString, '_', YYYY, '_', fold, resid)
   
   # 1e. read the BNE output 
-  bneOut <- readr::read_csv(here::here('BNE_outputs', 
+  bneOut <- readr::read_csv(here::here('outputs', 
                                           paste0(spt, '_annual'),
                                    paste0('BNE_', runID, '.csv')), 
                         col_names = ColNames, skip = skipCount) %>%

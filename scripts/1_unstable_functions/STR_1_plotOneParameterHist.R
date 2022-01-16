@@ -50,7 +50,7 @@ plotOneParameterHist <- function(
   #--------------------------#
   
   # dta <-bne.out; parameterName <- 'pred_mean'; titleYN = 'titleY'
-  # xRange = 'unique range'; mainTitle = 'plotTitle'; BW = 10; axisSize = 20 
+  # valueRange = 'unique range'; mainTitle = 'plotTitle'; BW = 10; axisSize = 20 
   
   #-------------------------------#
   #### 1. wrangle BNE outputs: ####
@@ -135,8 +135,8 @@ plotOneParameterHist <- function(
     p.min = min(dta$p)
     p.max = max(dta$p)
   } else {
-    p.min <- xRange[1]
-    p.max <- xRange[2]
+    p.min <- valueRange[1]
+    p.max <- valueRange[2]
     }
 
   #-----------------------#

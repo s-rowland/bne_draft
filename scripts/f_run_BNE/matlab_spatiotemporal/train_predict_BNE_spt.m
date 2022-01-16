@@ -1,4 +1,4 @@
-function [W] = train_predict_BNE_spt(inputset,len_scale_space,len_scale_time, fold)
+function [W] = train_predict_BNE_spt(inputset,len_scale_space,len_scale_time, fold, resid)
 % % 
 % % === Inputs ===
 % %  
@@ -30,11 +30,15 @@ function [W] = train_predict_BNE_spt(inputset,len_scale_space,len_scale_time, fo
 %%%% ------------ %%%%
 
 % 1a additional features that are consistent across model runs
-num_rand_feat = 1000;
+num_rand_feat = 500;
 %num_models = 5;
 
 % 1b bring in training data
-if strcmp(fold, 'cities')
+if strcmp(fold, 'NYS')
+    trainFold = 'all'
+elseif strcmp(fold, 'cities')
+    trainFold = 'all'
+elseif strcmp(fold, 'monitors')
     trainFold = 'all'
 else 
     trainFold = fold
@@ -58,7 +62,7 @@ num_models = size(trainPreds,2);
 % get the best-fit values and not whole distributions. Distributions are
 % estimated in the prediction phase
 [W,w0,SigW,Z,piZ, Zt] = BNE_spt(trainAqs,trainLatLon,trainTime, ...
-    trainPreds,num_rand_feat,len_scale_space,len_scale_time)
+    trainPreds,num_rand_feat,len_scale_space,len_scale_time, resid)
 
 %%%% -------------------------- %%%%
 %%%% 2: Prepare for Predictions %%%%
@@ -77,7 +81,7 @@ num_models = size(trainPreds,2);
 % offset term 
 muW = [W(:) ; w0];
 % 2b set the number of samples that we will take 
-num_samp = 500;
+num_samp = 250;
 % 2c take the samples. we generate random numbers based on gaussian
 % distributions, where the means are the mean values and the variances are 
 % stored in SigW, which we calculate in the second half of the BNE function
@@ -90,10 +94,15 @@ for s = 1:num_samp
     wsamp = [wsamp reshape(wsamp1(1:num_models*num_rand_feat,s),num_rand_feat,num_models)];
 end
 
+switch resid
+    case 'noResid'
+        w0samp = zeros(size(w0samp,1), size(w0samp, 2))
+end
+
 % str silenced
 %temp = datenum('2016-01-01')-datenum('2000-01-01');
 
-for time =  1:6 %temp:30:temp+365
+for time =  1:1 %temp:30:temp+365
     YYYY = 2009 + time;
     pred = readtable(append('BNE_inputs/prediction_datasets/individual_annual/predictions_', ...
      inputset, '_', num2str(YYYY), '_', fold, '.csv'));
@@ -105,6 +114,8 @@ for time =  1:6 %temp:30:temp+365
     y_std = zeros(size(X,1),1);
     softmax_mean = zeros(size(X,1),num_models);
     softmax_std = zeros(size(X,1),num_models);
+    ens_mean = zeros(size(X,1),1);
+    ens_std = zeros(size(X,1),1);
     bias_mean = zeros(size(X,1),1);
     bias_std = zeros(size(X,1),1);
     y_mean = zeros(size(X,1),1);
@@ -128,9 +139,12 @@ for time =  1:6 %temp:30:temp+365
         softmax = reshape(softmax',num_models,num_samp)';
         softmax = exp(softmax);
         softmax = softmax./repmat(sum(softmax,2),1,num_models);
+        ens = softmax*f_all{i,:}';
         y = softmax*f_all{i,:}' + bias';
         softmax_mean(i,:) = mean(softmax,1);
         softmax_std(i,:) = std(softmax,1);
+        ens_mean(i) = mean(ens);
+        ens_std(i) = std(ens);
         bias_mean(i) = mean(bias);
         bias_std(i) = std(bias);
         y_mean(i) = mean(y);
@@ -155,6 +169,7 @@ for time =  1:6 %temp:30:temp+365
 
 % 4a combine summary metrics into a dataframe
     results = [X, array2table(softmax_mean), array2table(softmax_std), ...
+        array2table(ens_mean), array2table(ens_std), ...
         array2table(bias_mean), array2table(bias_std), ...
         array2table(y_mean), array2table(y_std), ...
         array2table(y_95CIl), array2table(y_95CIu), ...
@@ -163,10 +178,15 @@ for time =  1:6 %temp:30:temp+365
         array2table(y_median), array2table(y_skew), array2table(y_kurtosis)];
 
 %lambda0txt = num2str(lambda0)
-
+switch resid
+    case 'resid'
+        last = '.csv'
+    case 'noResid'
+        last = '_noResid.csv'
+end
 % 4b save as csv
-    writetable(results, append('BNE_outputs/spatiotemp_annual/BNE_',...
+    writetable(results, append('outputs/spatiotemp_annual/BNE_',...
         inputset, '_', string(len_scale_space),'_', string(len_scale_time),...
-        '_',num2str(YYYY), '_', fold, '.csv'))
+        '_',num2str(YYYY), '_', fold, last))
 
 end
