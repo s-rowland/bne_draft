@@ -41,9 +41,9 @@ Other commands can be run from anywhere.
     (d) get_pacs.py: A python script to print only the R packages and versions
         from requirements.txt in a more readable format (saved as pacs.csv).
 
-    (c) CHEATSHEET.txt: A plain text file abbreviating the info in this README.
+    (e) CHEATSHEET.txt: A plain text file abbreviating the info in this README.
 
-    (d) misc: a directory for Lawrence's use only, containing:
+    (f) misc: a directory for Lawrence's use only, containing:
 
             (i) R_env.yml: A YAML file containing the package info for the R_env
             conda environment. It's only real use is to easily see the 
