@@ -1,13 +1,16 @@
+# package management packages
 devtools
 here
 pacman
 tictoc
 
+# parallelization packages
 doSNOW
 foreach
 iterators
 parallel
 
+# data wrangling packages
 dplyr
 fst
 janitor
@@ -19,6 +22,7 @@ stringr
 tibble
 tidyr
 
+# spatial data packages
 ncdf4
 nngeo
 raster
@@ -27,10 +31,12 @@ sf
 sp
 terra
 
+# stats packages
 DHARMa
+geoR
 gstat
-geoR # maybe we don't need this??
 
+# visualization packages
 corrplot
 cowplot
 ggplot2

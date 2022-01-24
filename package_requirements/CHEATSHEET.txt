@@ -1,0 +1,40 @@
+--------------------------------------------------------------------------------
+
+File: CHEATSHEET.txt for bne/package_requirements directory
+Author: Lawrence Chillrud <lgc2139@cumc.columbia.edu>
+Date: 1/24/22
+
+--------------------------------------------------------------------------------
+
+1. SETTING UP YOUR OWN BNER CONDA ENVIRONMENT FOR THE FIRST TIME
+
+    conda env list | grep 'BNER' | wc -l    # to check if already installed
+    conda env create --file BNER.yml        # to install environment
+    conda activate BNER                     # to activate environment
+    conda deactivate BNER                   # to deactivate
+
+--------------------------------------------------------------------------------
+
+3. ADDING PACKAGES TO THE BNER CONDA ENVIRONMENT
+
+    anaconda search PACKAGE-NAME                                # search
+    conda activate BNER                                         # activate
+    conda install -c conda-forge PACKAGE-NAME==1.0.4            # install
+    conda list --explicit > requirements.txt                    # document
+    conda env export --name BNER > BNER.yml                     # document x2
+    git add BNER.yml requirements.txt                           # push to GitHub
+    git commit -m "Updated BNER env w/ PKGNAME1, PKGNAME2, ..."
+    git push
+
+--------------------------------------------------------------------------------
+
+4. UPDATING BNER WITH PACKAGES OTHERS HAVE ADDED
+                
+    git pull                                                  # pull in changes
+    conda env update --name BNER --file BNER.yml --prune      # update env.
+
+--------------------------------------------------------------------------------
+
+END OF CHEATSHEET.txt
+
+--------------------------------------------------------------------------------

@@ -1,0 +1,15 @@
+r-devtools
+r-here
+r-tictoc
+r-dosnow
+r-fst
+r-sf
+r-terra
+r-dharma
+r-geor
+r-gstat
+r-corrplot
+r-cowplot
+r-scico
+r-tmap
+r-viridis
