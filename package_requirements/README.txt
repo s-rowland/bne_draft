@@ -35,6 +35,12 @@ Other commands can be run from anywhere.
     (b) requirements.txt: A plain text file containing all packages in the BNER 
         conda environment, along with their versions.
 
+    (c) pacs.csv: A csv file containing all R packages & their versions in the 
+        BNER conda environment. Created from requirements.txt by get_pacs.py.
+
+    (d) get_pacs.py: A python script to print only the R packages and versions
+        from requirements.txt in a more readable format (saved as pacs.csv).
+
     (c) CHEATSHEET.txt: A plain text file abbreviating the info in this README.
 
     (d) misc: a directory for Lawrence's use only, containing:
@@ -125,21 +131,23 @@ Other commands can be run from anywhere.
                     conda install -c conda-forge PACKAGE-NAME==1.0.4
 
     (Step 3): Once the package is installed, you need to document its
-              installation in two places. 
+              installation in three places:
               
-              <1> First, update the requirements.txt file by overwriting it
-              with the following command**:
+              <1> Update requirements.txt by overwriting it with**:
                     
                     conda list --explicit > requirements.txt
 
-              <2> Second, update the BNER.yml file by overwriting it with
-              the following command**:
+              <2> Update BNER.yml by overwriting it with**:
                     
                     conda env export --name BNER > BNER.yml
 
+              <3> Update pacs.csv by overwriting it with**:
+
+                    python get_pacs.py
+
     (Step 4): Push changes to GitHub with**:
                     
-                    git add BNER.yml requirements.txt
+                    git add BNER.yml pacs.csv requirements.txt
                     git commit -m "Updated BNER env w/ PKGNAME1, PKGNAME2, ..."
                     git push
 

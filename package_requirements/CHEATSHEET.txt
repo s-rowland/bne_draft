@@ -15,20 +15,21 @@ Date: 1/24/22
 
 --------------------------------------------------------------------------------
 
-3. ADDING PACKAGES TO THE BNER CONDA ENVIRONMENT
+2. ADDING PACKAGES TO THE BNER CONDA ENVIRONMENT
 
     anaconda search PACKAGE-NAME                                # search
     conda activate BNER                                         # activate
     conda install -c conda-forge PACKAGE-NAME==1.0.4            # install
     conda list --explicit > requirements.txt                    # document
     conda env export --name BNER > BNER.yml                     # document x2
-    git add BNER.yml requirements.txt                           # push to GitHub
+    python get_pacs.py                                          # document x3
+    git add BNER.yml pacs.csv requirements.txt                  # push to GitHub
     git commit -m "Updated BNER env w/ PKGNAME1, PKGNAME2, ..."
     git push
 
 --------------------------------------------------------------------------------
 
-4. UPDATING BNER WITH PACKAGES OTHERS HAVE ADDED
+3. UPDATING BNER WITH PACKAGES OTHERS HAVE ADDED
                 
     git pull                                                  # pull in changes
     conda env update --name BNER --file BNER.yml --prune      # update env.
