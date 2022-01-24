@@ -130,9 +130,11 @@ dependencies:
   - notebook=6.4.4=pyha770c72_0
   - nspr=4.30=h9c3ff4c_0
   - nss=3.69=hb5efdd6_1
+  - numpy=1.22.1=py39h91f2184_0
   - openjpeg=2.4.0=hb52868f_1
   - openssl=1.1.1l=h7f98852_0
   - packaging=21.0=pyhd8ed1ab_0
+  - pandas=1.4.0=py39hde0f152_0
   - pandoc=2.14.2=h7f98852_0
   - pandocfilters=1.5.0=pyhd8ed1ab_0
   - pango=1.48.10=h54213e6_2
@@ -158,6 +160,7 @@ dependencies:
   - python=3.9.7=hb7a2778_3_cpython
   - python-dateutil=2.8.2=pyhd8ed1ab_0
   - python_abi=3.9=2_cp39
+  - pytz=2021.3=pyhd8ed1ab_0
   - pyzmq=22.3.0=py39h37b5a0c_0
   - r-abind=1.4_5=r41hc72bb7e_1003
   - r-ape=5.6_1=r41h306847c_0
