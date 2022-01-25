@@ -139,7 +139,7 @@ Other commands can be run from anywhere.
 
               <2> Update BNER.yml by overwriting it with**:
                     
-                    conda env export --name BNER > BNER.yml
+                    conda env export --name BNER | grep -v "^prefix: " > BNER.yml
 
               <3> Update pacs.csv by overwriting it with**:
 
@@ -204,7 +204,7 @@ Note: These instructions are for Lawrence's use only, unless the BNER.yml
     (Step 5): Export .yml and .txt files from the newly created BNER env:
                     
                     cd ../
-                    conda env export --name BNER > BNER.yml
+                    conda env export --name BNER | grep -v "^prefix: " > BNER.yml
                     conda list --explicit > requirements.txt
 
     (Step 6): Push changes to GitHub:
