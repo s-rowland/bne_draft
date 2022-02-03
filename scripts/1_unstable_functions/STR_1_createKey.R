@@ -48,28 +48,37 @@ createKey <- function(ref.df, refName, baseModel.df, baseModelName,
   # 1a. rename the variables so easier to keep track of during the join
   # and keep only unique locations
   ref.df <- ref.df %>% 
-    dplyr::rename(ref_lat = lat, ref_lon = lon) %>%
-    dplyr::mutate(ref_id = row_number()) 
+    dplyr::rename(ref_lat = lat, ref_lon = lon)
+  
+  
+  if (refName == 'aqs') {
+    ref.df <- ref.df %>% 
+      mutate(ref_id = ref_id)
+  } else { 
+   ref.df <- ref.df %>%
+      dplyr::mutate(ref_id = row_number()) }
     
-  if(stringr::str_detect(paste(names(ref.df), collapse = ''), 'day') & 
+  # 1.b. wrangle dates
+  if (stringr::str_detect(paste(names(ref.df), collapse = ''), 'day') & 
      stringr::str_detect(paste(names(ref.df), collapse = ''), 'month') & 
      stringr::str_detect(paste(names(ref.df), collapse = ''), 'year')) {
     ref.df <- ref.df %>% 
      dplyr::select(ref_lat, ref_lon, ref_id, day, month, year)
-  } else if(stringr::str_detect(paste(names(ref.df), collapse = ''), 'month') & 
+  } else if (stringr::str_detect(paste(names(ref.df), collapse = ''), 'month') & 
      stringr::str_detect(paste(names(ref.df), collapse = ''), 'year')) {
     ref.df <- ref.df %>% 
       dplyr::select(ref_lat, ref_lon, ref_id, month, year)
-  } else if(stringr::str_detect(paste(names(ref.df), collapse = ''), 'year')) {
+  } else if (stringr::str_detect(paste(names(ref.df), collapse = ''), 'year')) {
     ref.df <- ref.df %>% 
       dplyr::select(ref_lat, ref_lon, ref_id, year)
   }
   
-  # get the unique refLoc locations 
+  # 1.c. get the unique ref locations 
   refLoc.df <- ref.df %>% 
     dplyr::select(ref_lat, ref_lon) %>% 
     distinct()
   
+  # 1.d. prepare the base model for joining
   baseModelLoc.df <- baseModel.df %>% 
     dplyr::mutate(baseModel_id = row_number()) %>% 
     dplyr::rename(baseModel_lat = lat, baseModel_lon = lon) %>%

@@ -32,33 +32,38 @@ if(!exists("Ran_a_00")){
 ####  1. TRAINING DATA ####
 #------------------------------------------#
 
-read_training <- function(YYYY) {
-    readr::read_csv(here::here('BNE_inputs', 'training_datasets', 'individual_annual', 
-                                paste0('training_avgscmjscc_', YYYY, '_all.csv')))
+# 1.a. function 
+read_training <- function(yyyy) {
+    readr::read_csv(here::here('inputs', 'pm25', 'training_datasets', 'annual_individual', 
+                                paste0('training_avgscmjscc_', yyyy, '_all.csv')))
 }
 
+# 1.b. read all of the datasets in, combine them into one dataframe via bind_rows
+# and then store result as a csv
 map_dfr(2010:2015, read_training) %>% 
-  readr::write_csv(here::here('BNE_inputs', 'training_datasets', 'combined_annual', 
+  readr::write_csv(here::here('inputs', 'pm25', 'training_datasets', 'annual_combined', 
                               'training_avgscmjscc_all.csv'))
 
 
-#------------------------------------------#
+#### ------------------- ####
 ####  2. PREDICTION DATA ####
-#------------------------------------------#
+#### ------------------- ####
 
-read_prediction <- function(YYYY) {
-  readr::read_csv(here::here('BNE_inputs', 'prediction_datasets', 'individual_annual', 
-                             paste0('predictions_avgscmjscc_', YYYY, '_all.csv')))
+# 2.a. function 
+read_annual_prediction <- function(yyyy) {
+  readr::read_csv(here::here('inputs', 'pm25', 'prediction_datasets', 'annual_individual', 
+                             paste0('predictions_avgscmjscc_', yyyy, '_all.csv')))
 }
 
-dta <- map_dfr(2010:2015, read_prediction) 
+# 2.b. read all of the datasets in, combine them into one dataframe via bind_rows
+dta <- map_dfr(2010:2015, read_annual_prediction) 
 
+# 2.c. save as csv
 dta %>% 
-   rename(pred_av = av_pred, pred_gs = gs_pred, pred_cm = cmaq_outs_pred, 
-          pred_js = js_pred,pred_cc = caces_pred) %>%
-  readr::write_csv(here::here('BNE_inputs', 'prediction_datasets', 'combined_annual', 
+  readr::write_csv(here::here('inputs', 'pm25', 'prediction_datasets', 'annual_combined', 
                               'predictions_avgscmjscc_all.csv'))
 
+# 2.d. store the number of predictions, required for some matlab versions (might be depreciated)
 data.frame(count = nrow(dta)) %>% 
-  readr::write_csv(here::here('BNE_inputs', 'prediction_datasets', 'combined_annual', 
+  readr::write_csv(here::here('inputs', 'pm25', 'prediction_datasets', 'annual_combined', 
                               'predCount_avgscmjscc_all.csv'))

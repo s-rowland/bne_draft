@@ -45,20 +45,22 @@ js.loc <- loadData(jsPath, "JSSITES") %>%
   rename(lat = js_lat, lon = js_lon)
 
 # 1.b. read annual AQS
-aqs <- read_csv(aqsPath <- here::here('inputs', 'pm25', 'ground_truth', 'formatted', 
+aqs <- read_csv(here::here('inputs', 'pm25', 'ground_truth', 'formatted', 
                                     'lgc_annual_data_2000-2016_conus.csv'))
 
 # 1.c. create key for annual AQS and JS
-create_baseModelKey(ref.df = aqs, refName = 'aqs', baseModel.df = js.loc, 
-                    baseModelName = 'js', timeScale = 'annual') 
+createKey(ref.df = aqs, refName = 'aqs', 
+                    baseModel.df = js.loc, baseModelName = 'js', 
+                    timeScale = 'annual') 
 
 # 1.d. read daily AQS
-aqs <- read_csv(aqsPath <- here::here('inputs', 'pm25', 'ground_truth', 'formatted', 
+aqs <- read_csv(here::here('inputs', 'pm25', 'ground_truth', 'formatted', 
                                       'lgc_daily_data_2000-2016_conus.csv'))
 
 # 1.e. create key for daily AQS and JS
-create_baseModelKey(ref.df = aqs, refName = 'aqs', baseModel.df = js.loc, 
-                    baseModelName = 'js', timeScale = 'daily') 
+createKey(ref.df = aqs, refName = 'aqs', 
+                    baseModel.df = js.loc, baseModelName = 'js', 
+                    timeScale = 'daily') 
 
 #### ------------------------------------ ####
 ####  2: CREATE KEYS FOR REFGRIDS AND JS  ####
@@ -69,21 +71,33 @@ create_baseModelKey(ref.df = aqs, refName = 'aqs', baseModel.df = js.loc,
 refGrid <- fst::read_fst(here::here('inputs', 'pm25', 'reference_grids',  
                             paste0('refGrid_', 'conus', '.fst')))
 # 2.a.ii. create the key 
-create_baseModelKey(refGrid, 'refGridConus', js.loc, 'js', 'daily') 
-create_baseModelKey(refGrid, 'refGridConus', js.loc, 'js', 'annual') 
+createKey(ref.df = refGrid, refName = 'refGridConus', 
+                    baseModel.df = js.loc, baseModelName = 'js',
+                    timeScale = 'daily') 
+createKey(ref.df = refGrid, refName = 'refGridConus',
+                    baseModel.df = js.loc, 'baseModelName = js', 
+                    timeScale = 'annual') 
 
 # 2.b. create key for NYS refGrid
 # 2.b.i. read the refgrid
 refGrid <- fst::read_fst(here::here('inputs', 'pm25', 'reference_grids',   
                                     paste0('refGrid_', 'NYS', '.fst')))
 # 2.b.ii. create the key 
-create_baseModelKey(refGrid, 'refGridNYS', js.loc, 'js', 'daily') 
-create_baseModelKey(refGrid, 'refGridNYS', js.loc, 'js', 'annual') 
+createKey(ref.df = refGrid, refName = 'refGridNYS', 
+                    baseModel.df = js.loc, baseModelName = 'js', 
+                    timeScale = 'daily') 
+createKey(ref.df = refGrid, refName = 'refGridNYS', 
+                    baseModel.df = js.loc, baseModelName = 'js',
+                    timeScale = 'annual') 
 
 # 2.c. create key for cities refGrid
 # 2.c.i. read the refgrid
 refGrid <- fst::read_fst(here::here('inputs', 'pm25', 'reference_grids',  
-                                    paste0('refGrid_', 'cities', '.fst')))
+                                    paste0('refGrid_', 'Cities', '.fst')))
 # 2.c.ii. create the key 
-create_baseModelKey(refGrid, 'refGridcities', js.loc, 'js', 'daily') 
-create_baseModelKey(refGrid, 'refGridcities', js.loc, 'js', 'annual') 
+createKey(ref.df = refGrid, refName = 'refGridCities', 
+                    baseModel.df = js.loc, baseModelName = 'js', 
+                    timeScale = 'daily') 
+createKey(ref.df = refGrid, refName = 'refGridCities', 
+                    baseModel.df = js.loc, baseModelName = 'js',
+                    timeScale = 'annual') 

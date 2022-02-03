@@ -37,7 +37,7 @@ if(!exists('ran_a_00')){
 YYYYlist <- 2010:2015
 
 # 1.b. list of codes defining the datasets
-baseModelCodes <- c('AV', 'GS', 'CMAQOUTS_annual',  'CACES') #, 'MERRA_annual') 
+baseModelCodes <- c('AV_annual', 'GS_annual', 'CMAQOUTS_annual',  'CACES_annual') #, 'MERRA_annual') 
 baseModelNames <- c("av", "gs", "cm",  "cc")
   #c("av", "gs", "cmaq_outs",  "caces") #, 'merra') 
 overrides <- c(T, T, T, T, T) #, T) # used to be c(T, F, F, F)

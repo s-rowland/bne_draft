@@ -70,7 +70,7 @@ readBNEoutput <- function(YYYY = 2010,
   runID <- paste0(paste(baseModelSet, collapse = ''), '_', parameterString, '_', YYYY, '_', fold, resid)
   
   # 1e. read the BNE output 
-  bneOut <- readr::read_csv(here::here('outputs', 
+  bneOut <- readr::read_csv(here::here('outputs', 'pm25',
                                           paste0(spt, '_annual'),
                                    paste0('BNE_', runID, '.csv')), 
                         col_names = ColNames, skip = skipCount) %>%

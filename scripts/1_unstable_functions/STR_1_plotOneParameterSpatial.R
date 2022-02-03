@@ -24,7 +24,7 @@
 #' for w, ens, res, and pred, metrics can be 'mean' or 'sd.' For now, pred can also 
 #' have metrics '05CI', '95CI', 'min', 'max', and 'median'. 
 #' @param valueScale A vector containing the values to be used as break points for 
-#' the legend and color scheme. If a valueArray is not provided, then the function 
+#' the legend and color scheme. If a valueScale is not provided, then the function 
 #' will calculate breakpoints from just the values in the dataset.
 #' @param legYN A string determining whether to include a legend. 
 #' Default is to include a legend. Possible values are 'legY' and 'legN'.

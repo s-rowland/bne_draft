@@ -178,23 +178,27 @@ once you put them back together.
           * daily
               * data files (one per time step)
 
-    * outputs
-        * pollutant (pm25, o3, nox)
-            * daily
-                * results of run (name describes model features) 
-                * log files describing the run 
-            * annual
-                * results of run (name describes model features) 
-                * log files describing the run 
+* outputs
+    * pollutant (pm25, o3, nox)
+        * daily
+            * results of run (name describes model features) 
+            * log files describing the run 
+        * annual
+            * results of run (name describes model features) 
+            * log files describing the run 
 * external_validation_data 
     * raw
         * Descriptions of Data Sources 
-        * [EVl Name]_daily_raw
+        * [EV Name]_daily_raw
         * [EV Name]_annual_raw
     * formatted
         * [EV Name]_daily_formatted
         * [EV Name]_annual_formatted
 * ancillary_data
+    * generated 
+    * raw
+    * formatted 
+    * final
 * scripts 
     0) functions
     1) unstable_functions

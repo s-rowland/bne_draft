@@ -34,7 +34,7 @@ p_load(tidyverse, lubridate, magrittr, janitor, # tidyverse packages
        tidycensus, foreach,
        fst, FNN,
        latex2exp,
-       purrr, furrr, future, progress, progressr, # efficiency/paralleization packages
+       purrr, furrr, future, progress, progressr, # efficiency/parallelezation packages
        mgcv, dlnm, splines, lme4, # stats packages
        egg, cowplot, corrplot, pals, colorspace, ggsci, scico, viridis) # plotting
 
