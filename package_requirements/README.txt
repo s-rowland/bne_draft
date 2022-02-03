@@ -162,6 +162,11 @@ Other commands can be run from anywhere.
 nngeo: unavailable on conda. need to ask Gus for a workaround or clone its
 source repository...
 
+dlnm, prism, tidycensus: unavailable on conda. prism and tidycensus have
+datasets Sebastian is using for personal analysis, so maybe just download
+the data from them locally and upload to server? dlnm we probably won't need
+anytime soon...
+
 --------------------------------------------------------------------------------
 
 6. (FOR LAWRENCE ONLY) INSTRUCTIONS TO CREATE THE BNER.yml FILE FROM R_env
