@@ -22,8 +22,8 @@ Date: 1/24/22
     conda install -c conda-forge PACKAGE-NAME==1.0.4              # install
     conda list --explicit > requirements.txt                      # document
     conda env export --name BNER | grep -v "^prefix: " > BNER.yml # document x2
-    python get_pacs.py                                            # document x3
-    git add BNER.yml pacs.csv requirements.txt                    # push changes
+    python get_pacs_R.py                                          # document x3
+    git add BNER.yml pacs_R.csv requirements.txt                  # push changes
     git commit -m "Updated BNER env w/ PKGNAME1, PKGNAME2, ..."
     git push
 
