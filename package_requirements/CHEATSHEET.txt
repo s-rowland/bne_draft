@@ -23,15 +23,11 @@ Date: 1/24/22
     conda list --explicit > requirements.txt                      # document
     conda env export --name BNER | grep -v "^prefix: " > BNER.yml # document x2
     python get_pacs_R.py                                          # document x3
-    git add BNER.yml pacs_R.csv requirements.txt                  # push changes
-    git commit -m "Updated BNER env w/ PKGNAME1, PKGNAME2, ..."
-    git push
 
 --------------------------------------------------------------------------------
 
 3. UPDATING BNER WITH PACKAGES OTHERS HAVE ADDED
                 
-    git pull                                                  # pull in changes
     conda env update --name BNER --file BNER.yml --prune      # update env.
 
 --------------------------------------------------------------------------------

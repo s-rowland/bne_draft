@@ -144,28 +144,15 @@ Other commands can be run from anywhere.
 
                     python get_pacs_R.py
 
-    (Step 4): Push changes to GitHub with**:
-                    
-                    git add BNER.yml pacs_R.csv requirements.txt
-                    git commit -m "Updated BNER env w/ PKGNAME1, PKGNAME2, ..."
-                    git push
-
-              NOTE: Before pushing changes to these files, check in with the
-              group to ensure there aren't major conflicts.
-
 --------------------------------------------------------------------------------
 
 4. UPDATING BNER WITH PACKAGES OTHERS HAVE ADDED
 
-    (Step 1): Pull in any changes to the BNER.yml file from GitHub with**:
-                
-                    git pull
-
-    (Step 2): Update the conda environment with**:
+    (Step 1): Update the conda environment with**:
                     
                     conda env update --name BNER --file BNER.yml --prune
 
-              The '--prune' flag uninstall dependencies which were removed
+              The '--prune' flag uninstalls dependencies which were removed
               from BNER.yml. 
 
 --------------------------------------------------------------------------------
