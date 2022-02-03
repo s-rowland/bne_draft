@@ -1,4 +1,4 @@
-# File: get_pacs.py
+# File: get_pacs_R.py
 # Author: Lawrence Chillrud <lgc2139@cumc.columbia.edu>
 # Date: 1/24/22
 
@@ -17,4 +17,4 @@ with open('requirements.txt', 'r') as f:
             versions.append(info[2])
 
 df = pd.DataFrame(list(zip(pacs, versions)), columns = ["Package", "Version"])
-df.to_csv('pacs.csv', index = False)
+df.to_csv('pacs_R.csv', index = False)

@@ -2,7 +2,7 @@
 
 File: README.txt for bne/package_requirements directory
 Author: Lawrence Chillrud <lgc2139@cumc.columbia.edu>
-Date: 1/21/22
+Date: 01/21/2022
 
 Table of Contents:
 
@@ -30,16 +30,16 @@ Other commands can be run from anywhere.
 
     (a) BNER.yml: A YAML file containing the package information for the BNER 
         conda environment. Instructions on how to use it to create / update the
-        BNER conda environment are in section 2.
+        BNER conda environment are in sections 2, 3, and 4.
 
-    (b) requirements.txt: A plain text file containing all packages in the BNER 
-        conda environment, along with their versions.
+    (b) requirements.txt: A plain text file containing all packages (python,
+        R, etc.) in the BNER conda environment, along with their versions.
 
-    (c) pacs.csv: A csv file containing all R packages & their versions in the 
-        BNER conda environment. Created from requirements.txt by get_pacs.py.
+    (c) pacs_R.csv: A csv file containing the R packages & their versions in the 
+        BNER conda environment. Created from requirements.txt by get_pacs_R.py.
 
-    (d) get_pacs.py: A python script to print only the R packages and versions
-        from requirements.txt in a more readable format (saved as pacs.csv).
+    (d) get_pacs_R.py: A python script to print only the R packages and versions
+        from requirements.txt in a more readable format (saved as pacs_R.csv).
 
     (e) CHEATSHEET.txt: A plain text file abbreviating the info in this README.
 
@@ -53,7 +53,7 @@ Other commands can be run from anywhere.
             create the BNER conda environment from R_env (from scratch).
 
             (iii) requirements_BNER_conda-forge.txt: A plain text file 
-            containing the packages (excluding dependencies) that can be added 
+            containing the packages (excluding dependencies) that must be added
             to the basic R_env conda environment in order to create the BNER 
             conda environment. Needed for the shell script.
 
@@ -100,8 +100,7 @@ Other commands can be run from anywhere.
 
                     conda activate BNER
 
-              i.e. there is no need to set up the environment again in 
-              steps 1 and 2.
+              i.e. there is no need to set up the environment again in step 1.
 
 --------------------------------------------------------------------------------
 
@@ -141,15 +140,18 @@ Other commands can be run from anywhere.
                     
                     conda env export --name BNER | grep -v "^prefix: " > BNER.yml
 
-              <3> Update pacs.csv by overwriting it with**:
+              <3> Update pacs_R.csv by overwriting it with**:
 
-                    python get_pacs.py
+                    python get_pacs_R.py
 
     (Step 4): Push changes to GitHub with**:
                     
-                    git add BNER.yml pacs.csv requirements.txt
+                    git add BNER.yml pacs_R.csv requirements.txt
                     git commit -m "Updated BNER env w/ PKGNAME1, PKGNAME2, ..."
                     git push
+
+              NOTE: Before pushing changes to these files, check in with the
+              group to ensure there aren't major conflicts.
 
 --------------------------------------------------------------------------------
 
@@ -172,8 +174,6 @@ Other commands can be run from anywhere.
 
 nngeo: unavailable on conda. need to ask Gus for a workaround or clone its
 source repository...
-
-pacman: dependency conflicts with our current environment. remove from workflow?
 
 --------------------------------------------------------------------------------
 
