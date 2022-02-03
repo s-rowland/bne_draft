@@ -16,5 +16,5 @@ with open('requirements.txt', 'r') as f:
             pacs.append("r-" + info[1])
             versions.append(info[2])
 
-df = pd.DataFrame(list(zip(pacs, versions)), columns = ["Package", "Version"])
+df = pd.DataFrame(list(zip(pacs, versions)), columns = ["Package", "Version"]).sort_values(by = "Package")
 df.to_csv('pacs_R.csv', index = False)

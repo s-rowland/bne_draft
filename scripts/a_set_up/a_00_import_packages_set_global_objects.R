@@ -20,30 +20,24 @@
 # that creates a recursion with the functions
 ran_a_00 <- "ran_a_00"
 
-# 0.b. load pacman package
-library(pacman)
-
 #### ------------------ ####
 ####  1. LOAD PACKAGES  ####
 #### ------------------ ####
 
 # 1.a. load packages
-p_load(tidyverse, lubridate, magrittr, janitor, # tidyverse packages
-       sf, raster, rgdal, sp, stars, ncdf4, deldir, dismo,nngeo, ncf, # spatial packages 
-       prism, # packages with data 
-       tidycensus, foreach,
-       fst, FNN,
-       latex2exp,
-       purrr, furrr, future, progress, progressr, # efficiency/parallelezation packages
-       mgcv, dlnm, splines, lme4, # stats packages
-       egg, cowplot, corrplot, pals, colorspace, ggsci, scico, viridis) # plotting
-
-# ggsci provides the pallette we use to visualize the folds
-#library(devtools)
-#install_github('hunzikp/velox')
-# nice way to make voronoi's
-#if (!require(devtools)) install.packages("devtools")
-#devtools::install_github("walshc/voronoi")
+sapply(
+       X = c("tidyverse", "lubridate", "magrittr", "janitor", # tidyverse packages
+       "sf", "raster", "rgdal", "sp", "stars", "ncdf4", # spatial packages
+       "nabor", "units", "methods", "lwgeom", "s2", "data.table", #nngeo requirements
+       #"prism", # packages with data 
+       "foreach", #"tidycensus"
+       "fst", "FNN",
+       "latex2exp",
+       "purrr", "furrr", "future", "progress", "progressr", "parallel", # efficiency/parallelezation packages
+       "mgcv", "splines", "lme4", # stats packages
+       "egg", "cowplot", "corrplot", "pals", "colorspace", "ggsci", "scico", "viridis"), # plotting, 
+       FUN = library, 
+       character.only = TRUE)
 
 #### ----------------------------- ####
 ####  2. SET PROJECT-WIDE OBJECTS  ####
@@ -93,3 +87,5 @@ rm(a, source_myFunction, myFunctions, myStableFunctions, myUnstableFunctions)
 if(!file.exists(here::here('ancillary_data', 'formatted', 'spatial_outlines', 'conus.shp'))){
         source(here::here('scripts', 'a_set_up', 'a_01_make_conus_outline.R'))
 }
+
+ls()

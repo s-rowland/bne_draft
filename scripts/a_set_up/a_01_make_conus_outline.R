@@ -37,7 +37,7 @@ excludedAreas <- c('Alaska', 'Hawaii', 'Puerto Rico',
                    'American Samoa', 'United States Virgin Islands')
 
 # 1.b. load the base map from our shapefile
-usa <- st_read(here::here('ancillary_data', 'raw', 'Census', 'cb_2015_us_state_500k', 
+usa <- st_read(here::here('ancillary_data', 'raw', 'cb_2015_us_state_500k', 
                           'cb_2015_us_state_500k.shp'))
 
 # 1.c. remove regions that will most likely not be included in the 

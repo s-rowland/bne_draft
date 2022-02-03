@@ -31,7 +31,7 @@ createRefGridNoJS <- function(AOI,
   # 1a restrict to area of interest
   if (AOI == 'Conus') {
     # bring in shapefile
-    states <- sf::st_read(here::here('ancillary_data', 'raw', 'Census', 'cb_2015_us_state_500k', 
+    states <- sf::st_read(here::here('ancillary_data', 'raw', 'cb_2015_us_state_500k', 
                                      'cb_2015_us_state_500k.shp')) %>% 
       st_transform(crs=sf::st_crs("epsg:4326"))
     # name locations of interest (here the locations to exclude)
@@ -47,7 +47,7 @@ createRefGridNoJS <- function(AOI,
   
   if (AOI == 'NYS') {
     # bring in shapefile
-    states <- sf::st_read(here::here('ancillary_data', 'raw', 'Census', 'cb_2015_us_state_500k', 
+    states <- sf::st_read(here::here('ancillary_data', 'raw', 'cb_2015_us_state_500k', 
                                      'cb_2015_us_state_500k.shp')) %>% 
       st_transform(crs=sf::st_crs("epsg:4326"))
     # name locations of interest (here the locations to exclude)
@@ -60,7 +60,7 @@ createRefGridNoJS <- function(AOI,
   
   if (AOI == 'Cities') {
     # bring in shapefile
-    cbsa <- sf::st_read(here::here('ancillary_data', 'raw', 'Census', 'tl_2015_us_cbsa', 
+    cbsa <- sf::st_read(here::here('ancillary_data', 'raw', 'tl_2015_us_cbsa', 
                                    'tl_2015_us_cbsa.shp')) %>% 
       st_transform(crs=sf::st_crs("epsg:4326"))
     # name locations of interest (here the locations to exclude)
