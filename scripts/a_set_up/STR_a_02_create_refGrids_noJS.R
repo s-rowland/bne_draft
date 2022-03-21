@@ -25,7 +25,6 @@ if(!exists('ran_a_00')){
                     'a_00_import_packages_set_global_objects.R'))
 }
 
-
 #### ------------------- ####
 #### 1. CREATE REFGRIDS  ####
 #### ------------------- ####

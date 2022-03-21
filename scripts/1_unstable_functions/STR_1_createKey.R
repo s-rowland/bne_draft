@@ -25,8 +25,7 @@
 
 # note: make sure there are no duplicate locations in your baseModel.df!!! 
 
-createKey <- function(ref.df, refName, baseModel.df, baseModelName, 
-                                timeScale) {
+createKey <- function(ref.df, refName, baseModel.df, baseModelName) {
 
   #### --------------------------------------- ####
   #### 0. example arguments and error catching ####
@@ -39,8 +38,6 @@ createKey <- function(ref.df, refName, baseModel.df, baseModelName,
     stop("At least one dataset is missing location data. See documentation.")
   }
 
-  if (!timeScale %in% c('annual', 'monthly','daily')) stop('rephrase the timeScale. See Documentation')
-  
   #### ------------------ ####
   #### 1. wrangle ref.df ####
   #### ------------------ ####
@@ -51,7 +48,7 @@ createKey <- function(ref.df, refName, baseModel.df, baseModelName,
     dplyr::rename(ref_lat = lat, ref_lon = lon)
   
   
-  if (refName == 'aqs') {
+  if (stringr::str_detect(refName, 'aqs')) {
     ref.df <- ref.df %>% 
       mutate(ref_id = ref_id)
   } else { 
@@ -75,7 +72,7 @@ createKey <- function(ref.df, refName, baseModel.df, baseModelName,
   
   # 1.c. get the unique ref locations 
   refLoc.df <- ref.df %>% 
-    dplyr::select(ref_lat, ref_lon) %>% 
+    dplyr::select(ref_lat, ref_lon, ref_id) %>% 
     distinct()
   
   # 1.d. prepare the base model for joining
@@ -124,6 +121,5 @@ createKey <- function(ref.df, refName, baseModel.df, baseModelName,
   # 3d. save results
   key_ref_baseModel %>% 
     fst::write_fst(here::here('inputs', 'pm25', 'keys', 
-                                paste0(refName, '_', baseModelName, '_key_nn_',
-                                       timeScale, '.fst')))
+                                paste0('key_nn_', refName, '_', baseModelName, '.fst')))
 }

@@ -33,7 +33,7 @@ sapply(
        "foreach", #"tidycensus"
        "fst", "FNN",
        "latex2exp",
-       "purrr", "furrr", "future", "progress", "progressr", "parallel", # efficiency/parallelezation packages
+       "purrr", "furrr", "future", "progress", "progressr", "parallel", "doSNOW", # efficiency/parallelezation packages
        "mgcv", "splines", "lme4", # stats packages
        "egg", "cowplot", "corrplot", "pals", "colorspace", "ggsci", "scico", "viridis"), # plotting, 
        FUN = library, 
@@ -87,5 +87,3 @@ rm(a, source_myFunction, myFunctions, myStableFunctions, myUnstableFunctions)
 if(!file.exists(here::here('ancillary_data', 'formatted', 'spatial_outlines', 'conus.shp'))){
         source(here::here('scripts', 'a_set_up', 'a_01_make_conus_outline.R'))
 }
-
-ls()

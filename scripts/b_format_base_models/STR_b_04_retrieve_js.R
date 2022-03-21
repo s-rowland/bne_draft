@@ -34,31 +34,70 @@
 # To find the JS data, visit:
 # https://beta.sedac.ciesin.columbia.edu/data/set/aqdh-pm2-5-concentrations-contiguous-us-1-km-2000-2016/data-download#close
 
+
+https://beta.sedac.ciesin.columbia.edu/downloads/data/aqdh/aqdh-pm2-5-concentrations-contiguous-us-1-km-2000-2016/aqdh-pm2-5-concentrations-contiguous-us-1-km-2000-2016-200001-geotiff.zip
+
+https://beta.sedac.ciesin.columbia.edu/downloads/data/aqdh/aqdh-pm2-5-concentrations-contiguous-us-1-km-2000-2016/aqdh-pm2-5-concentrations-contiguous-us-1-km-2000-2016-200001-rds.zip
 #### ------------------ ####
 #### 0. PACKAGE IMPORTS ####
 #### ------------------ ####
-library(magrittr)
-source(here::here("scripts", "1_unstable_functions", "LGC_1_loadData.R"))
+if(!exists('ran_a_00')){
+  here::i_am('README.md')
+  source(here::here('scripts', 'a_set_up', 
+                    'a_00_import_packages_set_global_objects.R'))
+}
 
 #### ------------------ ####
 ####  1. GENERAL SETUP  ####
 #### ------------------ ####
 
-# declare the AOI 
-AOI <- 'conus'
-
-
-
-# specify the years and months we are interested in:
+# 1.a. specify the years and months we are interested in:
 years <- c(2010:2016)
 months <- stringr::str_pad(1:12, 2, "left", "0")
 timeSteps <- expand.grid(list("year" = years, "month" = months)) %>%
   dplyr::arrange(year, month)
 
-# define the link to download the data & working directory:
+# 1.b. define the link to download the data & directory into which we will 
+# download the data:
 prefix <- "https://beta.sedac.ciesin.columbia.edu/downloads/data/aqdh/aqdh-pm2-5-concentrations-contiguous-us-1-km-2000-2016/aqdh-pm2-5-concentrations-contiguous-us-1-km-2000-2016-"
+prefix <- "https://beta.sedac.ciesin.columbia.edu/downloads/data/aqdh/aqdh-pm2-5-concentrations-contiguous-us-1-km-2000-2016/aqdh-pm2-5-concentrations-contiguous-us-1-km-2000-2016-200001-rds.zip"
 suffix <- "-rds.zip"
 wd <- "~/Downloads/"
+## test value
+wd <- paste0(here::here('inputs', 'pm25', 'base_models', 'daily', 'js'), '/')
+
+# 1.c. establish progress bar:
+n <- as.numeric(as.Date("2017-01-01") - as.Date("2015-01-01"))
+progressBar <- txtProgressBar(min=0, max=n, width=50, style=3)
+counter <- 0
+pb <- function(p) { setTxtProgressBar(progressBar, p); return(p+1) }
+counter <- pb(counter)
+
+
+i <- 1 
+#### --------------- ####
+#### 3. DOWNLOAD ZIP ####
+#### --------------- ####
+# daily data has been zipped into monthly zip files
+infix <- paste0(timeSteps$year[i], timeSteps$month[i])
+url <- paste0(prefix, infix, suffix)
+zipfile <- paste0(wd, infix, ".zip")
+
+# bash command as a string
+download <- paste0("curl -o ", zipfile, " -b ~/.urs_cookies -c ~/.urs_cookies -L -n ", url)
+# run the bash command
+system(download)
+
+# 4a. unzip the month's folder
+unzip(zipfile, exdir = paste0(wd, infix))
+
+
+
+
+
+
+
+
 
 # read in EPA data:
 #epaPath <- "~/Documents/Research_Marianthi/BNE_project/EPA_data/latest_version_clean_daily_data/daily_data_2000-2016.csv"
@@ -100,22 +139,17 @@ counter <- pb(counter)
 
 # set up output directories:
 # str version 
-outDir.training <- 'inputs/pm25/training_with_js/'
-outDir.refGrid <- "inputs/pm25/predictions_with_js/"
+outDir.training <- 'inputs/pm25/training_daily_js_only/'
+outDir.predictions <- "inputs/pm25/predictions_js_only/"
 
-#outDir.epa <- "EPA-JS_training_data/"
-#outDir.ref <- "key.refGrid.JS/"
-
-
-
-dir.create(paste0(wd, outDir.training))
-dir.create(paste0(wd, outDir.refGrid))
+js.raw <- here::here('inputs', 'pm25', 'base_models', 'daily', 'js')
+wd <- "~/Downloads/"
 
 #### ---------------------------- ####
 #### 2. PROCESS JS MONTH BY MONTH ####
 #### ---------------------------- ####
-for (i in 1:nrow(timeSteps)) {
-  
+#for (i in 1:nrow(timeSteps)) {
+ i <- 1 
   #### --------------- ####
   #### 3. DOWNLOAD ZIP ####
   #### --------------- ####
@@ -138,7 +172,7 @@ for (i in 1:nrow(timeSteps)) {
   unzip(zipfile, exdir = paste0(wd, infix))
   
   # 4b. get the names of the daily rds within that folder
-  files <- list.files(paste0(wd, infix), pattern = ".rds")
+  files <- list.files(paste0(js.raw, infix), pattern = ".rds")
   
   # 4c. rename files
   # 4c.i create clean names of files 

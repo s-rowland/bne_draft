@@ -18,8 +18,8 @@
 getAnnualAverageCMAQ <- function(insOut, yyyy) {
   
   # 1.a. read the cmaq dataset
-  cmq <- readr::read_csv(here::here('inputs', 'pm25', 'base_models', 'raw', 
-                                    paste0('cm', insOut, '_daily_raw'), 
+  cmq <- readr::read_csv(here::here('inputs', 'pm25', 'base_models', 'daily', 'raw', 
+                                    paste0('cm', insOut), 
                                     paste0(yyyy, '_pm25_daily_average.txt'))) %>% 
     janitor::clean_names()
   
@@ -40,7 +40,7 @@ getAnnualAverageCMAQ <- function(insOut, yyyy) {
   # 1.d. save as an fst
   cmq.fips %>% 
     fst::write_fst(
-      here::here('inputs', 'pm25', 'base_models', 'formatted', 
-                 paste0('cm', insOut, '_annual_formatted'),
+      here::here('inputs', 'pm25', 'base_models', 'annual', 'formatted', 
+                 paste0('cm', insOut),
                  paste0('cm', insOut, '_', yyyy, '_formatted.fst')))
 }

@@ -83,7 +83,7 @@ plotOneParameterSpatial <- function(
   
   # 1c. Transform geographical coordinates to Albers Projection
   dta <- dta %>% 
-    sf::st_transform(crs=sf::st_crs(refCRS))
+    sf::st_transform(crs=sf::st_crs(projCRS))
   
   # 1d. extract the name of the base model, if relevant
   if (stringr::str_detect(parameterName, 'w_mean') | 
@@ -176,7 +176,12 @@ plotOneParameterSpatial <- function(
     }
   
   # 2A.b. set the titles we will use for the plot
-  if (legTitle == 'default legendTitle') {legTitle <- legTitle.default}
+  if (legTitle == 'default legendTitle') {
+      legTitle <- legTitle.default
+  } else if (legTitle == 'pred_pm25') {
+      legTitle <- expression(atop(atop(' ', 'Predicted'),
+      atop('PM'[2.5], '('*mu*g/m^3*')')))
+  }
   if (mainTitle == 'default mainTitle') {mainTitle <- mainTitle.default}
   
   # 2A.c. set legend position

@@ -33,9 +33,9 @@ if(!exists('ran_a_00')){
 #### ---------------------------- ####
 
 # 1.a. aggregate cmaq ins for all of the years
-purrr::map2('ins', c(2010:2015), getAnnualAverageCMAQ)
+purrr::map2('ins', c(2010:2016), getAnnualAverageCMAQ)
 
 # 1.b. aggregate cmaq out for all of the years
-purrr::map2('out', c(2010:2015), getAnnualAverageCMAQ)
+purrr::map2('out', c(2010:2016), getAnnualAverageCMAQ)
 
   
