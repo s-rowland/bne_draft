@@ -58,8 +58,8 @@ refGridConus <- fst::read_fst(here::here('inputs', 'pm25', 'reference_grids',
 
 # 1b. breka up refGrid in preparation for foreach 
 refGridConus <- refGridConus %>% 
-  mutate(group = row_number() %% 100, 
-         if = row_number())
+  mutate(group = row_number() %% 1000, 
+         id = row_number())
 
 refGridConus.list <- split(refGridConus, refGridConus$group)
 
@@ -72,10 +72,13 @@ ee <- foreach(
   dta2 <- data.frame(id = dta$id, 
                      lat = dta$lat, 
                      lon = dta$lon, 
-                     state_date = '2005-01-01', 
+                     start_date = '2005-01-01', 
                      end_date = '2005-01-01')
 
-dta2 <- add_pm(dta2)
+dta2 <- add_pm(dta2) 
 
 
 }
+
+
+
