@@ -26,18 +26,4 @@ grid.penalty = grid_mat(:,6);
 grid.seed = grid_mat(:,7);
 grid.mse = transpose(repelem(0, size(grid,1)));
 
-for i = 1:size(grid,1)
-    if grid.time_metric[i] == 1
-        time_metric_act = 'julianDay';
-    else time_metric_act = 'dayOfYear';
-    end
-        
-    grid.mse(i) = cross_validate_BNE_v1('daily', 4, ...
-        grid.len_scale_space(i), grid.len_scale_time(i), ...
-        grid.len_scale_space_bias(i), grid.len_scale_time_bias(i), ...
-        grid.penalty(i), time_metric_act, grid.seed(i), ...
-        2005, 2015, 'full_grid_search');
-    display(num2str(i))
-
-    writetable(grid)
-end
+writetable(grid)
