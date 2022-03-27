@@ -28,10 +28,12 @@ function [partMSE] = train_predict_BNE_v1(window, num_models, fold, ...
  % len_scale_space = 3.5'; len_scale_time = 1; len_scale_space_bias = 3.5';
  % len_scale_time_bias = 1; penalty = 0.1; time_metric = 'annual'; seed = 1234;
 
- % window = 'daily'; num_models = 5; fold=2
+ % window = 'daily'; num_models = 5; fold=1;
  % len_scale_space = 3.5'; len_scale_time = 20; len_scale_space_bias = 3.5';
  % len_scale_time_bias = 20; penalty = 0.1; time_metric = 'julianDay'; seed = 1234;
- % yyyy_start = 2005; yyyy_end=2006; dir_out = 'test_run';
+ % yyyy_start = 2005; yyyy_end=2015; dir_out = 'test_run';
+ 
+ %  time_metric = 'dayOfYear';
  
 %%%% ------------ %%%%
 %%%% 1: Train BNE %%%%
@@ -48,6 +50,7 @@ training_full = readtable(append('inputs/pm25/training_datasets/',window, '_comb
 % 1b.ii remove the time column you do not use 
 if strcmp(time_metric, 'dayOfYear')
     training_full.julian_day = [];
+    training_full.day_of_year = training_full.day_of_year ./ training_full.max_doy;
 elseif strcmp(time_metric, 'julianDay')
     training_full.day_of_year = [];
 end
@@ -74,7 +77,7 @@ trainPreds = training{:,5:(4+num_models)};
 
 [W,w0,SigW,Z,piZ,Zt,MSE] = BNE_v1_0(trainAqs, trainLatLon, trainTime, ...
     trainPreds, num_rand_feat,len_scale_space,len_scale_time, ...
-    len_scale_space_bias,len_scale_time_bias, penalty);
+    len_scale_space_bias,len_scale_time_bias, penalty, time_metric);
 
 %%%% -------------------------- %%%%
 %%%% 2: Prepare for Predictions %%%%
@@ -110,12 +113,20 @@ end
 partMSE = [0, 0]
 
 % 1 loop over the years
-for YYYY = yyyy_start:yyyy_end
+for YYYY = [2005, 2006, 2007, 2009, 2010, 2011, 2013, 2014, 2015]
     
     % 1a determine the maximum number of days the in current year
     if YYYY == 2004 | YYYY == 2008 | YYYY == 2012 | YYYY == 2016
         maxDoY = 366
     else maxDoY = 365
+    end
+        
+    % nasty hack to deal with missing leap years
+    YYYY2 = YYYY
+    if YYYY == 2009 | YYYY == 2010 | YYYY == 2011
+        YYYY2 = YYYY-1
+    elseif YYYY == 2013 | YYYY == 2014 | YYYY == 2015 
+        YYYY2 = YYYY -2 
     end
         
     % 1b loop over days within that year
@@ -124,9 +135,9 @@ for YYYY = yyyy_start:yyyy_end
         if strcmp(time_metric, 'annual')
             time = time;
         elseif strcmp(time_metric, 'dayOfYear') 
-            time = 100*DoY / maxDoY;
+            time = DoY;
         elseif strcmp(time_metric, 'julianDay') 
-            time = DoY + floor(365.25 * (YYYY-2005));
+            time = DoY + floor(365.25 * (YYYY2-2005));
         end
         
         % extract preds for this time
@@ -134,7 +145,7 @@ for YYYY = yyyy_start:yyyy_end
         
         % extract components
         X = testing_day(:, [1,2]);
-        f_all = testing_day(:, [5:9]);
+        f_all = testing_day(:, [5:(4+num_models)]);
         obs = testing_day.obs;
         % extract the predictions
 
@@ -143,11 +154,19 @@ for YYYY = yyyy_start:yyyy_end
 
         % loop over the individual points
         for i = 1:size(X,1)
+            if strcmp(time_metric, 'dayOfYear') 
+                Phi = sqrt(2/num_rand_feat)*cos(Z*X{i,:}'/len_scale_space + Zt*58.0916*[cos(2*pi*time/maxDoY)' ; sin(2*pi*time/maxDoY)']/len_scale_time + piZ);
+                Phi_bias = sqrt(2/num_rand_feat)*cos(Z*X{i,:}'/len_scale_space_bias + Zt*58.0916*[cos(2*pi*time/maxDoY)' ; sin(2*pi*time/maxDoY)']/len_scale_time_bias + piZ);
+            else
+                Phi = sqrt(2/num_rand_feat)*cos(Z*X{i,:}'/len_scale_space + Zt*time'/len_scale_time + piZ);
+                Phi_bias = sqrt(2/num_rand_feat)*cos(Z*X{i,:}'/len_scale_space_bias + Zt*time'/len_scale_time_bias + piZ);
+            end
             %Phi = sqrt(2/num_rand_feat)*cos(Z*X(i,:)'/len_scale_space + Zt*time/len_scale_time + piZ);
             % Phi for weights
-            Phi = sqrt(2/num_rand_feat)*cos(Z*X{i,:}'/len_scale_space + Zt*time/len_scale_time + piZ);
+            %Phi = sqrt(2/num_rand_feat)*cos(Z*X{i,:}'/len_scale_space + Zt*time/len_scale_time + piZ);
+            %Phi = sqrt(2/num_rand_feat)*cos(Z*X{i,:}'/len_scale_space + Zt*time/len_scale_time + piZ);
             % Phi for bias 
-            Phi_bias = sqrt(2/num_rand_feat)*cos(Z*X{i,:}'/len_scale_space_bias + Zt*time/len_scale_time_bias + piZ);        
+            %Phi_bias = sqrt(2/num_rand_feat)*cos(Z*X{i,:}'/len_scale_space_bias + Zt*time/len_scale_time_bias + piZ);        
             bias = Phi_bias'*w0samp;
             softmax = Phi'*wsamp;
             softmax = reshape(softmax',num_models,num_samp)';
