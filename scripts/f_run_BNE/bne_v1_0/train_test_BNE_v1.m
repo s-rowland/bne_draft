@@ -1,6 +1,6 @@
 function [partMSE] = train_predict_BNE_v1(window, num_models, fold, ...
     len_scale_space,len_scale_time,len_scale_space_bias,len_scale_time_bias, ...
-    penalty, time_metric, seed, yyyy_start, yyyy_end, dir_out)
+    penalty, time_metric, seed, yyyy_start, yyyy_end, dir_out, training_original)
 % % 
 % % === Inputs ===
 % %  
@@ -46,7 +46,7 @@ num_rand_feat = 500;
 
 % 1b bring in training data
 % 1b.i bring in the full training dataset
-training_full = readtable(append('inputs/pm25/training_datasets/',window, '_combined/training_cvfolds.csv'));
+training_full = training_original;
 % 1b.ii remove the time column you do not use 
 if strcmp(time_metric, 'dayOfYear')
     training_full.julian_day = [];
@@ -75,129 +75,47 @@ trainPreds = training{:,5:(4+num_models)};
 % get the best-fit values and not whole distributions. Distributions are
 % estimated in the prediction phase
 
-[W,w0,SigW,Z,piZ,Zt,MSE] = BNE_v1_0(trainAqs, trainLatLon, trainTime, ...
+[W,w0,Z,piZ,Zt,MSE] = BNE_v1_0_nosigw(trainAqs, trainLatLon, trainTime, ...
     trainPreds, num_rand_feat,len_scale_space,len_scale_time, ...
     len_scale_space_bias,len_scale_time_bias, penalty, time_metric);
 
-%%%% -------------------------- %%%%
-%%%% 2: Prepare for Predictions %%%%
-%%%% -------------------------- %%%%
+%%%% ----------------------------------------- %%%%
+%%%% 2: Determine Error at Left-out Sites %%%%
+%%%% ----------------------------------------- %%%%
 
 
+% 2a break down the testing data into its components
+testLatLon = testing{:,1:2};
+testTime = testing{:,3};
+testAqs = testing{:,4};
+testPreds = testing{:,5:(4+num_models)};
+test_size = size(testLatLon, 1);
 
-% Create num_samp samples of W and w0 from a Gaussian distribution used
-% for calculating empirical mean and standard deviations. More samples is
-% slower but more accurate.
-% Basically, we take samples of the parameter values 
-
-% 2a muW is a vector of the mean values of the parameters of weights and
-% offset term 
-muW = [W(:) ; w0];
-% 2b set the number of samples that we will take 
-num_samp = 250;
-% 2c take the samples. we generate random numbers based on gaussian
-% distributions, where the means are the mean values and the variances are 
-% stored in SigW, which we calculate in the second half of the BNE function
-wsamp1 = mvnrnd(muW,SigW,num_samp)';
-% 2d put samples in tidy format
-w0samp = [];
-wsamp = [];
-for s = 1:num_samp
-    w0samp = [w0samp wsamp1(end-num_rand_feat+1:end,s)];
-    wsamp = [wsamp reshape(wsamp1(1:num_models*num_rand_feat,s),num_rand_feat,num_models)];
+% 2b set up the Phi's to translate our testing points to the RFF grid
+if strcmp(time_metric, 'dayOfYear')
+    Phi = sqrt(2/num_rand_feat)*cos(Z*testLatLon'/len_scale_space + Zt*58.0916*[cos(2*pi*testTime)' ; sin(2*pi*testTime)']/len_scale_time + piZ*ones(1,test_size));
+    Phi_bias = sqrt(2/num_rand_feat)*cos(Z*testLatLon'/len_scale_space_bias + Zt*58.0916*[cos(2*pi*testTime)' ; sin(2*pi*testTime)']/len_scale_time_bias + piZ*ones(1,test_size));
+else
+    Phi = sqrt(2/num_rand_feat)*cos(Z*testLatLon'/len_scale_space + Zt*testTime'/len_scale_time + piZ*ones(1,test_size));
+    Phi_bias = sqrt(2/num_rand_feat)*cos(Z*testLatLon'/len_scale_space_bias + Zt*testTime'/len_scale_time_bias + piZ*ones(1,test_size));
 end
 
-% str silenced
-%temp = datenum('2016-01-01')-datenum('2000-01-01');
+% 2c generate predictions
+dotWPhi = W'*Phi;
+softmax = exp(dotWPhi);
+softmax = softmax./repmat(sum(softmax,1),num_models,1);
+model_avg = sum(softmax.*testPreds',1);
+bias = w0'*Phi_bias;
+preds = model_avg + bias;
 
-partMSE = [0, 0]
+% 2d determine error 
+error = testAqs' - preds;
 
-% 1 loop over the years
-for YYYY = [2005, 2006, 2007, 2009, 2010, 2011, 2013, 2014, 2015]
-    
-    % 1a determine the maximum number of days the in current year
-    if YYYY == 2004 | YYYY == 2008 | YYYY == 2012 | YYYY == 2016
-        maxDoY = 366
-    else maxDoY = 365
-    end
-        
-    % nasty hack to deal with missing leap years
-    YYYY2 = YYYY
-    if YYYY == 2009 | YYYY == 2010 | YYYY == 2011
-        YYYY2 = YYYY-1
-    elseif YYYY == 2013 | YYYY == 2014 | YYYY == 2015 
-        YYYY2 = YYYY -2 
-    end
-        
-    % 1b loop over days within that year
-    for DoY =  1:maxDoY 
-        
-        if strcmp(time_metric, 'annual')
-            time = time;
-        elseif strcmp(time_metric, 'dayOfYear') 
-            time = DoY;
-        elseif strcmp(time_metric, 'julianDay') 
-            time = DoY + floor(365.25 * (YYYY2-2005));
-        end
-        
-        % extract preds for this time
-        testing_day = testing(testing{:,3} ==time,:); 
-        
-        % extract components
-        X = testing_day(:, [1,2]);
-        f_all = testing_day(:, [5:(4+num_models)]);
-        obs = testing_day.obs;
-        % extract the predictions
-
-        % generate the empty arrays to fill
-        y_mean = zeros(size(X,1),1);
-
-        % loop over the individual points
-        for i = 1:size(X,1)
-            if strcmp(time_metric, 'dayOfYear') 
-                Phi = sqrt(2/num_rand_feat)*cos(Z*X{i,:}'/len_scale_space + Zt*58.0916*[cos(2*pi*time/maxDoY)' ; sin(2*pi*time/maxDoY)']/len_scale_time + piZ);
-                Phi_bias = sqrt(2/num_rand_feat)*cos(Z*X{i,:}'/len_scale_space_bias + Zt*58.0916*[cos(2*pi*time/maxDoY)' ; sin(2*pi*time/maxDoY)']/len_scale_time_bias + piZ);
-            else
-                Phi = sqrt(2/num_rand_feat)*cos(Z*X{i,:}'/len_scale_space + Zt*time'/len_scale_time + piZ);
-                Phi_bias = sqrt(2/num_rand_feat)*cos(Z*X{i,:}'/len_scale_space_bias + Zt*time'/len_scale_time_bias + piZ);
-            end
-            %Phi = sqrt(2/num_rand_feat)*cos(Z*X(i,:)'/len_scale_space + Zt*time/len_scale_time + piZ);
-            % Phi for weights
-            %Phi = sqrt(2/num_rand_feat)*cos(Z*X{i,:}'/len_scale_space + Zt*time/len_scale_time + piZ);
-            %Phi = sqrt(2/num_rand_feat)*cos(Z*X{i,:}'/len_scale_space + Zt*time/len_scale_time + piZ);
-            % Phi for bias 
-            %Phi_bias = sqrt(2/num_rand_feat)*cos(Z*X{i,:}'/len_scale_space_bias + Zt*time/len_scale_time_bias + piZ);        
-            bias = Phi_bias'*w0samp;
-            softmax = Phi'*wsamp;
-            softmax = reshape(softmax',num_models,num_samp)';
-            softmax = exp(softmax);
-            softmax = softmax./repmat(sum(softmax,2),1,num_models);
-            ens = softmax*f_all{i,:}';
-            y = softmax*f_all{i,:}' + bias';
-            y_mean(i) = mean(y);
-
-            %if mod(i,1000) == 0
-             %   disp([num2str(time) '/' num2str(temp+365) ' ::: ' num2str(i/size(X,1))]);
-            %end
-        end
-        
-    %%%% ----------------------- %%%%
-    %%%% 4: Generate Predictions %%%%
-    %%%% ----------------------- %%%%
-
-        error_day = y_mean - testing_day.obs;
-
-        mse_day = mean(error_day.^2);
-        
-        if size(testing_day,1) == 0
-            mse_day =0;
-        end
-        
-        partMSE = [partMSE mse_day * size(X,1) / size(training_full,1)];
-        
-
-        end
-    % 4b save as csv
-    end
-  partMSE = sum(partMSE)  
+% 2e get mean square error
+mse_fold = mean(error.^2);
+ 
+% 2f get the partial MSE - make the mse proportional to the amount of data
+% in the testing set.
+partMSE = mse_fold * test_size / size(training_full,1);
+     
 end
