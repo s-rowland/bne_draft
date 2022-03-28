@@ -44,7 +44,7 @@ else
     trainFold = fold
 end
 
-training = readtable(append('BNE_inputs/training_datasets/combined_annual/training_', inputset, '_', trainFold, '.csv'));
+training = readtable(append('inputs/pm25/training_datasets/annual_combined/training_', inputset, '_', trainFold, '.csv'));
 
 % 1c break down the training data into its components
 % note that column 3 is date, which we aren't using yet
@@ -104,7 +104,7 @@ end
 
 for time =  1:1 %temp:30:temp+365
     YYYY = 2009 + time;
-    pred = readtable(append('BNE_inputs/prediction_datasets/individual_annual/predictions_', ...
+    pred = readtable(append('inputs/pm25/prediction_datasets/annual_individual/predictions_', ...
      inputset, '_', num2str(YYYY), '_', fold, '.csv'));
  
     X = pred(:, [1,2]);
@@ -185,7 +185,7 @@ switch resid
         last = '_noResid.csv'
 end
 % 4b save as csv
-    writetable(results, append('outputs/spatiotemp_annual/BNE_',...
+    writetable(results, append('outputs/pm25/spatiotemp_annual/BNE_',...
         inputset, '_', string(len_scale_space),'_', string(len_scale_time),...
         '_',num2str(YYYY), '_', fold, last))
 

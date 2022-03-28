@@ -46,7 +46,7 @@ else
     trainFold = fold
 end
  
-training = readtable(append('BNE_inputs/training_datasets/individual_annual/training_', inputset, '_', YYYY, '_', trainFold, '.csv'));
+training = readtable(append('inputs/pm25/training_datasets/annual_individual/training_', inputset, '_', YYYY, '_', trainFold, '.csv'));
 
 % 1c break down the training data into its components
 % note that column 3 is date, which we don't use in sp BNE
@@ -68,14 +68,14 @@ trainPred = training{:,5:(4+num_models)};
 %%%% -------------------------- %%%%
 
 % 2a create an id for reading in data line by line.
-fid = fopen(append('BNE_inputs/prediction_datasets/individual_annual/predictions_', ...
+fid = fopen(append('inputs/pm25/prediction_datasets/annual_individual/predictions_', ...
      inputset, '_', YYYY, '_', fold, '.csv'),'r');
  
 % 2b makes an object we can use from the fid
 line = str2num(fgetl(fid));
 
 % 2c get the number of observations in the prediction dataset
-predCount = readtable(append('BNE_inputs/prediction_datasets/individual_annual/predCount_',...
+predCount = readtable(append('inputs/pm25/prediction_datasets/annual_individual/predCount_',...
      inputset, '_', YYYY, '_', fold, '.csv'));
 
 % 2d set seed 
@@ -225,5 +225,5 @@ switch resid
 end
 
 % 4b save as csv
-writematrix(results, append('outputs/spatial_annual/BNE_',...
+writematrix(results, append('outputs/pm25/spatial_annual/BNE_',...
     inputset, '_', string(len_scale),'_', YYYY, '_', fold, last))
