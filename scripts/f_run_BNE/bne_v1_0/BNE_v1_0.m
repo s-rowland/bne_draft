@@ -53,7 +53,7 @@ batch_size = 2000; %% Number of data points to randomly sample per model paramet
 err = 100;
 MSE = 0;
 % %  === OPTIMIZE W AND w0 ===
-for iter = 1:500
+for iter = 1:1000
 
     % Subsample batch_size number of points and construct "random"
     % features. (The randomness happens once at the beginning)

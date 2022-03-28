@@ -7,7 +7,7 @@ len_scale_time_w_list = [10, 20, 30];
 len_scale_space_bias_list = [3, 2, 1, 0.5];
 len_scale_time_bias_list = [10, 20, 30];
 penalty_list = [0.3679, 0.1353, 0.0498, 0.0183];
-time_metric_list = [1,2]; %['julianDay', 'dayOfYear'];
+time_metric_list = [2,1]; %['julianDay', 'dayOfYear'];
 seed_list = [1234];
 
 % 1b actually make the table
@@ -26,7 +26,9 @@ grid.penalty = grid_mat(:,6);
 grid.seed = grid_mat(:,7);
 grid.mse = transpose(repelem(0, size(grid,1)));
 
-for i = 1:size(grid,1)
+
+
+for i = 50:size(grid,1)
     if grid.time_metric[i] == 1
         time_metric_act = 'julianDay';
     else time_metric_act = 'dayOfYear';
@@ -39,5 +41,5 @@ for i = 1:size(grid,1)
         2005, 2015, 'full_grid_search');
     display(num2str(i))
 
-    writetable(grid)
+    writetable(grid, 'grid50')
 end
