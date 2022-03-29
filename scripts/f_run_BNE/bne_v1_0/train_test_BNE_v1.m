@@ -1,6 +1,6 @@
 function [partMSE] = train_predict_BNE_v1(window, num_models, fold, ...
     len_scale_space,len_scale_time,len_scale_space_bias,len_scale_time_bias, ...
-    penalty, time_metric, seed, yyyy_start, yyyy_end, dir_out, training_original)
+    penalty, time_metric, seed, training_original)
 % % 
 % % === Inputs ===
 % %  
@@ -35,19 +35,25 @@ function [partMSE] = train_predict_BNE_v1(window, num_models, fold, ...
  
  %  time_metric = 'dayOfYear';
  
+  % window = 'daily'; num_models = 5; fold=1;
+ % len_scale_space = grid.len_scale_space(i); len_scale_time = grid.len_scale_time(i); 
+ % len_scale_space_bias = grid.len_scale_space_bias(i);
+ % len_scale_time_bias = grid.len_scale_time_bias(i); penalty = grid.penalty(i); 
+ % time_metric = time_metric_act; seed = 1234;
+ 
 %%%% ------------ %%%%
 %%%% 1: Train BNE %%%%
 %%%% ------------ %%%%
 
-% set seed
+% 1a set seed
 rng(seed)
-% 1a additional features that are consistent across model runs
+% 1b additional features that are consistent across model runs
 num_rand_feat = 500;
 
-% 1b bring in training data
-% 1b.i bring in the full training dataset
+% 1c bring in the full training dataset
 training_full = training_original;
-% 1b.ii remove the time column you do not use 
+
+% 1d remove the time column you do not use 
 if strcmp(time_metric, 'dayOfYear')
     training_full.julian_day = [];
     training_full.day_of_year = training_full.day_of_year ./ training_full.max_doy;
@@ -55,13 +61,11 @@ elseif strcmp(time_metric, 'julianDay')
     training_full.day_of_year = [];
 end
 
-% 1b.ii drop leave-out observations 
-%foldNum = str2num(cell2mat(extractBetween(trainFold, 5, 6)))
+% 1e separate folds 
 training = training_full(training_full.fold ~=fold,:);
 testing = training_full(training_full.fold ==fold,:);
 
-% 1c break down the training data into its components
-% note that column 3 is date, which we aren't using yet
+% 1f break down the training data into its components
 trainLatLon = training{:,1:2};
 trainTime = training{:,3};
 trainAqs = training{:,4};

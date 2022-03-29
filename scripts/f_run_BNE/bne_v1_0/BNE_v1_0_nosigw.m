@@ -1,4 +1,6 @@
-function [W,w0,Z,piZ,Zt,MSE] = BNE_v1_0_nosigw(y,X,time,models,num_rand_feat,len_scale_space,len_scale_time,len_scale_space_bias,len_scale_time_bias,penalty, time_metric)
+function [W,w0,Z,piZ,Zt,MSE] = BNE_v1_0_nosigw(y,X,time,models,num_rand_feat,...
+    len_scale_space,len_scale_time,len_scale_space_bias,len_scale_time_bias, ...
+    penalty, time_metric)
 % % Implements a stochastic optimization (MAP inference) version of BNE.
 % %
 % % === Inputs ===
@@ -26,11 +28,6 @@ function [W,w0,Z,piZ,Zt,MSE] = BNE_v1_0_nosigw(y,X,time,models,num_rand_feat,len
 % %                features (Phi in code). Need to use the same ones for prediction.
 % models = trainPreds; y = trainAqs; X = trainLatLon; time = trainTime;
 
-if strcmp(time_metric, 'dayOfYear')
-    bool_periodic = true;
-else bool_periodic = false;
-end
-
 [num_obs,num_models] = size(models);
 dimX = size(X,2);
 
@@ -38,7 +35,7 @@ W = zeros(num_rand_feat,num_models);
 w0 = zeros(num_rand_feat,1);
 
 Z = randn(num_rand_feat,dimX);
-if bool_periodic
+if strcmp(time_metric, 'dayOfYear')
     Zt = randn(num_rand_feat,2); % 2D time for year invariance, but seasonal variation
 else
     Zt = randn(num_rand_feat,1); % One dimensional time
@@ -46,20 +43,20 @@ end
 piZ = 2*pi*rand(num_rand_feat,1);
 
 noise = var(y)/8; %% Set SNR to 8. This can be changed.
-lambda = .1;
-lambda0 = .1;
+lambda = penalty;
+lambda0 = penalty;
 batch_size = 2000; %% Number of data points to randomly sample per model parameter update
 
 err = 100;
 MSE = 0;
 % %  === OPTIMIZE W AND w0 ===
-for iter = 1:1000
+for iter = 1: 1000
 
     % Subsample batch_size number of points and construct "random"
     % features. (The randomness happens once at the beginning)
     [~,idx] = sort(rand(1,num_obs));
     idx = idx(1:batch_size);
-    if bool_periodic
+    if strcmp(time_metric, 'dayOfYear')
         Phi = sqrt(2/num_rand_feat)*cos(Z*X(idx,:)'/len_scale_space + Zt*58.0916*[cos(2*pi*time(idx))' ; sin(2*pi*time(idx))']/len_scale_time + piZ*ones(1,batch_size));
         Phi_bias = sqrt(2/num_rand_feat)*cos(Z*X(idx,:)'/len_scale_space_bias + Zt*58.0916*[cos(2*pi*time(idx))' ; sin(2*pi*time(idx))']/len_scale_time_bias + piZ*ones(1,batch_size));
     else
@@ -91,4 +88,4 @@ for iter = 1:1000
     MSE = (iter-1)*MSE/iter + mean(error(:).^2)/iter;  % Roughly approximates the training MSE
     display(['Iteration ' num2str(iter) ' ::: MSE ' num2str(MSE)]);
 end
-
+end

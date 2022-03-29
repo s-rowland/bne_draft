@@ -1,4 +1,4 @@
-function [W,w0,SigW,Z,piZ,Zt,MSE] = train_BNE_v1(window, num_models, pred_target, ...
+function [W,w0,SigW,Z,piZ,Zt,MSE] = train_BNE_v1(window, num_models, ...
     len_scale_space,len_scale_time,len_scale_space_bias,len_scale_time_bias, ...
     penalty, time_metric, seed)
 % % 
@@ -39,15 +39,16 @@ function [W,w0,SigW,Z,piZ,Zt,MSE] = train_BNE_v1(window, num_models, pred_target
 %%%% 1: Train BNE %%%%
 %%%% ------------ %%%%
 
-% set seed
+% 1a set seed
 rng(seed)
-% 1a additional features that are consistent across model runs
+
+% 1b additional features that are consistent across model runs
 num_rand_feat = 500;
 
-% 1b bring in training data
-% 1b.i bring in the full training dataset
+% 1c bring in the full training dataset
 training = readtable(append('inputs/pm25/training_datasets/',window, '_combined/training_cvfolds.csv'));
-% 1b.ii remove the time column you do not use 
+
+% 1d remove the time column you do not use 
 if strcmp(time_metric, 'dayOfYear')
     training.julian_day = [];
     training.day_of_year = training.day_of_year ./ training.max_doy;
@@ -55,14 +56,13 @@ elseif strcmp(time_metric, 'julianDay')
     training.day_of_year = [];
 end
 
-% 1c break down the training data into its components
-% note that column 3 is date, which we aren't using yet
+% 1e break down the training data into its components
 trainLatLon = training{:,1:2};
 trainTime = training{:,3};
 trainAqs = training{:,4};
 trainPreds = training{:,5:(4+num_models)};
     
-% 1d train BNE
+% 1f train BNE
 % note that the parameters will be estimated for those 500 random features,
 % and we then use the information about the parameter values to get
 % estimates at each point
