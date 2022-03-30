@@ -89,7 +89,9 @@ end
 
 % % === CALCULATE THE COVARIANCE ===
 
-bool_global_cov = 0; % If 1, this calculates cross correlations across model/bias vectors. If 0, it still calculates correlations within paramter vectors of each model & bias
+bool_global_cov = 0; 
+% If 1, this calculates cross correlations across model/bias vectors. 
+%If 0, it still calculates correlations within paramter vectors of each model & bias
 SigW = zeros(num_rand_feat*(num_models+1));
 for iter = 1:floor(num_obs/batch_size)-1
     if bool_periodic

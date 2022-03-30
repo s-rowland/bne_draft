@@ -35,7 +35,7 @@ done = [42, 58, 70, 76, 129, 148, 150, 166, 178, 184];
 
 for i = 1:size(grid,1)
     
-    if any(i == done)
+    if  i ==i %grid.time_metric(i) ~= 1 %any(i == done)
         if grid.time_metric(i) == 1
             time_metric_act = 'julianDay';
         else time_metric_act = 'dayOfYear';
@@ -47,5 +47,5 @@ for i = 1:size(grid,1)
             training_original);
         display(num2str(i))
     end
-    writetable(grid, 'grids/grid_doneset3')
+    writetable(grid, 'grids/grid_doy_000')
 end
