@@ -51,9 +51,8 @@ training = readtable(append('inputs/pm25/training_datasets/',window, '_combined/
 % 1d remove the time column you do not use 
 if strcmp(time_metric, 'dayOfYear')
     training.julian_day = [];
-    training.day_of_year = training.day_of_year ./ training.max_doy;
 elseif strcmp(time_metric, 'julianDay')
-    training.day_of_year = [];
+    training.percent_of_year = [];
 end
 
 % 1e break down the training data into its components

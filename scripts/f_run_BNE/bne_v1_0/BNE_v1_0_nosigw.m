@@ -86,6 +86,8 @@ for iter = 1: 1000
     % Display progress of algorithm
     error = y(idx)' - model_avg - bias;
     MSE = (iter-1)*MSE/iter + mean(error(:).^2)/iter;  % Roughly approximates the training MSE
-    display(['Iteration ' num2str(iter) ' ::: MSE ' num2str(MSE)]);
+    if mod(iter, 10)==0
+        display(['Iteration ' num2str(iter) ' ::: MSE ' num2str(MSE)]);
+    end
 end
 end

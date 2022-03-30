@@ -31,12 +31,13 @@ grid.row_number = transpose(1:216);
 % bring in the training dataset
 training_original = readtable(append('inputs/pm25/training_datasets/','daily', '_combined/training_cvfolds.csv'));
 
-done = [42, 58, 70, 76, 129, 148, 150, 166, 178, 184];
+done = [1,2,3,4,5,25, 26, 27, 50, 52, 53, 75, 76, 77, ...
+    101,102,103,104,105,125, 126, 127, 150, 152, 153, 175, 176, 177]
 
-for i = 1:size(grid,1)
+for i = 1:1%24:size(grid,1)
     
-    if any(i == done)
-        if grid.time_metric(i) == 1
+    if i ==i %any(i == i)
+        if grid.time_metric[i] == 1
             time_metric_act = 'julianDay';
         else time_metric_act = 'dayOfYear';
         end
@@ -47,5 +48,5 @@ for i = 1:size(grid,1)
             training_original);
         display(num2str(i))
     end
-    writetable(grid, 'grids/grid_doneset3')
+    writetable(grid, 'grids/grid_redo_200')
 end

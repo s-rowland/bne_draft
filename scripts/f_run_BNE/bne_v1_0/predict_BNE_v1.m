@@ -50,9 +50,8 @@ end
 % 1b determine target time variable
 if strcmp(time_metric, 'dayOfYear')
     target.julian_day = [];
-    target.day_of_year = training.day_of_year / max_doy;
 elseif strcmp(time_metric, 'julianDay')
-    target.day_of_year = [];
+    target.percent_of_year = [];
 end
 
 % 1c extract components of target 

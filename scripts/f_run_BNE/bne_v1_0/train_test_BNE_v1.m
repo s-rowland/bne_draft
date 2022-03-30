@@ -56,9 +56,8 @@ training_full = training_original;
 % 1d remove the time column you do not use 
 if strcmp(time_metric, 'dayOfYear')
     training_full.julian_day = [];
-    training_full.day_of_year = training_full.day_of_year ./ training_full.max_doy;
 elseif strcmp(time_metric, 'julianDay')
-    training_full.day_of_year = [];
+    training_full.percent_of_year = [];
 end
 
 % 1e separate folds 
