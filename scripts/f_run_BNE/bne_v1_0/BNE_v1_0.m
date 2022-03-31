@@ -94,6 +94,9 @@ end
 
 % determine residual error after using optimal weights
 dotWPhi = W'*Phi;
+% catch for really big values 
+dotWPhi(dotWPhi>100)=90;
+dotWPhi(dotWPhi<-100)=-90;
 softmax = exp(dotWPhi);
 softmax = softmax./repmat(sum(softmax,1),num_models,1);
 model_avg = sum(softmax.*models(idx,:)',1);
@@ -118,7 +121,7 @@ bool_global_cov = 0; % If 1, this calculates cross correlations across model/bia
 % a matrix that is not positive definite
 SigW = zeros(num_rand_feat*(num_models+1));
 for iter = 1:floor(num_obs/batch_size)-1
-    if bool_periodic
+    if strcmp(time_metric, 'dayOfYear')
         Phi = sqrt(2/num_rand_feat)*cos(Z*X(iter*batch_size+1:iter*batch_size+batch_size,:)'/len_scale_space + Zt*58.0916*[cos(2*pi*time(iter*batch_size+1:iter*batch_size+batch_size))' ; sin(2*pi*time(iter*batch_size+1:iter*batch_size+batch_size))']/len_scale_time + piZ*ones(1,batch_size));
         Phi_bias = sqrt(2/num_rand_feat)*cos(Z*X(iter*batch_size+1:iter*batch_size+batch_size,:)'/len_scale_space_bias + Zt*58.0916*[cos(2*pi*time(iter*batch_size+1:iter*batch_size+batch_size))' ; sin(2*pi*time(iter*batch_size+1:iter*batch_size+batch_size))']/len_scale_time_bias + piZ*ones(1,batch_size));
     else
@@ -126,6 +129,9 @@ for iter = 1:floor(num_obs/batch_size)-1
         Phi_bias = sqrt(2/num_rand_feat)*cos(Z*X(iter*batch_size+1:iter*batch_size+batch_size,:)'/len_scale_space_bias + Zt*time(iter*batch_size+1:iter*batch_size+batch_size)'/len_scale_time_bias + piZ*ones(1,batch_size));    
     end
     dotWPhi = W'*Phi; 
+    % catch for really big values 
+    dotWPhi(dotWPhi>100)=90;
+    dotWPhi(dotWPhi<-100)=-90;
     softmax = exp(dotWPhi);
     softmax = softmax./repmat(sum(softmax,1),num_models,1);
     model_avg = sum(softmax.*models(iter*batch_size+1:iter*batch_size+batch_size,:)',1);

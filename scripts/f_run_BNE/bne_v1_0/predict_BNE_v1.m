@@ -1,5 +1,6 @@
 function [W] = predict_BNE_v1(W,w0,SigW,Z,piZ,Zt,...
-    target, targetYYYY, targetDoY, targetName, num_models, ...
+    target, targetName, num_models, ...
+    len_scale_space, len_scale_time, len_scale_space_bias, len_scale_time_bias, time_metric, ...
     outPath, outName)
 % % 
 % % === Inputs ===
@@ -31,30 +32,22 @@ function [W] = predict_BNE_v1(W,w0,SigW,Z,piZ,Zt,...
  % window = 'daily'; num_models = 5; fold=1;
  % len_scale_space = 3.5'; len_scale_time = 20; len_scale_space_bias = 3.5';
  % len_scale_time_bias = 20; penalty = 0.1; time_metric = 'julianDay'; seed = 1234;
- % yyyy_start = 2005; yyyy_end=2015; dir_out = 'test_run';
  
- %  time_metric = 'dayOfYear';
- % target =readtable('inputs/pm25/prediction_datasets/daily_individual/preds_2007_101.csv');
- % targetYYYY = 2007; targetDoY = 101;
+ %  time_metric = 'julianDay';
+
 
 %%%% ------------------------------- %%%%
 %%%% 1: Prepare Data for Predictions %%%%
 %%%% ------------------------------- %%%%
 
-% 1a determine the max_doy
-if targetYYYY == 2008 | targetYYYY == 2012 | targetYYYY == 2016
-    max_doy = 366;
-else max_doy = 365
-end
-
-% 1b determine target time variable
+% 1a determine target time variable
 if strcmp(time_metric, 'dayOfYear')
     target.julian_day = [];
 elseif strcmp(time_metric, 'julianDay')
-    target.percent_of_year = [];
+    target.day_of_year = [];
 end
 
-% 1c extract components of target 
+% 1b extract components of target 
 % each target is a single time slice containing all relevant locations
 X = table2array(target(:, [1,2]));
 time = table2array(target(:, [3]));
@@ -119,13 +112,14 @@ y_70CIu = zeros(size(X,1),1);
 % 3a begin loop over the individual points
 for i = 1:size(X,1)
     
+    
     % 3b set up the way to translate time to the RFF
     if strcmp(time_metric, 'dayOfYear') 
-        Phi = sqrt(2/num_rand_feat)*cos(Z*X(i,:)'/len_scale_space + Zt*58.0916*[cos(2*pi*time(i,:) ; sin(2*pi*time(i,:))]/len_scale_time + piZ);
+        Phi = sqrt(2/num_rand_feat)*cos(Z*X(idx,:)'/len_scale_space + Zt*58.0916*[cos(2*pi*time(i,:))' ; sin(2*pi*time(i,:))']/len_scale_time + piZ*ones(1,batch_size));
         Phi_bias = sqrt(2/num_rand_feat)*cos(Z*X(i,:)'/len_scale_space_bias + Zt*58.0916*[cos(2*pi*time(i,:)) ; sin(2*pi*time(i,:))]/len_scale_time_bias + piZ);
     else
-        Phi = sqrt(2/num_rand_feat)*cos(Z*X(i,:)'/len_scale_space + Zt*time/len_scale_time + piZ);
-        Phi_bias = sqrt(2/num_rand_feat)*cos(Z*X(i,:)'/len_scale_space_bias + Zt*time/len_scale_time_bias + piZ);
+        Phi = sqrt(2/num_rand_feat)*cos(Z*X(i,:)'/len_scale_space + Zt*time(i,:)/len_scale_time + piZ);
+        Phi_bias = sqrt(2/num_rand_feat)*cos(Z*X(i,:)'/len_scale_space_bias + Zt*time(i,:)/len_scale_time_bias + piZ);
     end
     
     % 3c sample the weights
@@ -161,7 +155,7 @@ for i = 1:size(X,1)
     
     % 3e progress message
     if mod(i,1000) == 0
-        disp([num2str(time) '/' num2str(temp+365) ' ::: ' num2str(i/size(X,1))]);
+        display(['Point ' num2str(i) ' :::  ' num2str(size(X,1))]);
     end
             
 % 3f finish loop
@@ -174,15 +168,15 @@ end
 % 5a nicely label the weight columns
 if num_models == 5
     w_mean_av = softmax_mean(:,1);
-    w_sd_av = softmax_std(:,1);
+    w_sd_av = softmax_sd(:,1);
     w_mean_cm = softmax_mean(:,2);
-    w_sd_cm = softmax_std(:,2);
+    w_sd_cm = softmax_sd(:,2);
     w_mean_js = softmax_mean(:,3);
-    w_sd_js = softmax_std(:,3);
+    w_sd_js = softmax_sd(:,3);
     w_mean_me = softmax_mean(:,4);
-    w_sd_me = softmax_std(:,4);
+    w_sd_me = softmax_sd(:,4);
     w_mean_rk = softmax_mean(:,5);
-    w_sd_rk = softmax_std(:,5);
+    w_sd_rk = softmax_sd(:,5);
     weights = table(w_mean_av, w_sd_av, w_mean_cm, w_sd_cm, w_mean_js, ...
     w_sd_js, w_mean_me, w_sd_me, w_mean_rk, w_sd_rk, 'VariableNames', ...
     {'w_mean_av', 'w_sd_av', 'w_mean_cm', 'w_sd_cm', 'w_mean_js', ...
@@ -190,17 +184,17 @@ if num_models == 5
     
 elseif num_models == 6
         w_mean_av = softmax_mean(:,1);
-        w_sd_av = softmax_std(:,1);
+        w_sd_av = softmax_sd(:,1);
         w_mean_cb = softmax_mean(:,2);
-        w_sd_cb = softmax_std(:,2);
+        w_sd_cb = softmax_sd(:,2);
         w_mean_cm = softmax_mean(:,3);
-        w_sd_cm = softmax_std(:,3);
+        w_sd_cm = softmax_sd(:,3);
         w_mean_js = softmax_mean(:,4);
-        w_sd_js = softmax_std(:,4);
+        w_sd_js = softmax_sd(:,4);
         w_mean_me = softmax_mean(:,5);
-        w_sd_me = softmax_std(:,5);
+        w_sd_me = softmax_sd(:,5);
         w_mean_rk = softmax_mean(:,6);
-        w_sd_rk = softmax_std(:,6);
+        w_sd_rk = softmax_sd(:,6);
         weights = table(w_mean_av, w_sd_av, w_mean_cb, w_sd_cb, w_mean_cm, w_sd_cm, w_mean_js, ...
             w_sd_js, w_mean_me, w_sd_me, w_mean_rk, w_sd_rk, 'VariableNames', ...
             {'w_mean_av', 'w_sd_av', 'w_mean_cb', 'w_sd_cb', 'w_mean_cm', 'w_sd_cm', 'w_mean_js', ...
@@ -214,7 +208,7 @@ otherparam = table(lat, lon, time, ens_mean,ens_sd, bias_mean, bias_sd, y_mean, 
     y_95CIl, y_95CIu, y_90CIl, y_90CIu,y_85CIl, y_85CIu,y_80CIl, y_80CIu,...
     y_75CIl, y_75CIu,y_70CIl, y_70CIu,...
     'VariableNames', ... 
-    {'lat', 'lon', 'ens_mean', 'ens_sd', 'bias_mean',  'bias_sd', 'y_mean', 'y_sd', ...
+    {'lat', 'lon', 'time', 'ens_mean', 'ens_sd', 'bias_mean',  'bias_sd', 'y_mean', 'y_sd', ...
     'y_95CIl', 'y_95CIu', 'y_90CIl', 'y_90CIu', 'y_85CIl', 'y_85CIu', 'y_80CIl', 'y_80CIu', ...
     'y_75CIl', 'y_75CIu', 'y_70CIl', 'y_70CIu'});
    
@@ -222,7 +216,7 @@ otherparam = table(lat, lon, time, ens_mean,ens_sd, bias_mean, bias_sd, y_mean, 
 results = [weights otherparam];
 
 % 5d add observations if doing external validation
-if strcomp(targetName, 'extVal')
+if strcmp(targetName, 'extVal')
    obs = target.obs; 
    obstab = table(obs, 'VariableNames', {'obs'})
    results = [results obstab]

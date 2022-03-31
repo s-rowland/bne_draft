@@ -64,6 +64,9 @@ for iter = 1:1000
 
     % Calculate stochastic gradient and update model GP vectors
     dotWPhi = W'*Phi;
+    % catchf or really big values 
+    dotWPhi(dotWPhi>100)=90;
+    dotWPhi(dotWPhi<-100)=-90;
     softmax = exp(dotWPhi);
     softmax = softmax./repmat(sum(softmax,1),num_models,1);
     model_avg = sum(softmax.*models(idx,:)',1);
@@ -96,6 +99,10 @@ end
 
 % determine residual error after using optimal weights
 dotWPhi = W'*Phi;
+% catch for really big values 
+dotWPhi(dotWPhi>100)=90;
+dotWPhi(dotWPhi<-100)=-90;
+
 softmax = exp(dotWPhi);
 softmax = softmax./repmat(sum(softmax,1),num_models,1);
 model_avg = sum(softmax.*models(idx,:)',1);

@@ -31,9 +31,11 @@ grid.row_number = transpose(1:216);
 % bring in the training dataset
 training_original = readtable(append('inputs/pm25/training_datasets/','daily', '_combined/training_cvfolds.csv'));
 
-done = [42, 58, 70, 76, 129, 148, 150, 166, 178, 184];
+done = [24, 49, 74, 99, 124, 149, 174, ...
+    23, 48, 73, 98, 123, 148, 173, ...
+    22, 47, 72, 97, 122, 147, 172];
 
-for i = 1:size(grid,1)
+for i = done %200:size(grid,1)
     
     if  i ==i %grid.time_metric(i) ~= 1 %any(i == done)
         if grid.time_metric(i) == 1
@@ -47,5 +49,5 @@ for i = 1:size(grid,1)
             training_original);
         display(num2str(i))
     end
-    writetable(grid, 'grids/grid_doy_000')
+    writetable(grid, 'grids/grid_twoStage_200')
 end

@@ -35,11 +35,12 @@ function [partMSE] = train_predict_BNE_v1(window, num_models, fold, ...
  
  %  time_metric = 'dayOfYear';
  
-  % window = 'daily'; num_models = 5; fold=1;
+  % window = 'daily'; num_models = 5; fold=5;
  % len_scale_space = grid.len_scale_space(i); len_scale_time = grid.len_scale_time(i); 
  % len_scale_space_bias = grid.len_scale_space_bias(i);
  % len_scale_time_bias = grid.len_scale_time_bias(i); penalty = grid.penalty(i); 
  % time_metric = time_metric_act; seed = 1234;
+ 
  
 %%%% ------------ %%%%
 %%%% 1: Train BNE %%%%
