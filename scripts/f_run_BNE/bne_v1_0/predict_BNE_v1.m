@@ -29,11 +29,11 @@ function [W] = predict_BNE_v1(W,w0,SigW,Z,piZ,Zt,...
  % len_scale_space = 3.5'; len_scale_time = 1; len_scale_space_bias = 3.5';
  % len_scale_time_bias = 1; penalty = 0.1; time_metric = 'annual'; seed = 1234;
 
- % window = 'daily'; num_models = 5; fold=1;
- % len_scale_space = 3.5'; len_scale_time = 20; len_scale_space_bias = 3.5';
- % len_scale_time_bias = 20; penalty = 0.1; time_metric = 'julianDay'; seed = 1234;
+ % num_models = 5; 
+ % len_scale_space = 2'; len_scale_time = 30; len_scale_space_bias = 2';
+ % len_scale_time_bias = 15; time_metric = 'dayOfYear'; seed = 1234;
  
- %  time_metric = 'julianDay';
+
 
 
 %%%% ------------------------------- %%%%
@@ -52,6 +52,8 @@ end
 X = table2array(target(:, [1,2]));
 time = table2array(target(:, [3]));
 f_all = table2array(target(:, [4:(3+num_models)]));
+
+num_points = size(X,1);
 
 %%%% -------------------------------- %%%%
 %%%% 2: Set Up Objects for Prediction %%%%
@@ -84,38 +86,38 @@ for s = 1:num_samp
 end
 
 % 2f create empty vectors to fill
-softmax_mean = zeros(size(X,1),num_models);
-softmax_sd = zeros(size(X,1),num_models);
-ens_mean = zeros(size(X,1),1);
-ens_sd = zeros(size(X,1),1);
-bias_mean = zeros(size(X,1),1);
-bias_sd = zeros(size(X,1),1);
-y_mean = zeros(size(X,1),1);
-y_sd = zeros(size(X,1),1);
-y_95CIl = zeros(size(X,1),1);
-y_95CIu = zeros(size(X,1),1);
-y_90CIl = zeros(size(X,1),1);
-y_90CIu = zeros(size(X,1),1);
-y_85CIl = zeros(size(X,1),1);
-y_85CIu = zeros(size(X,1),1);
-y_80CIl = zeros(size(X,1),1);
-y_80CIu = zeros(size(X,1),1);
-y_75CIl = zeros(size(X,1),1);
-y_75CIu = zeros(size(X,1),1);
-y_70CIl = zeros(size(X,1),1);
-y_70CIu = zeros(size(X,1),1);
+softmax_mean = zeros(num_points,num_models);
+softmax_sd = zeros(num_points,num_models);
+ens_mean = zeros(num_points,1);
+ens_sd = zeros(num_points,1);
+bias_mean = zeros(num_points,1);
+bias_sd = zeros(num_points,1);
+y_mean = zeros(num_points,1);
+y_sd = zeros(num_points,1);
+y_95CIl = zeros(num_points,1);
+y_95CIu = zeros(num_points,1);
+y_90CIl = zeros(num_points,1);
+y_90CIu = zeros(num_points,1);
+y_85CIl = zeros(num_points,1);
+y_85CIu = zeros(num_points,1);
+y_80CIl = zeros(num_points,1);
+y_80CIu = zeros(num_points,1);
+y_75CIl = zeros(num_points,1);
+y_75CIu = zeros(num_points,1);
+y_70CIl = zeros(num_points,1);
+y_70CIu = zeros(num_points,1);
             
 %%%% ----------------------- %%%%
 %%%% 3: Generate Predictions %%%%
 %%%% ----------------------- %%%%
 
 % 3a begin loop over the individual points
-for i = 1:size(X,1)
+for i = 1:num_points
     
     
     % 3b set up the way to translate time to the RFF
     if strcmp(time_metric, 'dayOfYear') 
-        Phi = sqrt(2/num_rand_feat)*cos(Z*X(idx,:)'/len_scale_space + Zt*58.0916*[cos(2*pi*time(i,:))' ; sin(2*pi*time(i,:))']/len_scale_time + piZ*ones(1,batch_size));
+        Phi = sqrt(2/num_rand_feat)*cos(Z*X(i,:)'/len_scale_space + Zt*58.0916*[cos(2*pi*time(i,:))' ; sin(2*pi*time(i,:))']/len_scale_time + piZ);
         Phi_bias = sqrt(2/num_rand_feat)*cos(Z*X(i,:)'/len_scale_space_bias + Zt*58.0916*[cos(2*pi*time(i,:)) ; sin(2*pi*time(i,:))]/len_scale_time_bias + piZ);
     else
         Phi = sqrt(2/num_rand_feat)*cos(Z*X(i,:)'/len_scale_space + Zt*time(i,:)/len_scale_time + piZ);
@@ -135,7 +137,7 @@ for i = 1:size(X,1)
     softmax_mean(i,:) = mean(softmax,1);
     softmax_sd(i,:) = std(softmax,1);
     ens_mean(i) = mean(ens);
-    ens_std(i) = std(ens);
+    ens_sd(i) = std(ens);
     bias_mean(i) = mean(bias);
     bias_sd(i) = std(bias);
     y_mean(i) = mean(y);
@@ -155,7 +157,7 @@ for i = 1:size(X,1)
     
     % 3e progress message
     if mod(i,1000) == 0
-        display(['Point ' num2str(i) ' :::  ' num2str(size(X,1))]);
+        display(['Point ' num2str(i) ' :::  ' num2str(num_points)]);
     end
             
 % 3f finish loop
@@ -204,13 +206,23 @@ end
 % 5b combine other parameters
 lat = X(:,1);
 lon = X(:,2);
-otherparam = table(lat, lon, time, ens_mean,ens_sd, bias_mean, bias_sd, y_mean, y_sd, ... 
+pred_av = f_all(:,1);
+pred_cm = f_all(:,2);
+pred_js = f_all(:,3);
+pred_me = f_all(:,4);
+pred_rk = f_all(:,5);
+
+otherparam = table(lat, lon, time,...
+    ens_mean, ens_sd, bias_mean, bias_sd, y_mean, y_sd, ... 
     y_95CIl, y_95CIu, y_90CIl, y_90CIu,y_85CIl, y_85CIu,y_80CIl, y_80CIu,...
     y_75CIl, y_75CIu,y_70CIl, y_70CIu,...
+    pred_av, pred_cm, pred_js, pred_me, pred_rk, ...
     'VariableNames', ... 
-    {'lat', 'lon', 'time', 'ens_mean', 'ens_sd', 'bias_mean',  'bias_sd', 'y_mean', 'y_sd', ...
+    {'lat', 'lon', 'time',...
+    'ens_mean', 'ens_sd', 'bias_mean',  'bias_sd', 'y_mean', 'y_sd', ...
     'y_95CIl', 'y_95CIu', 'y_90CIl', 'y_90CIu', 'y_85CIl', 'y_85CIu', 'y_80CIl', 'y_80CIu', ...
-    'y_75CIl', 'y_75CIu', 'y_70CIl', 'y_70CIu'});
+    'y_75CIl', 'y_75CIu', 'y_70CIl', 'y_70CIu', ...
+    'pred_av', 'pred_cm', 'pred_js', 'pred_me', 'pred_rk'});
    
 % 5c combine all parameters 
 results = [weights otherparam];

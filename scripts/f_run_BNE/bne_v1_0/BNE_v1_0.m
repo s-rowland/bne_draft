@@ -1,4 +1,6 @@
-function [W,w0,SigW,Z,piZ,Zt,MSE] = BNE_v1_0(y,X,time,models,num_rand_feat,len_scale_space,len_scale_time,len_scale_space_bias,len_scale_time_bias,penalty, time_metric)
+function [W,w0,SigW,Z,piZ,Zt,MSE] = BNE_v1_0(y,X,time,models,num_rand_feat, ...
+    len_scale_space,len_scale_time,len_scale_space_bias,len_scale_time_bias, ...
+    penalty,penalty_bias, time_metric, stage)
 % % Implements a stochastic optimization (MAP inference) version of BNE.
 % %
 % % === Inputs ===
@@ -42,7 +44,7 @@ piZ = 2*pi*rand(num_rand_feat,1);
 
 noise = var(y)/8; %% Set SNR to 8. This can be changed.
 lambda = penalty;
-lambda0 = penalty;
+lambda0 = penalty_bias;
 batch_size = 2000; %% Number of data points to randomly sample per model parameter update
 
 err = 100;
@@ -68,6 +70,23 @@ for iter = 1:2000
     error = y(idx)' - model_avg;
     grad = Phi*((1/noise)*repmat(error,num_models,1).*(models(idx,:)' - repmat(model_avg,num_models,1)).*softmax)' - lambda*W;
     W = W + grad/sqrt(iter);
+    
+    if stage == 1
+           % Calculate stochastic gradient and update bias vector
+               if strcmp(time_metric, 'dayOfYear')
+                    Phi_bias = sqrt(2/num_rand_feat)*cos(Z*X(idx,:)'/len_scale_space_bias + Zt*58.0916*[cos(2*pi*time(idx))' ; sin(2*pi*time(idx))']/len_scale_time_bias + piZ*ones(1,batch_size));
+               else
+                   Phi_bias = sqrt(2/num_rand_feat)*cos(Z*X(idx,:)'/len_scale_space_bias + Zt*time(idx)'/len_scale_time_bias + piZ*ones(1,batch_size));
+               end
+        dotWPhi = W'*Phi;
+        softmax = exp(dotWPhi);
+        softmax = softmax./repmat(sum(softmax,1),num_models,1);
+        model_avg = sum(softmax.*models(idx,:)',1);
+        residual = y(idx) - model_avg';
+        w0tmp = inv(lambda0*noise*eye(num_rand_feat) + Phi_bias*Phi_bias')*(Phi_bias*residual);
+        w0 = w0tmp/sqrt(iter) + (1-1/sqrt(iter))*w0;
+    end
+    
     
     % Display progress of algorithm
     error = y(idx)' - model_avg;

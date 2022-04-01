@@ -1,6 +1,6 @@
 function [W,w0,SigW,Z,piZ,Zt,MSE] = train_BNE_v1(window, num_models, ...
     len_scale_space,len_scale_time,len_scale_space_bias,len_scale_time_bias, ...
-    penalty, time_metric, seed)
+    penalty, penalty_bias, time_metric, seed, stage)
 % % 
 % % === Inputs ===
 % %  
@@ -71,5 +71,5 @@ trainPreds = training{:,5:(4+num_models)};
 
 [W,w0,SigW,Z,piZ,Zt,MSE] = BNE_v1_0(trainAqs, trainLatLon, trainTime, ...
     trainPreds, num_rand_feat,len_scale_space,len_scale_time, ...
-    len_scale_space_bias,len_scale_time_bias, penalty, time_metric);
+    len_scale_space_bias,len_scale_time_bias, penalty,penalty_bias, time_metric, stage);
 end
