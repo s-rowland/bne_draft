@@ -1,6 +1,6 @@
 function [partMSE] = train_predict_BNE_v1(window, num_models, fold, ...
     len_scale_space,len_scale_time,len_scale_space_bias,len_scale_time_bias, ...
-    penalty, time_metric, seed, training_original)
+    penalty, penalty_bias, time_metric, seed, stage, training_original)
 % % 
 % % === Inputs ===
 % %  
@@ -81,7 +81,10 @@ trainPreds = training{:,5:(4+num_models)};
 
 [W,w0,Z,piZ,Zt,MSE] = BNE_v1_0_nosigw(trainAqs, trainLatLon, trainTime, ...
     trainPreds, num_rand_feat,len_scale_space,len_scale_time, ...
-    len_scale_space_bias,len_scale_time_bias, penalty, time_metric);
+    len_scale_space_bias,len_scale_time_bias, penalty, penalty_bias, stage, time_metric);
+
+
+
 
 %%%% ----------------------------------------- %%%%
 %%%% 2: Determine Error at Left-out Sites %%%%

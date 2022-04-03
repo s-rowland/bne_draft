@@ -1,4 +1,4 @@
-function [W,w0,SigW,Z,piZ,Zt,MSE] = BNE_v1_0(y,X,time,models,num_rand_feat, ...
+function [W,w0,SigW,Z,piZ,Zt,MSE] = BNE_v1_0(y,X,time,models,window, num_rand_feat, ...
     len_scale_space,len_scale_time,len_scale_space_bias,len_scale_time_bias, ...
     penalty,penalty_bias, time_metric, stage)
 % % Implements a stochastic optimization (MAP inference) version of BNE.
@@ -45,7 +45,13 @@ piZ = 2*pi*rand(num_rand_feat,1);
 noise = var(y)/8; %% Set SNR to 8. This can be changed.
 lambda = penalty;
 lambda0 = penalty_bias;
-batch_size = 2000; %% Number of data points to randomly sample per model parameter update
+if strcmp(window, 'daily')
+    batch_size = 2000; %% Number of data points to randomly sample per model parameter update
+end 
+
+if strcmp(window, 'annual')
+    batch_size = 500; %% Number of data points to randomly sample per model parameter update
+end 
 
 err = 100;
 MSE = 0;

@@ -201,6 +201,28 @@ elseif num_models == 6
             w_sd_js, w_mean_me, w_sd_me, w_mean_rk, w_sd_rk, 'VariableNames', ...
             {'w_mean_av', 'w_sd_av', 'w_mean_cb', 'w_sd_cb', 'w_mean_cm', 'w_sd_cm', 'w_mean_js', ...
             'w_sd_js', 'w_mean_me', 'w_sd_me', 'w_mean_rk', 'w_sd_rk'});
+elseif num_models == 7
+        w_mean_av = softmax_mean(:,1);
+        w_sd_av = softmax_sd(:,1);
+        w_mean_cc = softmax_mean(:,2);
+        w_sd_cc = softmax_sd(:,2);
+        w_mean_cm = softmax_mean(:,3);
+        w_sd_cm = softmax_sd(:,3);
+        w_mean_gs = softmax_mean(:,4);
+        w_sd_gs = softmax_sd(:,4);
+        w_mean_js = softmax_mean(:,5);
+        w_sd_js = softmax_sd(:,5);
+        w_mean_me = softmax_mean(:,6);
+        w_sd_me = softmax_sd(:,6);
+        w_mean_rk = softmax_mean(:,7);
+        w_sd_rk = softmax_sd(:,7);
+        weights = table(w_mean_av, w_sd_av, w_mean_cc, w_sd_cc, w_mean_cm, w_sd_cm, ...
+            w_mean_gs, w_sd_gs, w_mean_js, w_sd_js, w_mean_me, w_sd_me,...
+            w_mean_rk, w_sd_rk, 'VariableNames', ...
+            {'w_mean_av', 'w_sd_av', 'w_mean_cc', 'w_sd_cc',...
+             'w_mean_cm', 'w_sd_cm', ...
+             'w_mean_gs', 'w_sd_gs','w_mean_js', 'w_sd_js', ...
+             'w_mean_me', 'w_sd_me', 'w_mean_rk', 'w_sd_rk'});
 end
 
 % 5b combine other parameters
