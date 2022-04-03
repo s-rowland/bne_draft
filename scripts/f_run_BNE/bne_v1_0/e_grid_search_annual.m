@@ -10,7 +10,7 @@ penalty_list = [0.3679,  0.0498, 0.0183];
 %penalty_bias_list = [0.3679,  0.0498, 0.0183];
 time_metric_list = [1]; %['julianDay', 'dayOfYear'];
 seed_list = [1234];
-stage_list = [1];
+stage_list = [2];
 
 % 1b actually make the table
 % 1b.i get all the combinations
@@ -25,9 +25,9 @@ grid.len_scale_space_bias = grid_mat(:,3);
 grid.len_scale_time_bias = grid_mat(:,4);
 grid.penalty = grid_mat(:,5);
 grid.penalty_bias = grid_mat(:,5);
-grid.time_metric = grid_mat(:,7);
-grid.seed = grid_mat(:,8);
-grid.stage = grid_mat(:,9);
+grid.time_metric = grid_mat(:,6);
+grid.seed = grid_mat(:,7);
+grid.stage = grid_mat(:,8);
 grid.mse = transpose(repelem(0, size(grid,1)));
 
 %grid.row_number = transpose(1:108);
@@ -48,7 +48,7 @@ for i = 1:size(grid,1)
             grid.len_scale_space(i), grid.len_scale_time(i), ...
             grid.len_scale_space_bias(i), grid.len_scale_time_bias(i), ...
             grid.penalty(i),grid.penalty_bias(i), time_metric_act, grid.seed(i), ...
-            grid.stage(i), training_original);
+            2, training_original);
         display(num2str(i))
     end
     writetable(grid, 'grids/grid_annual_175')

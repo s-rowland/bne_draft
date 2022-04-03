@@ -81,7 +81,7 @@ trainPreds = training{:,5:(4+num_models)};
 
 [W,w0,Z,piZ,Zt,MSE] = BNE_v1_0_nosigw(trainAqs, trainLatLon, trainTime, ...
     trainPreds, num_rand_feat,len_scale_space,len_scale_time, ...
-    len_scale_space_bias,len_scale_time_bias, penalty, penalty_bias, stage, time_metric);
+    len_scale_space_bias,len_scale_time_bias, penalty, penalty_bias, time_metric, stage);
 
 
 
