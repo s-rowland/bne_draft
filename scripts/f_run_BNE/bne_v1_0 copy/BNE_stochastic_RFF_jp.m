@@ -1,6 +1,4 @@
-function [W,w0,SigW,Z,piZ,Zt,MSE] = BNE_v1_0(y,X,time,models,window, num_rand_feat, ...
-    len_scale_space,len_scale_time,len_scale_space_bias,len_scale_time_bias, ...
-    penalty,penalty_bias, time_metric, stage)
+function [W,w0,SigW,Z,piZ,MSE] = BNE_stochastic_RFF(y,X,time,models,num_rand_feat,len_scale_space,len_scale_time,len_scale_space_bias,len_scale_time_bias,bool_periodic)
 % % Implements a stochastic optimization (MAP inference) version of BNE.
 % %
 % % === Inputs ===
@@ -26,7 +24,6 @@ function [W,w0,SigW,Z,piZ,Zt,MSE] = BNE_v1_0(y,X,time,models,window, num_rand_fe
 % %             currently set any negative eigenvalues to zero and recalculate.
 % %     Z & piZ : The random variables used to calculate the random
 % %                features (Phi in code). Need to use the same ones for prediction.
-% models = trainPreds; y = trainAqs; X = trainLatLon; time = trainTime;
 
 [num_obs,num_models] = size(models);
 dimX = size(X,2);
@@ -35,7 +32,7 @@ W = zeros(num_rand_feat,num_models);
 w0 = zeros(num_rand_feat,1);
 
 Z = randn(num_rand_feat,dimX);
-if strcmp(time_metric, 'dayOfYear')
+if bool_periodic
     Zt = randn(num_rand_feat,2); % 2D time for year invariance, but seasonal variation
 else
     Zt = randn(num_rand_feat,1); % One dimensional time
@@ -43,29 +40,25 @@ end
 piZ = 2*pi*rand(num_rand_feat,1);
 
 noise = var(y)/8; %% Set SNR to 8. This can be changed.
-lambda = penalty;
-lambda0 = penalty_bias;
-if strcmp(window, 'daily')
-    batch_size = 2000; %% Number of data points to randomly sample per model parameter update
-end 
-
-if strcmp(window, 'annual')
-    batch_size = 500; %% Number of data points to randomly sample per model parameter update
-end 
+lambda = .1;
+lambda0 = .1;
+batch_size = 2000; %% Number of data points to randomly sample per model parameter update
 
 err = 100;
 MSE = 0;
-% %  === OPTIMIZE W ===
-for iter = 1:2000
+% %  === OPTIMIZE W AND w0 ===
+for iter = 1:1000
 
     % Subsample batch_size number of points and construct "random"
     % features. (The randomness happens once at the beginning)
     [~,idx] = sort(rand(1,num_obs));
     idx = idx(1:batch_size);
-    if strcmp(time_metric, 'dayOfYear')
-        Phi = sqrt(2/num_rand_feat)*cos(Z*X(idx,:)'/len_scale_space + Zt*58.0916*[cos(2*pi*time(idx))' ; sin(2*pi*time(idx))']/len_scale_time + piZ*ones(1,batch_size));
+    if bool_periodic
+        Phi = sqrt(2/num_rand_feat)*cos(Z*X(idx,:)'/len_scale_space + Zt*58.0916*[cos(2*pi*mod(time(idx),365)/365)' ; sin(2*pi*mod(time(idx),365)/365)']/len_scale_time + piZ*ones(1,batch_size));
+        Phi_bias = sqrt(2/num_rand_feat)*cos(Z*X(idx,:)'/len_scale_space_bias + Zt*58.0916*[cos(2*pi*mod(time(idx),365)/365)' ; sin(2*pi*mod(time(idx),365)/365)']/len_scale_time_bias + piZ*ones(1,batch_size));
     else
         Phi = sqrt(2/num_rand_feat)*cos(Z*X(idx,:)'/len_scale_space + Zt*time(idx)'/len_scale_time + piZ*ones(1,batch_size));
+        Phi_bias = sqrt(2/num_rand_feat)*cos(Z*X(idx,:)'/len_scale_space_bias + Zt*time(idx)'/len_scale_time_bias + piZ*ones(1,batch_size));
     end
 
     % Calculate stochastic gradient and update model GP vectors
@@ -73,90 +66,42 @@ for iter = 1:2000
     softmax = exp(dotWPhi);
     softmax = softmax./repmat(sum(softmax,1),num_models,1);
     model_avg = sum(softmax.*models(idx,:)',1);
-    error = y(idx)' - model_avg;
+    bias = w0'*Phi_bias;
+    error = y(idx)' - model_avg - bias;
     grad = Phi*((1/noise)*repmat(error,num_models,1).*(models(idx,:)' - repmat(model_avg,num_models,1)).*softmax)' - lambda*W;
     W = W + grad/sqrt(iter);
-    
-    if stage == 1
-           % Calculate stochastic gradient and update bias vector
-               if strcmp(time_metric, 'dayOfYear')
-                    Phi_bias = sqrt(2/num_rand_feat)*cos(Z*X(idx,:)'/len_scale_space_bias + Zt*58.0916*[cos(2*pi*time(idx))' ; sin(2*pi*time(idx))']/len_scale_time_bias + piZ*ones(1,batch_size));
-               else
-                   Phi_bias = sqrt(2/num_rand_feat)*cos(Z*X(idx,:)'/len_scale_space_bias + Zt*time(idx)'/len_scale_time_bias + piZ*ones(1,batch_size));
-               end
-        dotWPhi = W'*Phi;
-        softmax = exp(dotWPhi);
-        softmax = softmax./repmat(sum(softmax,1),num_models,1);
-        model_avg = sum(softmax.*models(idx,:)',1);
-        residual = y(idx) - model_avg';
-        w0tmp = inv(lambda0*noise*eye(num_rand_feat) + Phi_bias*Phi_bias')*(Phi_bias*residual);
-        w0 = w0tmp/sqrt(iter) + (1-1/sqrt(iter))*w0;
-    end
-    
+
+    % Calculate stochastic gradient and update bias vector
+    dotWPhi = W'*Phi;
+    softmax = exp(dotWPhi);
+    softmax = softmax./repmat(sum(softmax,1),num_models,1);
+    model_avg = sum(softmax.*models(idx,:)',1);
+    residual = y(idx) - model_avg';
+    w0tmp = inv(lambda0*noise*eye(num_rand_feat) + Phi_bias*Phi_bias')*(Phi_bias*residual);
+    w0 = w0tmp/sqrt(iter) + (1-1/sqrt(iter))*w0;
     
     % Display progress of algorithm
-    error = y(idx)' - model_avg;
+    error = y(idx)' - model_avg - bias;
     MSE = (iter-1)*MSE/iter + mean(error(:).^2)/iter;  % Roughly approximates the training MSE
-    display(['Weights Iteration ' num2str(iter) ' ::: MSE ' num2str(MSE)]);
+    display(['Iteration ' num2str(iter) ' ::: MSE ' num2str(MSE)]);
 end
-
-
-% %  === CALCULATE OPTIMAL w0 === % %
-
-% remember that we want to calculate closed-from w) across all variables
-
-% 1.a generate vector to cover all values
-idx = 1:1:num_obs;
-
-% 1.b create the random features
-if strcmp(time_metric, 'dayOfYear')
-    Phi = sqrt(2/num_rand_feat)*cos(Z*X(idx,:)'/len_scale_space + Zt*58.0916*[cos(2*pi*time(idx))' ; sin(2*pi*time(idx))']/len_scale_time + piZ*ones(1,num_obs));
-    Phi_bias = sqrt(2/num_rand_feat)*cos(Z*X(idx,:)'/len_scale_space_bias + Zt*58.0916*[cos(2*pi*time(idx))' ; sin(2*pi*time(idx))']/len_scale_time_bias + piZ*ones(1,num_obs));
-else
-    Phi = sqrt(2/num_rand_feat)*cos(Z*X(idx,:)'/len_scale_space + Zt*time(idx)'/len_scale_time + piZ*ones(1,num_obs));
-    Phi_bias = sqrt(2/num_rand_feat)*cos(Z*X(idx,:)'/len_scale_space_bias + Zt*time(idx)'/len_scale_time_bias + piZ*ones(1,num_obs));
-end
-
-% determine residual error after using optimal weights
-dotWPhi = W'*Phi;
-% catch for really big values 
-dotWPhi(dotWPhi>100)=90;
-dotWPhi(dotWPhi<-100)=-90;
-softmax = exp(dotWPhi);
-softmax = softmax./repmat(sum(softmax,1),num_models,1);
-model_avg = sum(softmax.*models(idx,:)',1);
-residual = y(idx) - model_avg';
-% calculate w0 
-w0 = inv(lambda0*noise*eye(num_rand_feat) + Phi_bias*Phi_bias')*(Phi_bias*residual);
-%w0 = w0tmp/sqrt(iter) + (1-1/sqrt(iter))*w0;
-bias = w0'*Phi_bias;
-    
-% Display progress of algorithm
-error = y(idx)' - model_avg - bias;
-MSE = (iter-1)*MSE/iter + mean(error(:).^2)/iter;  % Roughly approximates the training MSE
-display(['final MSE ' ' ::: MSE ' num2str(MSE)]);
-
 
 
 % % === CALCULATE THE COVARIANCE ===
 
-bool_global_cov = 0; % If 1, this calculates cross correlations across model/bias vectors. 
-% If 0, it still calculates correlations within paramter vectors of each model & bias
-% we do correlation within parameters as an approximation to avoid getting 
-% a matrix that is not positive definite
+bool_global_cov = 0; 
+% If 1, this calculates cross correlations across model/bias vectors. 
+%If 0, it still calculates correlations within paramter vectors of each model & bias
 SigW = zeros(num_rand_feat*(num_models+1));
 for iter = 1:floor(num_obs/batch_size)-1
-    if strcmp(time_metric, 'dayOfYear')
-        Phi = sqrt(2/num_rand_feat)*cos(Z*X(iter*batch_size+1:iter*batch_size+batch_size,:)'/len_scale_space + Zt*58.0916*[cos(2*pi*time(iter*batch_size+1:iter*batch_size+batch_size))' ; sin(2*pi*time(iter*batch_size+1:iter*batch_size+batch_size))']/len_scale_time + piZ*ones(1,batch_size));
-        Phi_bias = sqrt(2/num_rand_feat)*cos(Z*X(iter*batch_size+1:iter*batch_size+batch_size,:)'/len_scale_space_bias + Zt*58.0916*[cos(2*pi*time(iter*batch_size+1:iter*batch_size+batch_size))' ; sin(2*pi*time(iter*batch_size+1:iter*batch_size+batch_size))']/len_scale_time_bias + piZ*ones(1,batch_size));
+    if bool_periodic
+        Phi = sqrt(2/num_rand_feat)*cos(Z*X(iter*batch_size+1:iter*batch_size+batch_size,:)'/len_scale_space + Zt*58.0916*[cos(2*pi*mod(time(iter*batch_size+1:iter*batch_size+batch_size),365)/365)' ; sin(2*pi*mod(time(iter*batch_size+1:iter*batch_size+batch_size),365)/365)']/len_scale_time + piZ*ones(1,batch_size));
+        Phi_bias = sqrt(2/num_rand_feat)*cos(Z*X(iter*batch_size+1:iter*batch_size+batch_size,:)'/len_scale_space_bias + Zt*58.0916*[cos(2*pi*mod(time(iter*batch_size+1:iter*batch_size+batch_size),365)/365)' ; sin(2*pi*mod(time(iter*batch_size+1:iter*batch_size+batch_size),365)/365)']/len_scale_time_bias + piZ*ones(1,batch_size));
     else
         Phi = sqrt(2/num_rand_feat)*cos(Z*X(iter*batch_size+1:iter*batch_size+batch_size,:)'/len_scale_space + Zt*time(iter*batch_size+1:iter*batch_size+batch_size)'/len_scale_time + piZ*ones(1,batch_size));
         Phi_bias = sqrt(2/num_rand_feat)*cos(Z*X(iter*batch_size+1:iter*batch_size+batch_size,:)'/len_scale_space_bias + Zt*time(iter*batch_size+1:iter*batch_size+batch_size)'/len_scale_time_bias + piZ*ones(1,batch_size));    
     end
     dotWPhi = W'*Phi; 
-    % catch for really big values 
-    dotWPhi(dotWPhi>100)=90;
-    dotWPhi(dotWPhi<-100)=-90;
     softmax = exp(dotWPhi);
     softmax = softmax./repmat(sum(softmax,1),num_models,1);
     model_avg = sum(softmax.*models(iter*batch_size+1:iter*batch_size+batch_size,:)',1);
@@ -197,8 +142,4 @@ for iter = 1:floor(num_obs/batch_size)-1
         end
     end
 end
-% we keep only the diagonal values - within-parameter variance as an approximation to avoid getting 
-% a matrix that is not positive definite
-% by not borrowing information from other parameters, our approximation has
-% slightly higher uncertainty than the true uncertainty. 
 SigW = diag(abs(1./diag(SigW)));

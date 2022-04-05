@@ -38,7 +38,7 @@ training_original = readtable(append('inputs/pm25/training_datasets/',...
 
 %done = [3:6:105 148:6:214] ;
 
-for i = 1:size(grid,1)
+for i = 1:3:size(grid,1)
     
     if  i ==i %grid.time_metric(i) ~= 1 %any(i == done)
         
@@ -51,5 +51,5 @@ for i = 1:size(grid,1)
             2, training_original);
         display(num2str(i))
     end
-    writetable(grid, 'grids/grid_annual_175')
+    writetable(grid, 'grids/grid_annual_3')
 end

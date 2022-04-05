@@ -1,4 +1,4 @@
-function [W,w0,SigW,Z,piZ,Zt,MSE] = train_BNE_v1(window, num_models, ...
+function [W,w0,SigW,Z,piZ,Zt,MSE] = train_BNE_v1(training, window, num_models, ...
     len_scale_space,len_scale_time,len_scale_space_bias,len_scale_time_bias, ...
     penalty, penalty_bias, time_metric, seed, stage)
 % % 
@@ -46,7 +46,7 @@ rng(seed)
 num_rand_feat = 500;
 
 % 1c bring in the full training dataset
-training = readtable(append('inputs/pm25/training_datasets/',window, '_combined/training_cvfolds.csv'));
+%training = readtable(append('inputs/pm25/training_datasets/',window, '_combined/training_cvfolds.csv'));
 
 % 1d remove the time column you do not use 
 if strcmp(time_metric, 'dayOfYear')

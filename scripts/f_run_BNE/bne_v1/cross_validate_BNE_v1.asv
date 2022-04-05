@@ -1,0 +1,39 @@
+function [RMSE, coverage] = cross_validate_BNE_v1(window, num_models, ...
+    len_scale_space,len_scale_time,len_scale_space_bias,len_scale_time_bias, ...
+    penalty, penalty_bias, time_metric, seed, stage, training_original
+
+)
+
+%%%% ------------------------ %%%%
+%%%%  1: Set fold fold table  %%%%
+%%%% ------------------------ %%%%
+
+fold = transpose([1:10]); 
+mse = transpose(repelem(0, 10));
+cover = transpose(repelem(0, 10));
+
+fold_table = table(fold, mse, cover, ...
+    'VariableNames', ... 
+    {'fold', 'mse', 'cover'});
+
+%%%% ------------------------ %%%%
+%%%%  1: Calcualte Metrics in each fold  %%%%
+%%%% ------------------------ %%%%
+
+for i = 1:10 
+    
+    [partial_mse partial_cover] = cv_eval_BNE_v1(training_full, fold_table.fold(i),... 
+    num_models, ...
+    scale_space_w, scale_time_w, scale_space_rp, scale_time_rp, ...
+    lambda_w, lambda_rp, time_metric, opt_stage, seed);
+
+    fold_table.mse(i) = partial_mse ; 
+    fold_table.cover(i) = partial_cover ; 
+end
+
+%%%% ------------------------ %%%%
+%%%%  1: aggregate  %%%%
+%%%% ------------------------ %%%%
+   RMSE = sqrt(sum(fold_table.mse))
+   R2 = 
+   coverage = sum(fold_table.cover)

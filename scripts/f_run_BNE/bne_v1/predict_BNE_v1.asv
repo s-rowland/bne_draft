@@ -1,6 +1,6 @@
-function [W] = predict_BNE_v1(W,w0,SigW,Z,piZ,Zt,...
-    target, targetName, num_models, ...
-    len_scale_space, len_scale_time, len_scale_space_bias, len_scale_time_bias, time_metric, ...
+function [partial_mse, partial_r2, partial_cover] = predict_BNE_v1(W,RP,sigW,Zs,Zt,piZ, ...
+    target, total_train_obs, predict_goal, num_models, ...
+    scale_space_w, scale_time_w, scale_space_rp, scale_time_rp, time_metric, ...
     outPath, outName)
 % % 
 % % === Inputs ===
@@ -26,34 +26,22 @@ function [W] = predict_BNE_v1(W,w0,SigW,Z,piZ,Zt,...
 %%%% ------------------------------ %%%%
 
  % window = 'annual'; num_models = 7; trainFold = 'all'; predFold = 'refGridConus'; 
- % len_scale_space = 3.5'; len_scale_time = 1; len_scale_space_bias = 3.5';
- % len_scale_time_bias = 1; penalty = 0.1; time_metric = 'annual'; seed = 1234;
+ % len_scale_space = 3.5'; len_scale_time = 1; len_scale_space_rp = 3.5';
+ % len_scale_time_rp = 1; penalty = 0.1; time_metric = 'annual'; seed = 1234;
 
  % num_models = 5; 
- % len_scale_space = 2'; len_scale_time = 30; len_scale_space_bias = 2';
- % len_scale_time_bias = 15; time_metric = 'dayOfYear'; seed = 1234;
+ % len_scale_space = 2'; len_scale_time = 30; len_scale_space_rp = 2';
+ % len_scale_time_rp = 15; time_metric = 'dayOfYear'; seed = 1234;
  
 
-
+% target =testing;
 
 %%%% ------------------------------- %%%%
 %%%% 1: Prepare Data for Predictions %%%%
 %%%% ------------------------------- %%%%
 
 % 1a determine target time variable
-if strcmp(time_metric, 'dayOfYear')
-    target.julian_day = [];
-elseif strcmp(time_metric, 'julianDay')
-    target.day_of_year = [];
-end
-
-% 1b extract components of target 
-% each target is a single time slice containing all relevant locations
-X = table2array(target(:, [1,2]));
-time = table2array(target(:, [3]));
-f_all = table2array(target(:, [4:(3+num_models)]));
-
-num_points = size(X,1);
+[targetSpace, targetTime, targetPreds, targetObs, num_points] = extract_components(target, num_models, time_metric);
 
 %%%% -------------------------------- %%%%
 %%%% 2: Set Up Objects for Prediction %%%%
@@ -67,21 +55,21 @@ num_rand_feat = 500;
 
 % 2b muW is a vector of the mean values of the parameters of weights and
 % offset term 
-muW = [W(:) ; w0];
+muW = [W(:) ; RP];
 
 % 2c set the number of samples that we will take 
 num_samp = 250;
 
 % 2d take the samples. we generate random numbers based on gaussian
 % distributions, where the means are the mean values and the variances are 
-% stored in SigW, which we calculate in the second half of the BNE function
-wsamp1 = mvnrnd(muW,SigW,num_samp)';
+% stored in sigW, which we calculate in the second half of the BNE function
+wsamp1 = mvnrnd(muW,sigW,num_samp)';
 
 % 2e put samples in tidy format
-w0samp = [];
+rpsamp = [];
 wsamp = [];
 for s = 1:num_samp
-    w0samp = [w0samp wsamp1(end-num_rand_feat+1:end,s)];
+    rpsamp = [rpsamp wsamp1(end-num_rand_feat+1:end,s)];
     wsamp = [wsamp reshape(wsamp1(1:num_models*num_rand_feat,s),num_rand_feat,num_models)];
 end
 
@@ -90,8 +78,8 @@ softmax_mean = zeros(num_points,num_models);
 softmax_sd = zeros(num_points,num_models);
 ens_mean = zeros(num_points,1);
 ens_sd = zeros(num_points,1);
-bias_mean = zeros(num_points,1);
-bias_sd = zeros(num_points,1);
+rp_mean = zeros(num_points,1);
+rp_sd = zeros(num_points,1);
 y_mean = zeros(num_points,1);
 y_sd = zeros(num_points,1);
 y_95CIl = zeros(num_points,1);
@@ -117,29 +105,33 @@ for i = 1:num_points
     
     % 3b set up the way to translate time to the RFF
     if strcmp(time_metric, 'dayOfYear') 
-        Phi = sqrt(2/num_rand_feat)*cos(Z*X(i,:)'/len_scale_space + Zt*58.0916*[cos(2*pi*time(i,:))' ; sin(2*pi*time(i,:))']/len_scale_time + piZ);
-        Phi_bias = sqrt(2/num_rand_feat)*cos(Z*X(i,:)'/len_scale_space_bias + Zt*58.0916*[cos(2*pi*time(i,:)) ; sin(2*pi*time(i,:))]/len_scale_time_bias + piZ);
+        phi_w = sqrt(2/num_rand_feat)*cos(Zs*targetSpace(i,:)'/scale_space_w + ...
+            Zt*58.0916*[cos(2*pi*targetTime(i,:))' ; sin(2*pi*targetTime(i,:))']/scale_time_w + piZ);
+        phi_rp = sqrt(2/num_rand_feat)*cos(Zs*targetSpace(i,:)'/scale_space_rp + ...
+            Zt*58.0916*[cos(2*pi*targetTime(i,:)) ; sin(2*pi*targetTime(i,:))]/scale_time_rp + piZ);
     else
-        Phi = sqrt(2/num_rand_feat)*cos(Z*X(i,:)'/len_scale_space + Zt*time(i,:)/len_scale_time + piZ);
-        Phi_bias = sqrt(2/num_rand_feat)*cos(Z*X(i,:)'/len_scale_space_bias + Zt*time(i,:)/len_scale_time_bias + piZ);
+        phi_w = sqrt(2/num_rand_feat)*cos(Zs*targetSpace(i,:)'/scale_space_w + ...
+            Zt*targetTime(i,:)/scale_time_w + piZ);
+        phi_rp = sqrt(2/num_rand_feat)*cos(Zs*targetSpace(i,:)'/scale_space_rp + ...
+            Zt*targetTime(i,:)/scale_time_rp + piZ);
     end
     
     % 3c sample the weights
-    softmax = Phi'*wsamp;
+    softmax = phi_w'*wsamp;
     softmax = reshape(softmax',num_models,num_samp)';
     softmax = exp(softmax);
     softmax = softmax./repmat(sum(softmax,2),1,num_models);
-    ens = softmax*f_all(i,:)';
-    bias = Phi_bias'*w0samp;
-    y = softmax*f_all(i,:)' + bias';
+    ens = softmax*targetPreds(i,:)';
+    rp = phi_rp'*rpsamp;
+    y = softmax*targetPreds(i,:)' + rp';
     
     % 3d fill in those empty arrays
     softmax_mean(i,:) = mean(softmax,1);
     softmax_sd(i,:) = std(softmax,1);
     ens_mean(i) = mean(ens);
     ens_sd(i) = std(ens);
-    bias_mean(i) = mean(bias);
-    bias_sd(i) = std(bias);
+    rp_mean(i) = mean(rp);
+    rp_sd(i) = std(rp);
     y_mean(i) = mean(y);
     y_sd(i) = std(y);
     y_95CIl(i) = quantile(y, 0.025);
@@ -163,9 +155,9 @@ for i = 1:num_points
 % 3f finish loop
 end
 
-%%%% ------------------- %%%%
-%%%% 5: Save Predictions %%%%
-%%%% ------------------- %%%%
+%%%% ---------------------- %%%%
+%%%% 5: Compile PPD Summary %%%%
+%%%% ---------------------- %%%%
 
 % 5a nicely label the weight columns
 if num_models == 5
@@ -226,22 +218,23 @@ elseif num_models == 7
 end
 
 % 5b combine other parameters
-lat = X(:,1);
-lon = X(:,2);
-pred_av = f_all(:,1);
-pred_cm = f_all(:,2);
-pred_js = f_all(:,3);
-pred_me = f_all(:,4);
-pred_rk = f_all(:,5);
+lat = targetSpace(:,1);
+lon = targetSpace(:,2);
+time = targetTime;
+pred_av = targetPreds(:,1);
+pred_cm = targetPreds(:,2);
+pred_js = targetPreds(:,3);
+pred_me = targetPreds(:,4);
+pred_rk = targetPreds(:,5);
 
-otherparam = table(lat, lon, time,...
-    ens_mean, ens_sd, bias_mean, bias_sd, y_mean, y_sd, ... 
+otherparam = table(lat, lon, time, ...
+    ens_mean, ens_sd, rp_mean, rp_sd, y_mean, y_sd, ... 
     y_95CIl, y_95CIu, y_90CIl, y_90CIu,y_85CIl, y_85CIu,y_80CIl, y_80CIu,...
     y_75CIl, y_75CIu,y_70CIl, y_70CIu,...
     pred_av, pred_cm, pred_js, pred_me, pred_rk, ...
     'VariableNames', ... 
     {'lat', 'lon', 'time',...
-    'ens_mean', 'ens_sd', 'bias_mean',  'bias_sd', 'y_mean', 'y_sd', ...
+    'ens_mean', 'ens_sd', 'rp_mean',  'rp_sd', 'y_mean', 'y_sd', ...
     'y_95CIl', 'y_95CIu', 'y_90CIl', 'y_90CIu', 'y_85CIl', 'y_85CIu', 'y_80CIl', 'y_80CIu', ...
     'y_75CIl', 'y_75CIu', 'y_70CIl', 'y_70CIu', ...
     'pred_av', 'pred_cm', 'pred_js', 'pred_me', 'pred_rk'});
@@ -250,16 +243,37 @@ otherparam = table(lat, lon, time,...
 results = [weights otherparam];
 
 % 5d add observations if doing external validation
-if strcmp(targetName, 'extVal')
-   obs = target.obs; 
-   obstab = table(obs, 'VariableNames', {'obs'})
-   results = [results obstab]
+if strcmp(predict_goal, 'compare obs') | strcmp(predict_goal, 'cv')
+    obs= targetObs;
+   obstab = table(obs, 'VariableNames', {'obs'});
+   results = [results obstab];
 end
 
-% 5e save as csv
-writetable(results, append(outPath, '/', outName,'.csv')) 
+%%%% ----------------- %%%%
+%%%% 6: Return Results %%%%
+%%%% ----------------- %%%%
 
- 
+% 5e save as csv
+% only if we are not doing cross-validation
+if ~strcmp(predict_goal, 'cv')
+   writetable(results, append(outPath, '/', outName,'.csv')) 
+       % 2d determine error 
+    error = results.obs - results.y_mean;
+    partial_mse = mean(error.^2);
+    corrmat = corrcoef(results.obs, results.y_mean);
+    r2 = corrmat(2)^2;
+    cover = results.obs >= results.y_95CIl & results.obs <= results.y_95CIu;
+    partial_cover = mean(cover);
+    
+elseif strcmp(predict_goal, 'cv')
+    % 2d determine error 
+    error = results.obs - results.y_mean;
+    mse_fold = mean(error.^2);
+    partial_mse = mse_fold * num_points / total_train_obs;
+    cover = results.obs >= results.y_95CIl & results.obs <= results.y_95CIu;
+    cover_fold = mean(cover);
+    partial_cover = cover_fold * num_points / total_train_obs;
+end
 
  % end function
 end
