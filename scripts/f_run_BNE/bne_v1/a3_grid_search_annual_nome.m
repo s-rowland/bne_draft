@@ -13,8 +13,8 @@ scale_space_w_list = [2, 1, 0.5];
 scale_time_w_list = [2,1, 0.5];
 scale_space_rp_list = [2, 1, 0.5];
 scale_time_rp_list = [2,1,0.5];
-lambda_list = [0.3679, 0.1353, 0.0498, 0.0183];
-lambda_rp_list = [0.3679, 0.1353, 0.0498, 0.0183];
+lambda_list = [0.3679,  0.0498, 0.0183];
+lambda_rp_list = [0.3679,  0.0498, 0.0183];
 opt_stage_list = [2];
 seed_list = [1234];
 
@@ -46,18 +46,18 @@ grid = grid(idx,:);
 
 % bring in the training dataset
 training_full = readtable(append('inputs/pm25/training_datasets/',... 
-    'annual', '_combined/training_cvfolds.csv'));
+    'annual', '_combined/training_cvfolds_nome.csv'));
 
 %done = [3:6:105 148:6:214] ;
 
-num_models = 7
+num_models = 6
 
 
 %%%% ---------------------- %%%%
 %%%% 2: Optimize Parameters %%%%
 %%%% ---------------------- %%%%
 
-for i = 4:4:size(grid,1)
+for i = 5:5:size(grid,1)
     time_metric = 'year';
     
     [rmse r2 cover] = cross_validate_BNE_v1(training_full, num_models, ...
@@ -71,5 +71,5 @@ for i = 4:4:size(grid,1)
     
         display(num2str(i))
         % update results table
-    writetable(grid, 'str_uncert_analysis/outputs/b_description_bne_grid_search/annual_grid_search_a_4')
+    writetable(grid, 'str_uncert_analysis/outputs/b_description_bne_grid_search/annual_grid_search_nome_5')
 end

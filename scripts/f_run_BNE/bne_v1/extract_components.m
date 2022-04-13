@@ -80,7 +80,7 @@ end
 if any(strcmp('obs', dataset.Properties.VariableNames))
         preds = dataset{:,5:(4+num_models)};
 else 
-    preds = dataset{:,4:(4+num_models)};
+    preds = dataset{:,4:(3+num_models)};
 end
 
 % 1.c. extract the predictions
