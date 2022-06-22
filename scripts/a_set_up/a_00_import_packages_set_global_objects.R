@@ -29,8 +29,7 @@ sapply(
        X = c("tidyverse", "lubridate", "magrittr", "janitor", # tidyverse packages
        "sf", "raster", "rgdal", "sp", "stars", "ncdf4", # spatial packages
        "nabor", "units", "methods", "lwgeom", "s2", "data.table", #nngeo requirements
-       #"prism", # packages with data 
-       "foreach", #"tidycensus"
+       "foreach", 
        "fst", "FNN",
        "latex2exp",
        "purrr", "furrr", "future", "progress", "progressr", "parallel", "doSNOW", # efficiency/parallelezation packages

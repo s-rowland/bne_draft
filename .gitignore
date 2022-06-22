@@ -64,6 +64,7 @@ str_uncertainty_factor_analysis_ISEE/*
 str_app_conus_uncert/*
 str_uncert_analysis/*
 str_eastMA_app/*
+str_testing/*
 
 # Produced vignettes
 vignettes/*.html

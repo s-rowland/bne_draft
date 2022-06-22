@@ -13,7 +13,7 @@
 #### ------------------- ####
 
 # N.1. goal 
-# for restricting data and visually improving plots, we needa shapefile of the 
+# for restricting data and visually improving plots, we need a shapefile of the 
 # oultine of CONUS. 
 
 #### ------------------------------------------- ####

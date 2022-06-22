@@ -57,7 +57,8 @@ plotOneParameterSpatial <- function(
   extraPointObj = 'noExtraPoints', 
   borderObj = 'noBorder',
   pointSize = 0.9, 
-  pointShape = 21
+  pointShape = 21, 
+  titleSize = 10
   ){
 
   #--------------------------#
@@ -88,7 +89,8 @@ plotOneParameterSpatial <- function(
   # 1d. extract the name of the base model, if relevant
   if (stringr::str_detect(parameterName, 'w_mean') | 
       stringr::str_detect(parameterName, 'w_sd') | 
-      stringr::str_detect(parameterName, 'w_dist')) {
+      stringr::str_detect(parameterName, 'w_dist') | 
+      stringr::str_detect(parameterName, 'contrib')) {
     baseModel <- stringr::str_split_fixed(parameterName, '_', 3)[3]
   }
 
@@ -108,39 +110,43 @@ plotOneParameterSpatial <- function(
     
     } else if (stringr::str_detect(parameterName,'w_sd')) {
       legTitle.default <- 'Weight SD'
-      mainTitle.default <- paste0('Uncertainty of ', baseModel, ' Weight')
+      mainTitle.default <- paste0('SD of ', baseModel, ' Weight')
+      
+    } else if (stringr::str_detect(parameterName,'contrib_sd')) {
+      legTitle.default <- 'Contribution SD'
+      mainTitle.default <- paste0('SD of ', baseModel, ' Contribution')
       
     } else if (stringr::str_detect(parameterName,'w_dist')) {
       legTitle.default <- 'Dist from Prior'
       mainTitle.default <- paste0('Distance of ', baseModel, ' Weight from Prior')
       
     } else if (parameterName == 'ens_mean') {
-      legTitle.default <- expression(atop('Model', atop('Combination', 
+      legTitle.default <- expression(atop(atop(' ', 'Model'), atop('Combination', 
                                                         '('*mu*g/m^3*')')))
       mainTitle.default <- 'Model Combination' 
       
     } else if (parameterName == 'ens_sd') {
-      legTitle.default <- expression(atop('SD of Model', atop('Combination',
+      legTitle.default <- expression(atop(atop(' ', 'SD of Model'), atop('Combination',
                                                               '('*mu*g/m^3*')')))
-      mainTitle.default <- 'Uncertainty of Model Combination' 
+      mainTitle.default <- 'Sd of Model Combination' 
       
-    } else if (parameterName == 'res_mean') {
-      legTitle.default <- expression(atop('Residual', atop('Process', 
+    } else if (parameterName == 'res_mean' | parameterName == 'rp_mean' ) {
+      legTitle.default <- expression(atop(atop(' ', 'Residual'), atop('Process', 
                                                            '('*mu*g/m^3*')')))
       mainTitle.default <- 'Residual Process' 
       
-    } else if (parameterName == 'res_sd') {
-      legTitle.default <- expression(atop('SD of Residual', atop('Process', 
+    } else if (parameterName == 'res_sd' |parameterName == 'rp_sd' ) {
+      legTitle.default <- expression(atop(atop(' ', 'SD of Residual'), atop('Process', 
                                                                  '('*mu*g/m^3*')')))
-      mainTitle.default <- 'Uncertainty of Residual Process' 
+      mainTitle.default <- 'SD of Residual Process' 
       
-    } else if (parameterName == 'pred_mean' | 
-               stringr::str_detect(parameterName, '_pred')) {
+    } else if (parameterName == 'pred_mean' | parameterName == 'y_mean' | 
+               stringr::str_detect(parameterName, 'pred_')) {
       legTitle.default <- expression(atop(atop(' ', 'Predicted'),
                                  atop('PM'[2.5], '('*mu*g/m^3*')')))
       mainTitle.default <- expression('Predicted'~'Concentration'~'of'~'PM'[2.5])
       
-    } else if (parameterName == 'pred_sd') {
+    } else if (parameterName == 'pred_sd' | parameterName == 'y_sd') {
       legTitle.default <- expression(atop(atop(' ', 'PM'[2.5]),
                                      atop('SD', '('*mu*g/m^3*')')))
       mainTitle.default <- expression('Uncertainty'~'of'~'PM'[2.5]~'Predictions')
@@ -154,9 +160,14 @@ plotOneParameterSpatial <- function(
       legTitle.default <- expression(atop('Highest', 'Weighted Model'))
       mainTitle.default <- 'Highest-Weighted Base Model'
       
-    } else if (parameterName == 'pred_sd_scaled') {
-      legTitle.default <- 'Uncertainty (%)'
-      mainTitle.default <-'Uncertainty Scaled by Predicted Concentration'
+    } else if (parameterName == 'pred_sd_scaled' | parameterName == 'y_sd_scaled') {
+      legTitle.default <- 'Uncertainty'
+      mainTitle.default <-'Scaled Uncertainty'
+      
+    } else if (parameterName == 'obs' ) {
+      legTitle.default <- expression(atop(atop(' ', 'Measured'),
+                                          atop('PM'[2.5], '('*mu*g/m^3*')')))
+      mainTitle.default <- expression('Measured'~'Concentration'~'of'~'PM'[2.5])
       
     } else if (stringr::str_detect(parameterName, 'err_')) {
       legTitle.default <- expression( atop('Error', '('*mu*g/m^3*')'))
@@ -196,8 +207,8 @@ plotOneParameterSpatial <- function(
   # unique scale means we get a scale specific for this parameterName, for this bne run
   # for w_mean we usually want the potential min (0) and potential max (1)
   if (valueScale[1] == 'unique scale') {
-    p.min <- round(min(dta$p), 2)
-    p.max <- round(max(dta$p), 2) 
+    p.min <- cap_tenth(min(dta$p, na.rm=TRUE), 'floor')
+    p.max <- cap_tenth(max(dta$p), 'ceiling') 
     if (stringr::str_detect(parameterName, 'w_mean')) {
       p.min <- 0; p.max <- 1
     }
@@ -216,7 +227,9 @@ plotOneParameterSpatial <- function(
   }
 
   # 2B.c add zero if appropriate 
-  if (p.min < 0) {p.breaks <- sort(c(0, p.breaks), decreasing = FALSE)}
+  #if (p.min < 0) {
+   # p.breaks <- sort(c(0, p.breaks), decreasing = FALSE)
+    #}
  
    #---------------------------------#
   #### 2C. set aesthetic schemes: ####
@@ -240,7 +253,7 @@ plotOneParameterSpatial <- function(
     extraPointCol <- 'black'
     borderCol <- 'black'
     
-  } else if(parameterName == 'res_mean') {
+  } else if(parameterName == 'rp_mean') {
     fillScheme <- ggplot2::scale_fill_gradient2(
       low = "red", mid = "white",high = "blue", midpoint = 0, 
       breaks = c(p.breaks),
@@ -252,33 +265,47 @@ plotOneParameterSpatial <- function(
     extraPointCol <- 'black'
     borderCol <- 'black'
     
-  } else if (parameterName == 'pred_mean' | 
-             stringr::str_detect(parameterName, '_pred')) {
+  } else if (parameterName == 'y_mean' | 
+             stringr::str_detect(parameterName, 'pred_') | 
+             parameterName == 'obs') {
     fillScheme <- scico::scale_fill_scico(
-      direction = -1, palette = 'hawaii',
+      direction = -1, palette = 'hawaii', trans = 'sqrt',
       breaks = c(p.breaks),
-      limits = c(0.1, p.max))
+      limits = c(p.min, p.max))
     colorScheme <- scico::scale_color_scico(
-      direction = -1, palette = 'hawaii',
+      direction = -1, palette = 'hawaii', trans = 'sqrt',
       breaks = c(p.breaks),
-      limits = c(0.1, p.max))
-    extraPointCol <- 'orchid'
-    borderCol <- 'orchid'
+      limits = c(p.min, p.max))
+    extraPointCol <- 'black'  #'orchid'
+    borderCol <- 'black'  #'orchid'
     
-    } else if (parameterName == 'pred_sd' | 
-               parameterName == 'res_sd' |
-               parameterName == 'pred_sd_scaled') {
+    } else if (parameterName == 'ens_sd' | 
+               parameterName == 'rp_sd' | 
+               parameterName == 'y_sd' |
+               parameterName == 'y_sd_scaled') {
     fillScheme <- viridis::scale_fill_viridis(
-      direction = -1, option = 'magma',
+      direction = -1, option = 'magma', trans = 'log',
       breaks = c(p.breaks),
       limits = c(p.min, p.max))
     colorScheme <- viridis::scale_color_viridis(
-      direction = -1, option = 'magma',
+      direction = -1, option = 'magma', trans = 'log',
       breaks = c(p.breaks),
       limits = c(p.min, p.max))
     extraPointCol <- 'steelblue4'
     borderCol <- 'steelblue4'
     
+    } else if (parameterName == 'residu') {
+      fillScheme <- scico::scale_fill_scico(
+        direction = -1, palette = 'vik', midpoint=0,
+        breaks = c(p.breaks),
+        limits = c(p.min, p.max))
+      colorScheme <- scico::scale_color_scico(
+        direction = -1, palette = 'vik', midpoint=0,
+        breaks = c(p.breaks),
+        limits = c(p.min, p.max))
+      extraPointCol <- 'orchid'
+      borderCol <- 'black'
+      
     } else if (parameterName == 'base_maxW') {
   cbp1 <- c("#E69F00", "#56B4E9", "#009E73",
             "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
@@ -343,7 +370,8 @@ plotOneParameterSpatial <- function(
   # 3c. create plot object
   p.gg <- ggplot2::ggplot() + 
     ggplot2::geom_sf(fill = NA)  + 
-    ggplot2::geom_sf(data = dta, aes(fill= p, color = p), size = pointSize, shape = pointShape) + 
+    ggplot2::geom_sf(data = dta, aes(fill= p, color = p), 
+                     size = pointSize, shape = pointShape) + 
     extraPoint.gg +
     border.gg + 
     fillScheme + colorScheme +
@@ -353,7 +381,9 @@ plotOneParameterSpatial <- function(
     ggplot2::theme(plot.margin = unit(c(0, 0, 0, 0), "cm")) + 
     ggplot2::theme_void() + 
     ggplot2:: theme(legend.position = legPos, 
-          legend.title  = element_text(size = 15)) 
+          legend.title  = element_text(size = 19),
+          legend.text = element_text(size = 14),
+          title = element_text(size = titleSize)) 
   
   # 3d. return plot
   print(p.gg)

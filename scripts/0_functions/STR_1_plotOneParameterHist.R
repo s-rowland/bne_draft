@@ -41,8 +41,12 @@ plotOneParameterHist <- function(
   valueRange = 'unique range', 
   binWidth = 5,
   mainTitle = 'defaultMainTitle', 
+  xTitle = 'defaultMainTitle',
   axisTextSize = 15, 
-  axisTitleSize = 20
+  axisTitleSize = 20, 
+  meanLine = 'none', 
+  meanAnnY = 5, 
+  meanAnnX = 0
   ){
 
   #--------------------------#
@@ -94,12 +98,15 @@ plotOneParameterHist <- function(
   } else if (parameterName == 'res_sd') {
     mainTitle.default <- 'Uncertainty of Residual Process' 
     
-  } else if (parameterName == 'pred_mean' | 
-             stringr::str_detect(parameterName, '_pred')) {
+  } else if (parameterName == 'y_mean' | 
+             stringr::str_detect(parameterName, 'pred_')) {
     mainTitle.default <- expression('Predicted'~'Concentration'~'of'~'PM'[2.5])
     
-  } else if (parameterName == 'pred_sd') {
-    mainTitle.default <- expression('Uncertainty'~'of'~'PM'[2.5]~'Predictions')
+  } else if (parameterName == 'y_sd') {
+    mainTitle.default <- expression('Absolute'~'Uncertainty'~'of'~'PM'[2.5]~'Predictions')
+  
+  } else if (parameterName == 'y_sd_scaled') {
+    mainTitle.default <- expression('Scaled'~'Uncertainty'~'of'~'PM'[2.5]~'Predictions')
     
   } else if (parameterName == 'base_model_sd') {
     mainTitle.default <- expression('Disagreement'~'of'~'PM'[2.5]~'Models')
@@ -125,7 +132,8 @@ plotOneParameterHist <- function(
   
   # 2A.b. set the titles we will use for the plot
   if (mainTitle == 'defaultMainTitle') {mainTitle <- mainTitle.default}
-
+  if (xTitle == 'defaultMainTitle') {xTitle <- mainTitle.default}
+  
   #----------------------------------#
   #### 2B. get values for x-axis: ####
   #----------------------------------#
@@ -143,18 +151,30 @@ plotOneParameterHist <- function(
   #### 3. create plot: ####
   #-----------------------#
   
+  if (meanLine == 'meanLine') {
+    meanLineObject <- ggplot2::geom_vline(xintercept = mean(dta$p), color = 'orangered4') 
+    meanLineAnn <-  annotate('text', x = meanAnnX, y = meanAnnY, 
+               label = paste0('Mean: ', round(mean(dta$p),2)), color = 'orangered4', 
+               size = axisTextSize/2)
+  } else {
+    meanLineObject <- ggplot2::ggtitle(mainTitle)
+    meanLineAnn <-  ggplot2::ggtitle(mainTitle) 
+  }
+  
   # 3a. create plot object
   p.gg <- ggplot2::ggplot(dta, aes(x = p)) + 
     ggplot2::geom_histogram(aes(y = stat(count) / sum(count)), binwidth = binWidth) + 
-    ggplot2::ggtitle(' ') + 
-    ggplot2::labs(x = mainTitle, y = 'Percentage') + 
+    meanLineObject + 
+    meanLineAnn + 
+    ggplot2::ggtitle(mainTitle) + 
+    ggplot2::labs(x = xTitle, y = 'Percentage') + 
       scale_y_continuous(labels = scales::percent) + 
     ggplot2::xlim(p.min, p.max) + 
-    ggplot2::theme_bw() + 
+    ggplot2::theme_classic() + 
     ggplot2::theme(panel.grid.minor = element_blank()) + 
     ggplot2::theme(plot.margin = unit(c(0, 0, 0, 0), "cm"), 
                    axis.text = element_text(size = axisTextSize), 
-                   axis.title = element_text(size = axisTitleSize)) 
+                   axis.title = element_text(size = axisTitleSize))  
   
   # 3b. return plot
   print(p.gg)
