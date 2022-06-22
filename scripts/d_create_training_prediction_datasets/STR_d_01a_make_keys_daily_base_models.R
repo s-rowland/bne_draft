@@ -86,6 +86,41 @@ cm05 <- cm05 %>%
   mutate(lat = as.numeric(lat)) %>%
   mutate(id = row_number()) %>% 
   dplyr::select(lat, lon, id)
+# 3.a. readin in cmaq data
+cm07 <- read_csv(here::here('inputs', 'pm25', 'base_models', 'daily','raw', 'cmout', 
+                            '2007_pm25_daily_average.txt')) 
+# 3.b. rename columns and get the locations mfor just one day
+cm07 <- cm07 %>% 
+  rename(lat = Latitude, lon = Longitude, 
+         pred_cm = 'pm25_daily_average(ug/m3)')  %>% 
+  filter(as.character(Date) == '2007-01-01') %>% 
+  mutate(lat = as.numeric(lat)) %>%
+  mutate(id = row_number()) %>% 
+  dplyr::select(lat, lon, id)
+
+# 3.a. readin in cmaq data
+cm08 <- read_csv(here::here('inputs', 'pm25', 'base_models', 'daily','raw', 'cmout', 
+                            '2008_pm25_daily_average.txt')) 
+# 3.b. rename columns and get the locations mfor just one day
+cm08 <- cm08 %>% 
+  rename(lat = Latitude, lon = Longitude, 
+         pred_cm = 'pm25_daily_average(ug/m3)')  %>% 
+  filter(as.character(Date) == '2008-01-01') %>% 
+  mutate(lat = as.numeric(lat)) %>%
+  mutate(id = row_number()) %>% 
+  dplyr::select(lat, lon, id)
+
+# 3.a. readin in cmaq data
+cm09 <- read_csv(here::here('inputs', 'pm25', 'base_models', 'daily','raw', 'cmout', 
+                            '2009_pm25_daily_average.txt')) 
+# 3.b. rename columns and get the locations mfor just one day
+cm09 <- cm09 %>% 
+  rename(lat = Latitude, lon = Longitude, 
+         pred_cm = 'pm25_daily_average(ug/m3)')  %>% 
+  filter(as.character(Date) == '2009-01-01') %>% 
+  mutate(lat = as.numeric(lat)) %>%
+  mutate(id = row_number()) %>% 
+  dplyr::select(lat, lon, id)
 
 # 3.a. readin in cmaq data
 cm10 <- read_csv(here::here('inputs', 'pm25', 'base_models', 'daily','raw', 'cmout', 
@@ -100,13 +135,25 @@ cm10 <- cm10 %>%
   dplyr::select(lat, lon, id)
 
 # 3.a. readin in cmaq data
+cm13 <- read_csv(here::here('inputs', 'pm25', 'base_models', 'daily','raw', 'cmout', 
+                            '2013_pm25_daily_average.txt')) 
+# 3.b. rename columns and get the locations mfor just one day
+cm13 <- cm13 %>% 
+  rename(lat = Latitude, lon = Longitude, 
+         pred_cm = 'pm25_daily_average(ug/m3)')  %>% 
+  filter(as.character(Date) == '2013-01-01') %>% 
+  mutate(lat = as.numeric(lat)) %>%
+  mutate(id = row_number()) %>% 
+  dplyr::select(lat, lon, id)
+
+# 3.a. readin in cmaq data
 cm15 <- read_csv(here::here('inputs', 'pm25', 'base_models', 'daily','raw', 'cmout', 
                             '2015_pm25_daily_average.txt')) 
 # 3.b. rename columns and get the locations mfor just one day
 cm15 <- cm15 %>% 
   rename(lat = Latitude, lon = Longitude, 
-         pred_cm = 'pm25_daily_average(ug/m3)')  %>% 
-  filter(as.character(Date) == '2015-01-01') %>% 
+         pred_cm = Prediction)  %>% 
+  filter(as.character(Date) == 'Jan-01-2015') %>% 
   mutate(lat = as.numeric(lat)) %>%
   mutate(id = row_number()) %>% 
   dplyr::select(lat, lon, id)
@@ -189,8 +236,10 @@ aqs.loc.daily <- aqs.daily %>%
   distinct()
 
 # 7.d create list of base models and their names 
-baseModels <- list(av, cm05, cm10, cm15, js, me, rk)
-baseModelNames <- c('avDaily', 'cm05Daily', 'cm10Daily', 'cm15Daily', 
+baseModels <- list(av, cm00, cm01, cm02, cm03, cm04, cm05, cm10, cm15, js, me, rk)
+baseModelNames <- c('avDaily','cm00Daily', 'cm01Daily', 'cm02Daily','cm03Daily', 'cm04Daily',
+                    'cm05Daily','cm07Daily', 'cm08Daily', 'cm09Daily', 
+                    'cm10Daily','cm13Daily',  'cm15Daily', 
                     'jsDaily', 'meDaily', 'rkDaily')
 
 # 7.e create keys for aqs 

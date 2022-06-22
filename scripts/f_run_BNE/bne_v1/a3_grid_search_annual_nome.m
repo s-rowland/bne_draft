@@ -39,8 +39,8 @@ grid.r2 = transpose(repelem(0, size(grid,1)));
 grid.cover = transpose(repelem(0, size(grid,1)));
 
 % temporary restriction
-idx = grid.lambda_w == 0.1353 | grid.lambda_rp == 0.1353; %find what rows this is true
-grid = grid(idx,:); 
+%idx = grid.lambda_w == 0.1353 | grid.lambda_rp == 0.1353; %find what rows this is true
+%grid = grid(idx,:); 
 
 %grid.row_number = transpose(1:108);
 
@@ -57,7 +57,7 @@ num_models = 6
 %%%% 2: Optimize Parameters %%%%
 %%%% ---------------------- %%%%
 
-for i = 5:5:size(grid,1)
+for i = 600:size(grid,1)
     time_metric = 'year';
     
     [rmse r2 cover] = cross_validate_BNE_v1(training_full, num_models, ...
@@ -71,5 +71,5 @@ for i = 5:5:size(grid,1)
     
         display(num2str(i))
         % update results table
-    writetable(grid, 'str_uncert_analysis/outputs/b_description_bne_grid_search/annual_grid_search_nome_5')
+    writetable(grid, 'str_uncert_analysis/outputs/b_description_bne_grid_search/annual_grid_search_nome_600')
 end

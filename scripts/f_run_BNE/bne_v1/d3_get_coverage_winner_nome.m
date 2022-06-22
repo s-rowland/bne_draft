@@ -3,13 +3,13 @@
 %%%%  0: Set winning hyperparameters  %%%%
 %%%% -------------------------------- %%%%
     
-num_models = 7; 
+num_models = 6; 
 scale_space_w = 2; 
-scale_time_w = 0.5; 
+scale_time_w = 1; 
 scale_space_rp = 2; 
-scale_time_rp = 0.5; 
+scale_time_rp = 1; 
 lambda_w = 0.0498; 
-lambda_rp = 0.0498; 
+lambda_rp = 0.3679; 
 time_metric = 'year'; 
 opt_stage = 2; 
 seed = 1234;

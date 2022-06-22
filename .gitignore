@@ -53,6 +53,7 @@ external_validation_data/*
 =======
 externalValidation_data/*
 inputs/*
+s3_downloads/*
 outputs/*
 other_outputs/*
 >>>>>>> b6fad40dcb1c72e75bf63e1b69040bac8ed9c596

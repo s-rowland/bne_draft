@@ -1,0 +1,46 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# addPmData
+
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/geomarker-io/addPmData/workflows/R-CMD-check/badge.svg)](https://github.com/geomarker-io/addPmData/actions)
+<!-- badges: end -->
+
+The goal of addPmData is to add PM estimates to geocoded data.
+
+More information on the development of the spatial model can be found at the st_pm_hex repository and in the scientific manuscript describing model development: Brokamp, C. A High Resolution Spatiotemporal Fine Particulate Matter Exposure Assessment Model for the Contiguous United States. Environmental Advances. In Press. 2021. (accepted preprint available online: https://doi.org/10.1016/j.envadv.2021.100155).
+
+## Installation
+
+You can install the development version from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("remotes")
+remotes::install_github("geomarker-io/addPmData")
+```
+## Example
+
+```{r example}
+library(addPmData)
+
+d <- tibble::tribble(
+  ~id,         ~lat,    ~lon, ~start_date,    ~end_date,
+  '55000100280', 39.2, -84.6, '2008-09-09', '2008-09-11',
+  '55000100281', 39.2, -84.6, '2007-08-05', '2007-08-08',
+  '55000100282', 39.2, -84.6, '2015-08-31', '2015-09-02')
+
+add_pm(d)
+```

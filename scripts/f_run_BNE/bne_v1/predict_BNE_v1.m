@@ -1,4 +1,5 @@
-function [mse_partial, r2_partial, cover_partial, cp_95, cp_90, cp_85, cp_80, cp_75, cp_70] = predict_BNE_v1(W,RP,sigW,Zs,Zt,piZ, ...
+ function [mse_partial, r2_partial, cover_partial, me_partial, ...
+    cp_95, cp_90, cp_85, cp_80, cp_75, cp_70, preds_partial, obs_partial] = predict_BNE_v1(W,RP,sigW,Zs,Zt,piZ, ...
     target, total_train_obs, predict_goal, num_models, ...
     scale_space_w, scale_time_w, scale_space_rp, scale_time_rp, time_metric, ...
     outPath, outName)
@@ -29,9 +30,9 @@ function [mse_partial, r2_partial, cover_partial, cp_95, cp_90, cp_85, cp_80, cp
  % len_scale_space = 3.5'; len_scale_time = 1; len_scale_space_rp = 3.5';
  % len_scale_time_rp = 1; penalty = 0.1; time_metric = 'annual'; seed = 1234;
 
- % num_models = 5; 
- % len_scale_space = 2'; len_scale_time = 30; len_scale_space_rp = 2';
- % len_scale_time_rp = 15; time_metric = 'dayOfYear'; seed = 1234;
+ % num_models = 7; 
+ % scale_space_w = 2'; scale_time_w = 1; scale_space_rp = 2';
+ % scale_time_rp = 1; time_metric = 'year'; seed = 1234;
  
 
 % target =testing;
@@ -76,6 +77,7 @@ end
 % 2f create empty vectors to fill
 softmax_mean = zeros(num_points,num_models);
 softmax_sd = zeros(num_points,num_models);
+contrib_sd = zeros(num_points,num_models);
 ens_mean = zeros(num_points,1);
 ens_sd = zeros(num_points,1);
 rp_mean = zeros(num_points,1);
@@ -121,6 +123,7 @@ for i = 1:num_points
     softmax = reshape(softmax',num_models,num_samp)';
     softmax = exp(softmax);
     softmax = softmax./repmat(sum(softmax,2),1,num_models);
+    contrib = softmax.*targetPreds(i,:);
     ens = softmax*targetPreds(i,:)';
     rp = phi_rp'*rpsamp;
     y = softmax*targetPreds(i,:)' + rp';
@@ -128,6 +131,7 @@ for i = 1:num_points
     % 3d fill in those empty arrays
     softmax_mean(i,:) = mean(softmax,1);
     softmax_sd(i,:) = std(softmax,1);
+    contrib_sd(i,:) = std(contrib,1);
     ens_mean(i) = mean(ens);
     ens_sd(i) = std(ens);
     rp_mean(i) = mean(rp);
@@ -212,18 +216,26 @@ preds = table(pred_av, pred_cc, pred_cm, pred_gs, pred_js, pred_rk, ...
 elseif num_models == 7
         w_mean_av = softmax_mean(:,1);
         w_sd_av = softmax_sd(:,1);
+        contrib_sd_av = contrib_sd(:,1);
         w_mean_cc = softmax_mean(:,2);
         w_sd_cc = softmax_sd(:,2);
+        contrib_sd_cc = contrib_sd(:,2);
         w_mean_cm = softmax_mean(:,3);
         w_sd_cm = softmax_sd(:,3);
+        contrib_sd_cm = contrib_sd(:,3);
         w_mean_gs = softmax_mean(:,4);
         w_sd_gs = softmax_sd(:,4);
+        contrib_sd_gs = contrib_sd(:,4);
         w_mean_js = softmax_mean(:,5);
         w_sd_js = softmax_sd(:,5);
+        contrib_sd_js = contrib_sd(:,5);
         w_mean_me = softmax_mean(:,6);
         w_sd_me = softmax_sd(:,6);
+        contrib_sd_me = contrib_sd(:,6);
         w_mean_rk = softmax_mean(:,7);
         w_sd_rk = softmax_sd(:,7);
+        contrib_sd_rk = contrib_sd(:,7);
+        
         weights = table(w_mean_av, w_sd_av, w_mean_cc, w_sd_cc, w_mean_cm, w_sd_cm, ...
             w_mean_gs, w_sd_gs, w_mean_js, w_sd_js, w_mean_me, w_sd_me,...
             w_mean_rk, w_sd_rk, 'VariableNames', ...
@@ -231,6 +243,11 @@ elseif num_models == 7
              'w_mean_cm', 'w_sd_cm', ...
              'w_mean_gs', 'w_sd_gs','w_mean_js', 'w_sd_js', ...
              'w_mean_me', 'w_sd_me', 'w_mean_rk', 'w_sd_rk'});
+       contribs = table(contrib_sd_av, contrib_sd_cc, contrib_sd_cm, ...
+            contrib_sd_gs, contrib_sd_js,  contrib_sd_me, contrib_sd_rk, ...
+            'VariableNames', ...
+            {'contrib_sd_av', 'contrib_sd_cc', 'contrib_sd_cm', ...
+             'contrib_sd_gs','contrib_sd_js', 'contrib_sd_me', 'contrib_sd_rk'});
          
 pred_av = targetPreds(:,1);
 pred_cc = targetPreds(:,2);
@@ -261,7 +278,7 @@ otherparam = table(lat, lon, time, ...
     'y_75CIl', 'y_75CIu', 'y_70CIl', 'y_70CIu'});
    
 % 5c combine all parameters 
-results = [weights otherparam preds];
+results = [weights contribs otherparam preds];
 
 % 5d add observations if doing external validation
 if strcmp(predict_goal, 'compare obs') | strcmp(predict_goal, 'cv')
@@ -283,6 +300,7 @@ end
     mse_fold = mean(error.^2);
     corrmat = corrcoef(results.obs, results.y_mean);
     r2_fold = corrmat(2)^2;
+    me_fold = mean(error);
     cover = results.obs >= results.y_95CIl & results.obs <= results.y_95CIu;
     cover_fold = mean(cover);
     cover_95 = results.obs >= results.y_95CIl & results.obs <= results.y_95CIu;
@@ -304,26 +322,32 @@ if ~strcmp(predict_goal, 'cv')
    mse_partial = mse_fold;
    r2_partial = r2_fold;
    cover_partial = cover_fold;
+   me_partial = me_fold;
    cp_95 = cover_95_fold;
    cp_90 = cover_90_fold;
    cp_85 = cover_85_fold;
    cp_80 = cover_80_fold;
    cp_75 = cover_75_fold;
    cp_70 = cover_70_fold;
+   preds_partial = results.y_mean; 
+   obs_partial = results.obs;
        % 2d determine error 
 
     
 elseif strcmp(predict_goal, 'cv')
     % 2d determine error 
-       mse_partial = mse_fold* num_points / total_train_obs;
+   mse_partial = mse_fold* num_points / total_train_obs;
    r2_partial = r2_fold* num_points / total_train_obs;
    cover_partial = cover_fold* num_points / total_train_obs;
+   me_partial = me_fold* num_points / total_train_obs;
    cp_95 = cover_95_fold* num_points / total_train_obs;
    cp_90 = cover_90_fold* num_points / total_train_obs;
    cp_85 = cover_85_fold* num_points / total_train_obs;
    cp_80 = cover_80_fold* num_points / total_train_obs;
    cp_75 = cover_75_fold* num_points / total_train_obs;
    cp_70 = cover_70_fold* num_points / total_train_obs;
+   preds_partial = results.y_mean; 
+   obs_partial = results.obs; 
 end
 
  % end function

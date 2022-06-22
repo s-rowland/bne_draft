@@ -14,7 +14,7 @@ scale_time_w_list = [0.5];
 scale_space_rp_list = [2];
 scale_time_rp_list = [0.5];
 lambda_w_list = [0.0498];
-lambda_rp_list = [0.0498];
+lambda_rp_list = [0.1353];
 time_metric_list = [1]; %['julianDay', 'dayOfYear'];
 seed_list = [1234];
 opt_stage_list = [2];
@@ -31,10 +31,10 @@ grid.scale_time_w = grid_mat(:,2);
 grid.scale_space_rp = grid_mat(:,3);
 grid.scale_time_rp = grid_mat(:,4);
 grid.lambda_w = grid_mat(:,5);
-grid.lambda_rp =grid_mat(:,5);
-grid.time_metric = grid_mat(:,6);
-grid.seed = grid_mat(:,7);
-grid.opt_stage = grid_mat(:,8);
+grid.lambda_rp =grid_mat(:,6);
+grid.time_metric = grid_mat(:,7);
+grid.seed = grid_mat(:,8);
+grid.opt_stage = grid_mat(:,9);
 
 % 1.c. set time metric
 time_metric = 'year';

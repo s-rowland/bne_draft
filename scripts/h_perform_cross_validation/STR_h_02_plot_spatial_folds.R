@@ -136,7 +136,9 @@ plot_roles <- function(foldNum, Location){
     scale_fill_manual(values = TurboPalette(4)[1:3]) + 
     theme(plot.title = element_text(size = 18)) + 
     theme(plot.margin = unit(c(0, 0, 0, 0), "cm")) + 
-    theme_void() 
+    theme_void()  + 
+    theme(legend.key.size = unit(0.2, "cm"), 
+          legend.text = element_text(size = 3))
 }
 
 ####***************************

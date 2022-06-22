@@ -20,67 +20,78 @@
 #### ------------------------------------------- ####
 
 # 0.a. import packages and global objects, if you haven't already done so
-if(!exists("ran_a_00")){
-  here::i_am("README.md")
-  source(here::here('scripts', 'a_set_up', 
-                    "a_00_import_packages_set_global_objects.R"))
-}
+#if(!exists("ran_a_00")){
+#  here::i_am("README.md")
+#  source(here::here('scripts', 'a_set_up', 
+#                    "a_00_import_packages_set_global_objects.R"))
+#}
 
 # 0.b. install Cole's package 
 #p_load(remotes)
-#remotes::install_github("geomarker-io/addPmData")
+remotes::install_github("geomarker-io/addPmData")
 library(addPmData)
+safe_harbor_h3 <- readRDS(here::here('ancillary_data', 'raw', 'brokamp_objects', 
+                                     'safe_harbor_h3.rds'))
+safe_hex_lookup <- readRDS(here::here('ancillary_data', 'raw', 'brokamp_objects', 
+                                     'safe_hex_lookup.rds'))
+
+
+# 0.e set up parallelization
+# 0.e.i get the number of cores
+# we subtract one to reserve a core for non-lbic tasks
+n.cores <- parallel::detectCores() - 1
+# 0.e.ii create the cluster
+my.cluster <- parallel::makeCluster(
+  n.cores, 
+  type = "FORK"
+)
+#check cluster definition (optional)
+print(my.cluster)
+
+# 0.e.iii register it to be used by %dopar%
+doParallel::registerDoParallel(cl = my.cluster)
+#check if it is registered (optional)
+foreach::getDoParRegistered()
 
 #### -------------------------------------------- ####
 ####  1. link H3 to prediction dataset locations  ####
 #### -------------------------------------------- ####
 
-# 1.a. create safe hex look up object 
-safe_hex_lookup <- read_rds(here::here('ancillary_data', 'raw', 'brokamp_objects', 
-                                       'safe_hex_lookup.rds'))
 
-# 1.b wrangle prediction locations
-pred.loc <- read_fst(here::here('inputs', 'pm25', 'keys',
-                                'refGridConus_js_key_nn_daily.fst')) %>% 
-  dplyr::select(ref_id, ref_lat, ref_lon) %>% 
-  rename(id = ref_id, lat = ref_lat, lon = ref_lon) 
+# 1a establish refGrid 
+refGridConus <- fst::read_fst(here::here('inputs', 'pm25', 'reference_grids',  
+                                         paste0('refGrid_', 'conus', '.fst')))
 
-# 1.c get the h3_3 locations
-pred.loc.h3 <- pred.loc %>% 
-  dplyr::select(lon, lat) %>%
-  mutate(h3 = suppressMessages(h3jsr::point_to_h3(dplyr::select(., lon, lat), res = 8))) %>%
-  mutate(h3_3 = h3jsr::get_parent(h3, res = 3)) %>%
-  mutate(year = 2010) #%>% 
-  
-# 1.d some of the h3_3 id's need to be replaced 
-pred.loc.h3 <- pred.loc.h3 %>%
-  dplyr::left_join(safe_hex_lookup, by = 'h3_3') %>%
-  dplyr::mutate(h3_3 = ifelse(!is.na(safe_hex), safe_hex, h3_3)) %>%
-  dplyr::select(-safe_hex)
-  
-# 1.e create names of the files we want to read in 
-pred.loc.h3_3 <- pred.loc.h3 %>% 
-  dplyr::select(h3_3) %>% 
-  distinct() %>% 
-  mutate(id = row_number())
-  
-# test
-#dta <- s3::s3_get_files(pred.loc.list[[1]]$file_name, 
- #                     confirm = FALSE, 
-  #                    download_folder = here::here('inputs', 'pm25', 'base_models', 
-   #                                                                 'raw'))
+# 1b. breka up refGrid in preparation for foreach 
+library(dplyr) 
+library(tidyr) 
+library(magrittr)
+library(foreach)
+library(parallel)
+refGridConus <- refGridConus %>% 
+ dplyr::mutate(group = row_number() %% 1000, 
+         id = row_number())
 
-#### ------------------------------------------ ####
-####  2. download CB by h3_3 - year combination ####
-#### ------------------------------------------ ####
+refGridConus.list <- split(refGridConus, refGridConus$group)
+# dta <- refGridConus.list[[1]]
+ee <- foreach(
+  dta = refGridConus.list, 
+  .combine = 'rbind'
+) %do% {
+  
 
-# 2.a. loop over the unique h3_# we need to get
-for (i in 1:nrow(pred.loc.h3_3)){
-  
-  dta.pm <- downloadCB(pred.loc.h3_3$h3_3[i], 2010)
-  
-  if (i %% 10 == 0) {print(i)}
+  dta2 <- data.frame(id = dta$id, 
+                     lat = dta$lat, 
+                     lon = dta$lon, 
+                     start_date = '2005-01-01', 
+                     end_date = '2005-01-01')
+
+dta3 <- add_pm(dta2[32:32,]) 
+
+
+
 }
 
-# check 
-# a <- read_fst(paste0("~/Desktop/pm25-brokamp/832806fffffffff_2010_h3pm.fst"))
+
+
+
