@@ -24,25 +24,25 @@ createRefGridNoJS <- function(AOI,
   #### 1. CREATE SHAPEFILE OF AOI ####
   #----------------------------------#
   
-  allowedAOI <- c('Conus', 'NYS', 'Cities', 'Conus_01deg')
+  allowedAOI <- c('conus', 'NYS', 'cities', 'conus01deg')
   if (!AOI %in% allowedAOI) stop("The AOI specified was not recognized. See documentation.")
   
   
   # 1a restrict to area of interest
-  if (str_detect(AOI, 'Conus')) {
+  if (str_detect(AOI, 'conus')) {
     # bring in shapefile
     states <- sf::st_read(here::here('ancillary_data', 'raw', 'census', 'cb_2015_us_state_500k', 
                                      'cb_2015_us_state_500k.shp')) %>% 
       st_transform(crs=sf::st_crs("epsg:4326"))
     # name locations of interest (here the locations to exclude)
-    aoiMembers <- 'Conus'
+    aoiMembers <- 'conus'
     excludedAreas <- c("Alaska", "Hawaii", "Puerto Rico", 
                        "Commonwealth of the Northern Mariana Islands", "Guam", 
                        "American Samoa", "United States Virgin Islands")
     # extract the area of interest from the simple feature
     aoi.sf <- states %>% 
       dplyr::filter(!NAME %in% excludedAreas) %>% 
-      dplyr::mutate(member = 'Conus')
+      dplyr::mutate(member = 'conus')
   }
   
   if (AOI == 'NYS') {
@@ -58,7 +58,7 @@ createRefGridNoJS <- function(AOI,
       dplyr::rename(member = STUSPS)
   }
   
-  if (AOI == 'Cities') {
+  if (AOI == 'cities') {
     # bring in shapefile
     cbsa <- sf::st_read(here::here('ancillary_data', 'raw','census', 'tl_2015_us_cbsa', 
                                    'tl_2015_us_cbsa.shp')) %>% 
@@ -81,10 +81,10 @@ createRefGridNoJS <- function(AOI,
   # 2a. determine grid density 
   # we need less density for the nationwide grid, though when we make the final 
   # product we will need to get a higher density. 
-  if (AOI == 'Conus') {gridDiameter <- 0.125}
-  if (AOI == 'Conus_01deg') {gridDiameter <- 0.01}
+  if (AOI == 'conus') {gridDiameter <- 0.125}
+  if (AOI == 'conus01deg') {gridDiameter <- 0.01}
   if (AOI == 'NYS') {gridDiameter <- 0.025}
-  if (AOI == 'Cities') {gridDiameter <- 0.025}
+  if (AOI == 'cities') {gridDiameter <- 0.025}
   
   # 2b. mini function
   create_rectangle_grid <- function(aoi.sf, member, gridDiameter) {

@@ -18,24 +18,7 @@ if(!exists("ran_a_00")){
                     "a_00_import_packages_set_global_objects.R"))
 }
 
-#### --------------------------- ####
-####  1. identify spatial folds  ####
-#### --------------------------- ####
 
-# 1.a. for daily prediction data 
-timeWindow <- 'daily'
-trainingFileName <- 'training_daily_nofolds.csv'
-
-
-
-train.full <- readr::read_csv(here::here('inputs', 'pm25', 'training_datasets', 'daily_combined', 
-                            paste0('training_', 'daily_nofolds', '.csv')))
-
-#train.full <- train.full %>% 
-#  mutate(day_of_year = day_of_year * max_doy)
-
-source(here::here('scripts', 'd_create_training_prediction_datasets', 
-                  'STR_d_06ii_identify_spatial_folds_follower.R'))
 
 # 1.b. for annual prediction data
 timeWindow <- 'annual'

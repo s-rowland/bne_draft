@@ -1,4 +1,4 @@
-# File: STR_d_02_make_training_predictions_JS.R
+# File: STR_d_01_make_training_prediction_datasets_daily.R
 # Authors:
 # Lawrence Chillrud <lgc2139@cumc.columbia.edu>
 # Sebastian Rowland <sr3463@cumc.columbia.edu>
@@ -7,8 +7,11 @@
 # Contents:
 #  N. notes
 #  0. preparation
+#  1. create keys
 #  1. make daily training data for each year
 #  2. combined yearly daily training data 
+#  3. fill in missing JS
+#  4. identify spatial folds
 
 #### ------------------ ####
 ####       N. notes     ####
@@ -27,6 +30,13 @@ if(!exists('ran_a_00')){
 }
 
 
+#### ---------------- ####
+####  1. create keys  ####
+#### ---------------- ####
+
+source(here::here('scripts', 'd_create_training_prediction_datasets', 
+                  'STR_d_01a_make_keys_daily_base_models.R'))
+
 #### ------------------------------------------- ####
 ####  1. make daily training data for each year  ####
 #### ------------------------------------------- ####
@@ -34,7 +44,7 @@ if(!exists('ran_a_00')){
 for (activeYear in 2008:2016) {
   yyyy <- activeYear 
   source(here::here('scripts', 'd_create_training_prediction_datasets', 
-                    'STR_d_02a_make_training_predictions_daily.R'))
+                    'STR_d_01b_make_training_predictions_daily.R'))
 }
 
 #### ---------------------------------------- ####
@@ -66,3 +76,31 @@ training.full %>%
   readr::write_csv(here::here('inputs', 'pm25', 'training_datasets', 'daily_combined', 
                               paste0('training_', 'daily_nofolds', '.csv')))
 
+
+#### ----------------------- ####
+####  3. fill in missing JS  ####
+#### ----------------------- ####
+
+# JS is missing at a few points, so we fill in via nearest-neighbor
+# 3.a. fill in training data 
+source(here::here('scripts', 'd_create_training_prediction_datasets', 
+                  'STR_d_01c_fill_in_js_training_dataset_daily.R'))
+
+# 3.b. fill in prediction data 
+source(here::here('scripts', 'd_create_training_prediction_datasets', 
+                  'STR_d_01d_fill_in_js_prediction_dataset_daily.R'))
+
+#### --------------------------- ####
+####  4. identify spatial folds  ####
+#### --------------------------- ####
+
+# 4.a. identify parameters
+timeWindow <- 'daily'
+trainingFileName <- 'training_daily_nofolds.csv'
+
+train.full <- readr::read_csv(here::here('inputs', 'pm25', 'training_datasets', 'daily_combined', 
+                                         paste0('training_', 'daily_nofolds', '.csv')))
+
+# 4.b identify spatial folds
+source(here::here('scripts', 'd_create_training_prediction_datasets', 
+                  'STR_d_06ii_identify_spatial_folds_follower.R'))

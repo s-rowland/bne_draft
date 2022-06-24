@@ -30,7 +30,7 @@ if(!exists('ran_a_00')){
 #### ------------------- ####
 
 # 1.a. create refGrids for the three principal areas of interest: CONUS, NYS, and select cities
-createRefGridNoJS(AOI = 'Conus', makePlot = TRUE, targetDir = 'inputs/pm25/reference_grids')
+createRefGridNoJS(AOI = 'conus', makePlot = TRUE, targetDir = 'inputs/pm25/reference_grids')
 createRefGridNoJS(AOI = 'NYS', makePlot = TRUE, targetDir = 'inputs/pm25/reference_grids')
-createRefGridNoJS(AOI = 'Cities', makePlot = TRUE, targetDir = 'inputs/pm25/reference_grids')
-createRefGridNoJS(AOI = 'Conus_01deg', makePlot = TRUE, targetDir = 'inputs/pm25/reference_grids')
+createRefGridNoJS(AOI = 'cities', makePlot = TRUE, targetDir = 'inputs/pm25/reference_grids')
+createRefGridNoJS(AOI = 'conus01deg', makePlot = TRUE, targetDir = 'inputs/pm25/reference_grids')

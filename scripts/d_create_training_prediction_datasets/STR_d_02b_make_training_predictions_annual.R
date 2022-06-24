@@ -42,8 +42,6 @@ if(!exists('ran_a_00')){
 ####  1. general set up  ####
 #### ------------------- ####
 
-# 1.a. declare the AOI 
-AOI <- 'conus'
 
 # 1.b. bring in aqs data
 training <- fst::read_fst(here::here('inputs', 'pm25', 'ground_truth', 'formatted',
@@ -69,37 +67,47 @@ key.aqs.rk <- read_fst(here::here('inputs', 'pm25', 'keys',
                                   'key_nn_aqsAnnual_rkAnnual.fst'))
 # 1.c.ii. refGridConus keys
 # we need to arrange to make sure every key is in the same order
+# we need this second AOI to accoutn for how the capitalization changes in the file name. 
+if (AOI == 'conus') {AOI2 <- 'Conus'}
+if (AOI == 'conus01deg') {AOI2 <- 'Conus01deg'}
+
 key.refGridConus.av <- read_fst(here::here('inputs', 'pm25', 'keys', 
-                                           'key_nn_refGridConus_avAnnual.fst')) %>% 
+                                           paste0('key_nn_refGrid', AOI2, '_avAnnual.fst'))) %>% 
   arrange(ref_lat) %>% 
   arrange(ref_lon)
+
 key.refGridConus.cc <- read_fst(here::here('inputs', 'pm25', 'keys', 
-                                           'key_nn_refGridConus_ccAnnual.fst')) %>% 
+                                           paste0('key_nn_refGrid', AOI2, '_ccAnnual.fst'))) %>% 
   arrange(ref_lat) %>% 
   arrange(ref_lon)
+
 key.refGridConus.cm10 <- read_fst(here::here('inputs', 'pm25', 'keys', 
-                                           'key_nn_refGridConus_cm10Annual.fst')) %>% 
+                                             paste0('key_nn_refGrid', AOI2, '_cm10Annual.fst'))) %>% 
   arrange(ref_lat) %>% 
   arrange(ref_lon)
+
 key.refGridConus.cm15 <- read_fst(here::here('inputs', 'pm25', 'keys', 
-                                           'key_nn_refGridConus_cm15Annual.fst')) %>% 
+                                             paste0('key_nn_refGrid', AOI2, '_cm15Annual.fst'))) %>% 
   arrange(ref_lat) %>% 
   arrange(ref_lon)
 
 key.refGridConus.gs <- read_fst(here::here('inputs', 'pm25', 'keys', 
-                                           'key_nn_refGridConus_gsAnnual.fst')) %>% 
+                                           paste0('key_nn_refGrid', AOI2, '_gsAnnual.fst'))) %>% 
   arrange(ref_lat) %>% 
   arrange(ref_lon)
+
 key.refGridConus.js <- read_fst(here::here('inputs', 'pm25', 'keys', 
-                                           'key_nn_refGridConus_jsAnnual.fst')) %>% 
+                                           paste0('key_nn_refGrid', AOI2, '_jsAnnual.fst'))) %>% 
   arrange(ref_lat) %>% 
   arrange(ref_lon)
+
 key.refGridConus.me <- read_fst(here::here('inputs', 'pm25', 'keys', 
-                                           'key_nn_refGridConus_meAnnual.fst')) %>% 
+                                           paste0('key_nn_refGrid', AOI2, '_meAnnual.fst'))) %>% 
   arrange(ref_lat) %>% 
   arrange(ref_lon)
+
 key.refGridConus.rk <- read_fst(here::here('inputs', 'pm25', 'keys', 
-                                           'key_nn_refGridConus_rkAnnual.fst')) %>% 
+                                           paste0('key_nn_refGrid', AOI2, '_rkAnnual.fst'))) %>% 
   arrange(ref_lat) %>% 
   arrange(ref_lon)
 
@@ -325,6 +333,33 @@ training.full <- foreach(
     dplyr::select(pred_js) %>%
     bind_cols(preds.year)
   
+  #### ------------ ####
+  ####  3F. add me  ####
+  #### ------------ ####
+  
+  # 3F.a. bring in js 
+  me <- read_csv(here::here('inputs', 'pm25', 'base_models', 'annual', 'formatted', 
+                       'me', paste0('annual_me_', yyyy, '_blended.csv')))
+  
+
+  # 3E.c. assign to training data 
+  # 3E.c.i. attach key to the training data 
+  training.year <- training.year %>% 
+    inner_join(key.aqs.me, by = 'ref_id')
+  # 3E.c.ii attach the correct predictions 
+  training.year <- me %>% 
+    dplyr::slice(training.year$baseModel_id) %>% 
+    dplyr::select(pred_me) %>% 
+    dplyr::bind_cols(training.year) %>% 
+    dplyr::select(-ref_lat, -ref_lon, -starts_with('baseModel_'))
+  
+  # 3E.d assign to prediction data 
+  # remember the key is already in order wrt the prediction dataset 
+  # because of the arranging we did earlier. 
+  preds.year <- me %>% 
+    slice(key.refGridConus.me$baseModel_id) %>% 
+    dplyr::select(pred_me) %>%
+    bind_cols(preds.year)
   
   #### ------------ ####
   ####  3G. add rk  ####
@@ -364,10 +399,10 @@ training.full <- foreach(
     rename(lat = ref_lat, lon = ref_lon) %>%
       mutate(date_local = yyyy) %>%
       dplyr::select(lat, lon, date_local,
-                    pred_av, pred_cc, pred_cm, pred_gs, pred_js, pred_rk) %>%
+                    pred_av, pred_cc, pred_cm, pred_gs, pred_js, pred_me, pred_rk) %>%
     readr::write_csv(here::here('inputs', 'pm25', 'prediction_datasets', 
                          'annual_individual', 
-                         paste0('preds_annual_', yyyy, '_nome.csv')))
+                         paste0('preds_annual_', yyyy, '_', AOI, '.csv')))
   
   # 3H.b. return the training dataset 
   training.year
@@ -382,7 +417,7 @@ training.full %>%
                 pred_av, pred_cc, pred_cm, pred_gs, pred_js, pred_rk,
                 state, ref_id) %>%
   readr::write_csv(here::here('inputs', 'pm25', 'training_datasets', 'annual_combined', 
-                       paste0('training_', 'annual', '_nome.csv')))
+                       paste0('training_', 'annual.csv')))
 
 # close out cluster 
 stopCluster(my.cluster)

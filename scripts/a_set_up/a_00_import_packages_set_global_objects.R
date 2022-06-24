@@ -32,7 +32,7 @@ sapply(
        "foreach", 
        "fst", "FNN",
        "latex2exp",
-       "purrr", "furrr", "future", "progress", "progressr", "parallel", "doSNOW", # efficiency/parallelezation packages
+       "purrr", "furrr", "future", "progress", "progressr", "parallel", #"doSNOW", # efficiency/parallelezation packages
        "mgcv", "splines", "lme4", # stats packages
        "egg", "cowplot", "corrplot", "pals", "colorspace", "ggsci", "scico", "viridis"), # plotting, 
        FUN = library, 

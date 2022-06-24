@@ -106,7 +106,7 @@ js <- readRDS(here::here('inputs', 'pm25', 'base_models', 'annual', 'raw', 'js',
 #### ---------------------- ####
 
 # 7.a. bring in the merra predictions for one day
-me <- raster(here::here('inputs','pm25',  'base_models', 'annual', 
+me <- read_csv(here::here('inputs','pm25',  'base_models', 'annual', 
                             'formatted', 'me', 'annual_me_2010.csv'))
 
 #### ---------------------- ####
@@ -157,18 +157,21 @@ for (i in 1:length(baseModels)){
 # 8.a. bring in the refGrids 
 refGridConus <- fst::read_fst(here::here('inputs', 'pm25', 'reference_grids',  
                                          paste0('refGrid_', 'conus', '.fst')))
+refGridConus01deg <- fst::read_fst(here::here('inputs', 'pm25', 'reference_grids',  
+                                         paste0('refGrid_', 'conus01deg', '.fst')))
+
 refGridNYS <- fst::read_fst(here::here('inputs', 'pm25', 'reference_grids',   
                                        paste0('refGrid_', 'NYS', '.fst')))
 refGridCities <- fst::read_fst(here::here('inputs', 'pm25', 'reference_grids',  
-                                          paste0('refGrid_', 'Cities', '.fst')))
+                                          paste0('refGrid_', 'cities', '.fst')))
 # make list 
-refGrids <- list(refGridConus, refGridNYS, refGridCities)
-refGridNames <- c('refGridConus', 'refGridNYS', 'refGridCities')
+refGrids <- list(refGridConus, refGridNYS, refGridCities, refGridConus01deg)
+refGridNames <- c('refGridConus', 'refGridNYS', 'refGridCities', 'refGridConus01deg')
 
 # 8.b. make the keys 
 for (i in 1:length(baseModels)) {
   #for(j in 1:length(refGrids)) {
-  j <- 1
+  j <- 4
     createKey(ref.df = refGrids[[j]], refName = refGridNames[j], 
               baseModel.df = baseModels[[i]], baseModelName = baseModelNames[i])
   
