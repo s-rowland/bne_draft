@@ -1,0 +1,240 @@
+---
+title: "Harmattan Server Instructions"
+author: "[Lawrence Chillrud](mailto:<lgc2139@cumc.columbia.edu>)"
+date: "06/28/2022"
+output: 
+  html_document:
+    toc: TRUE
+    toc_float: TRUE
+    toc_depth: 3
+    #code_folding: hide
+---
+```{r, echo=FALSE}
+highlight <- function(x, colour) {
+  sprintf("<span style='background-color: %s'>%s</span>", colour, x)
+}
+```
+
+### Overview
+Below is a very brief overview of this document:
+
+1. Install and launch the LDEO VPN
+2. Log into harmattan via the command line with `ssh`
+3. Once logged into harmattan, change your password with the `passwd` command
+4. Directories of interest (home, personal, BNE)
+5. Conda and R environments
+6. Jupyter Notebooks
+7. Other software available
+8. Adding software
+9. Columbia policies
+
+_Note: Much of the information in this document was originally compiled by [Gus Correa](mailto:<gus@ldeo.columbia.edu>). I've organized it into this one-stop-shop markdown file, as well as included some information / suggestions of my own. Please email or Slack me (<lgc2139@cumc.columbia.edu>) with any questions before reaching out to Gus._
+
+### Step 1: LDEO VPN set up
+For security reasons, to access the harmattan server you must first launch the LDEO virtual private network (VPN), _OpenVPN Connect_. When running the VPN, it appears as if your computer's IP address is from Lamont. Once the VPN is connected and running smoothly (see **Figure 1** below), you may then log in to harmattan via the command line with `ssh` (see **Step 2** below). 
+
+**Instructions to install & use the LDEO VPN** can be found [here](https://ldeo-it.ldeo.columbia.edu/content/vpn-virtual-private-network
+). To install the VPN, you will be prompted for your LDEO username (which should be your UNI) & password. You should've received a _temporary password_ from [Gus Correa](mailto:<gus@ldeo.columbia.edu>) that must be changed later (maybe you already changed it if you've set this up previously?). Instructions on changing your password are in **Step 3** below.
+
+![**Figure 1.** Lamont's VPN, _OpenVPN Connect_, running smoothly.](ldeo_vpn_connected.png)
+
+### Step 2: Log into harmattan with `ssh`
+Now that the VPN Client is running smoothly, you may log in to the harmattan server using `ssh`.
+
+`ssh` (short for "**s**ecure **sh**ell") is a command line program for "logging into a remote machine and for executing commands on a remote machine.  It is intended to provide secure encrypted communications between two untrusted hosts over an insecure network." -- the `ssh` manual.
+
+To login, first simply enter the following into your command line:
+```
+ssh -X [YOUR UNI]@harmattan.ldeo.columbia.edu
+```
+The `-X` argument is to enable X11 forwarding. Without getting too technical, X11 forwarding allows you to run applications that have graphical user interfaces (GUIs) _from the remote server_ (in our case, harmattan) on your _own local machine_. This will be important for running Jupyter notebooks later (see the **Jupyter Notebooks** section below).
+
+You will then be prompted for your harmattan password. Once you've logged in for the first time, you should change your password by following the instructions in **Step 3** below.
+
+### Step 3: Chainging your `passwd`
+Now that you are logged into harmattan, issue the following command to change your temporary password (you only need to do this the very first time you ever log in to harmattan):
+```
+passwd
+```
+Choose a strong password, a mix of capital and lowercase letters, digits and symbols, with a minimum of 12 characters. These rules are mandatory in many of our computers. Keep your password secret, and don't share your account or password with others, as this is prohibited by Columbia University.
+
+### Directories of interest
+At this point, you should be successfully logged into harmattan! Now let's discuss 3 important directories in harmattan:
+
+1. **Your home directory:** This is the directory that immediately greets you on harmattan. Your home directory has a quota of 100GB. Despite this seemingly large storage capacity, you should attempt to keep your home directory relatively small and clutter-free. It is useful for storing initialization files, a.k.a. dot files (files with the prefix `.`, such as `.bashrc` or `.bash_profile`), and as a staging ground for transferring files to/from harmattan and your local machine. To get to your home directory from anywhere on harmattan, simply execute the change directory command with no path specified: `cd`. 
+2. **Your personal directory:** `/data0/[YOUR UNI]` This directory was made just for your personal use, on a large capacity disk array. This is the right place to store your large files and datasets. This has a quota of 4TB, which can be expanded as needed. To get to this directory from your home directory, enter: `cd /data0/[YOUR UNI]`
+3. **The BNE project directory:** `/data0/shr/bne` This directory was made for the BNE project. I believe it has 4TB as of writing, which should be expandable as needed. To get to this directory from your home directory, enter: `cd /data0/shr/bne`
+
+### Conda and R environments
+Both Python and R have been installed on harmattan, but for reproducible, stable, and safe use of these langauages on the server, the [Conda](https://docs.conda.io/en/latest/) package / virtual environment manager has been employed. Conda creates virtual environments from which Python and R are run and open-source software packages / libraries are managed.
+
+It is important, therefore, to activate the `base` conda environment as soon as you log into harmattan (mainly so you don't forget to do it later when running analyses). Gus has pre-installed a number of conda environments besides the `base` (default) one. A list is provided below:
+
+1. `base`: Baseline Anaconda Python environment
+2. `FERRET`: PMEL Ferret data analysis [software](https://ferret.pmel.noaa.gov/Ferret/)
+3. `R_env`: R statistical [software](https://www.r-project.org/)
+4. `ncl_stable`: NCAR NCL data analysis [software](https://www.ncl.ucar.edu/)
+5. `NCO`: netCDF Operators [software](http://nco.sourceforge.net/nco.html)
+6. `pangeoxtd36`: The pangeo environment based on Python 3.6
+7. `pangeoxtdai36`: The pangeo environment based on Python 3.6 with extra AI packages
+8. `pangeoxtd27`: The pangeo environment, but based on Python 2.7
+
+**I have also created a BNE-specific R environment through Conda**, named `BNER`, with detailed instructions on how to install and run it located at `/data0/shr/bne/package_requirements/README.txt` (can also be found [here](https://github.com/s-rowland/bne_draft/blob/main/package_requirements/README.txt)). **I strongly recommend reading the linked README.txt for `BNER`. Additionally, read the instruction in this document (below) to ensure the instructions in the `BNER` README are executable** (the README assumes you follow the below instructions):
+
+The recipe to activate `base` is in the code chunk below. But, because it's so important to have conda activated when on harmattan, **I strongly recommend you append these lines to your `.bash_profile` file in your home directory (if you use bash)!!!** This will ensure Conda automatically boots up when you first log into harmattan, saving you from having to enter the below recipe every time. The README.txt for the `BNER` Conda environment assumes you have done this.
+
+```
+# for bash:
+export PATH=/opt/sw/anaconda3/bin:${PATH} 
+source /opt/sw/anaconda3/etc/profile.d/conda.sh
+conda activate base
+
+# for tcsh:
+setenv PATH /opt/sw/anaconda3/bin:${PATH}
+source /opt/sw/anaconda3/etc/profile.d/conda.csh
+conda activate base
+```
+
+From here, you can switch to other environments with `conda activate [ENV_NAME]`, and deactivate with `conda deactivate`. You can also install / launch the `BNER` environment as detailed [here](https://github.com/s-rowland/bne_draft/blob/main/package_requirements/README.txt). When running an active conda environment, you have access to all the software installed therein. For BNE analyses, you need to be running the `BNER` environment.
+
+### Jupyter Notebooks
+#### Jupyter Intro
+[Jupyter Notebooks](https://jupyter.org) became very popular as a way to use Python. **They also work with R.** The heavy lifting computational work can be done in a powerful remote computer (e.g., harmattan), while you develop your script and display results and figures on a web browser running on your local laptop. There is some magic of sorts involved in setting this up, as explained below, which exploits the secure shell "port forwarding" or "ssh tunnel" capability. The description below is for a Mac laptop, but the same can be done in a Windows laptop with the Putty ssh client installed, or using the ssh in the PowerShell or Cygwin.
+
+A Jupyter Notebook heavily taxes the remote computer CPU, memory, and the network connecting it to your laptop. So, when you are done with your work, please don't forget to close the Jupyter Notebook BOTH in the web browser and in the remote computer.
+
+In what follows, "remote computer" is the one doing the computation (harmattan), and "local computer" is the one where you access the notebook via web browser (your laptop).
+
+#### Initiate `ssh` port forwarding
+Issue the command below from a terminal running on your local computer (i.e., your laptop) to initiate the `ssh` port forwarding.
+```
+ssh -N -f -L localhost:8000:localhost:8888 [YOUR UNI]@harmattan.ldeo.columbia.edu
+```
+You will be prompted to enter your harmattan password.
+
+In the line above, the number `8000` is the network port you will use in your local computer (laptop), while the number `8888` is the network port number used in the remote computer (harmattan).
+
+The Jupyter Notebook default remote port number is `8888`. However, in order to avoid collisions, each person must use a different remote port number. Harmattan users must coordinate this among themselves. Gus suggested / assigned the list below:
+
+- Arlene Fiore: `8890`
+- Muye Ru: `8891`
+- Zhonghua Zhang: `8892`
+- George Milly: `8893`
+- Tao Ma: `8894`
+- Luke Schiferl: `8895`
+- Dan Westervelt: `8896`
+- Benjamin Yang: `8897`
+- Garima Raheja: `8898`
+- Victoria Owusu Tawiah: `8899`
+- Marianthi-Anna Kioumoutzouglou: `8900`
+- Sebastian Rowland: `8901`
+- Lawrence Chilrud: `8902`
+- Jaime Benavides: `8903`
+
+The local port (`8000` in the command above), which is in your laptop, is unlikely to lead to a collision. However, if you are using it for another purpose, (e.g. running another Jupyter Notebook in a different server), you should choose a different local port number.
+
+Note that the command above asks for your password, but then returns to your laptop. It only initiates the port forwarding procedure.
+
+#### Log into harmattan 
+Now, you should log into harmattan and activate the Conda environment you want to be present for your Jupyter Notebook session. This time, login with:
+```
+ssh -Y gus@harmattan.ldeo.columbia.edu
+```
+The `-Y` argument is for _trusted_ X11 forwarding. Again, you'll be prompted for your password. If you appended the Conda commands to your `.bash_profile` like I suggested in the Conda section of this document, then at this point you can just activate your desired environment with `conda activate [ENV_NAME]`. If not, then you'll have to follow the recipe detailed in the Conda section.
+
+Change directories using the `cd` command, to locate the directory with the Jupyter notebook you'd like to work with.
+
+#### Start the Jupyter notebook
+Now, start the Jupyter notebook using the below command (The remote port number, `8888` in this example, should match the one you used when initiating the `ssh` forwarding):
+```
+jupyter notebook --no-browser --port=8888
+```
+Copy the token that Jupyter spits out.
+
+#### Open the notebook on your web browser
+On your local computer (laptop), start a web browser, or open a new tab in your running web browser (e.g., Firefox, Chrome, Safari). 
+
+On the URL address slot at the top of the browser window, type: `localhost:8000`, where `8000` is the local computer port used when initiating the `ssh` forwarding above.
+
+This will bring up the Jupyter notebook login screen, prompting you for the token you just copied. Paste the token and log in. You are now running the Jupyter Notebook on the browser on your
+local computer, while the computations happen in the remote computer (harmattan).
+
+When you are done working, click the Jupyter notebook Logout button 
+on the browser. On your `ssh` session on harmattan, type `<CTRL>-C` to quite, typing `yes` to confirm. Do this within a few seconds to stop the Jupyter notebook. 
+
+You can deactivate your Conda environtment and logout from harmattan at this point. Please don't forget to do this, to release the CPU, memory and network resources as a courtesy to other users.
+
+#### Jupyter tutorials
+Some tutorials compiled by Gus:
+
+- [14min walkthrough YouTube video on Jupyter notebooks](https://www.youtube.com/watch?v=Hr4yh1_4GlQ)
+- [30min walkthrough YouTube video](https://www.youtube.com/watch?v=HW29067qVWk)
+
+### Other software available
+Here is a list of a variety of data analysis and visualization software installed on harmattan by Gus, with some pointers to documentation.
+
+1. [NCO](http://nco.sourceforge.net/#RTFM): netCDF Operators; various tools: ncks, ncrcat, ncecat, etc
+http://nco.sourceforge.net/#RTFM
+2. [CDO](https://code.mpimet.mpg.de/projects/cdo/wiki/Cdo#Documentation): Climate Data Operators; a single multipurpose tool: cdo
+3. [NCL](https://www.ncl.ucar.edu/): NCAR Command Language; a full data processing language: ncl
+4. [GrADS](http://cola.gmu.edu/grads/): Grid Analysis and Display System; another data processing language: grads
+5. [NetCDF](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_documentation.html) libraries and utilities (particularly the useful ncdump and ncgen tools)
+6. [wgrib](https://www.cpc.ncep.noaa.gov/products/wesley/wgrib.html) / [wgrib2](https://www.cpc.ncep.noaa.gov/products/wesley/wgrib2/): old tools for manipulation of data files in GRIB format
+7. [NcView](http://meteora.ucsd.edu/~pierce/ncview_home_page.html): netCDF data visualization tool ncview
+8. [Panoply](https://www.giss.nasa.gov/tools/panoply/): another data visualization tool panoply
+9. [Matlab](https://www.mathworks.com/help/matlab/): general data analysis tool matlab
+10. [Gnu Octave](https://www.gnu.org/software/octave/): free version of Matlab octave
+11. [IDL](https://www.l3harrisgeospatial.com/Software-Technology/IDL): general Interactive Data Language tool idl
+12. [R](https://www.r-project.org/): statistics software R
+13. [Python](https://docs.python.org/3/tutorial/): a general scripting language, with data analysis capabilities
+
+Python tutorials compiled by Gus:
+
+[The official Python 3 tutorial.](https://docs.python.org/3/tutorial/) Good to learn the basics of the language: data types, data structures, program flow control, functions, etc. However, it doesn't cover arrays, mathematical functions, etc.
+
+[Another tutorial](https://www.learnpython.org/), covering the same material. This one may get you up to speed faster, becauseyou can use it interactively by clicking on the "IPython Shell" button typing in the example script, running one line or more at a time. It also has a very short introduction to NumPy arrays and Pandas.
+
+There are plenty of Python tutorials on Youtube, of varying quality and interest. NumPy, [SciPy](https://www.scipy.org/), Matplotlib, etc. [Netcdf Python interface](http://schubert.atmos.colostate.edu/~cslocum/netcdf_example.html) [Another Netcdf example](http://schubert.atmos.colostate.edu/~cslocum/netcdf_example.html), [yet another Netcdf example](https://iescoders.com/reading-netcdf4-data-in-python/), [cartopy package (to plot data on maps)](https://scitools.org.uk/cartopy/docs/latest/)
+
+### Adding software
+**Unauthorized installation of system or data analysis software is strictly forbidden, and is a violation of the university and Lamont computer use policies detailed in the section below. To install software packages in R or Python, go through Conda environments. For other items, contact Gus.**
+
+Sometimes, packages in R / python that you enjoy using on your local computer are unavailable through Conda distribution channels. In such settings, you should try incredibly hard to use some other package that _is available_ on Conda. If something is unavailable on Conda but integral to your work, you could try cloning its GitHub repository onto the server (so long as it doesn't take up heaps of space), and use it explicitly from that cloned copy. 
+
+For example, below I include an email from Gus providing suggestions on how to deal with the fact that the `nngeo` R package is unavailable on Conda (I never had the time to try this myself):
+
+>Hi Lawrence 
+>
+R is Greek to me, so I am afraid I can't help much.
+>
+I checked the links you sent me.
+Unfortunately, as you said, there is no nngeo conda package for an easy install.
+The CRAN method is likely to create conflicts with the (old) version of R that 
+is installed on Linux using the CentOS distribution packages.
+>
+Git is installed on harmattan, and you can use it to clone the nngeo GitHub repository to harmattan.
+Hopefully it won't be too large (it doesn't seem to be).
+I suggest that you put it in a new directory under /data0/shr for nngeo,
+maybe /data0/shr/R/nngeo, something like that.
+Similar to your /data0/shr/bne.
+You can use your home directory instead, if you prefer, but just make
+sure it doesn't go beyond the 100GB quota.
+>
+There are some bits of C code in nngeo, which probably needs to be compiled.
+I don't see a Makefile, but presumably there is a "R way" to compile C code in R packages.
+If you use the GitHub installation instructions on the README.md file, you may need to tell
+it somehow to install under the /data0/shr/R/nngeo, I guess.
+Also, I guess you may need to load your conda BNER environment beforehand, to ensure that the
+installation uses the version of R in your BNER (not the boilerplate version from CentOS).
+>
+I don't know how to integrate that with your conda BNER environment, though.
+Maybe you can load the nngeo package using the full path to it?
+>
+Gus
+
+### Columbia policies
+The Columbia University Computer, Network, and Information policies can be found [here](http://www.columbia.edu/cu/policy/). By accepting your account on harmattan, you are automatically agreeing to abide by those policies. Additional requirements may be set by the computer owner or the system administrator.
+
+### END OF MARKDOWN
+
+Email Lawrence (<lgc2139@cumc.columbia.edu>) with any questions / comments. Thanks for reading this!
