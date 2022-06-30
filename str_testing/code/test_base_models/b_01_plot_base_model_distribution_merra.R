@@ -31,23 +31,23 @@
 # 0a Load package required for this script
 if(!exists("Ran_a_00")){
   here::i_am("README.md")
-  source(here::here('scripts', 'a_set_up', "a_00_set_up_env.R"))
+  source(here::here('scripts', 'a_set_up', "a_00_config_env.R"))
 }
 
-if(!exists("Ran_a_00_conusApp")){
+if(!exists("Ran_a_00_uncert")){
   here::i_am("README.md")
-  source(here::here('str_app_conus_uncert', 'scripts', 
-                    "a_00_set_up_env_conusApp.R"))
+  source(here::here('str_uncert_analysis', 'code', 
+                    "0_00_config_env_uncert_analysis.R"))
 }
 
-dir.proj <- 'str_examine_cams'
+dir.proj <- 'str_testing'
 
 ####****************************
 #### 1: Wrangle Predictions ####
 ####****************************
 
 # 1a Define function to wrangle predictions 
-read_predSet_cams <- function(YYYY, fold) {
+read_predSet_merra <- function(YYYY, fold) {
   readr::read_csv(here::here('BNE_inputs', 'prediction_datasets', 'individual_annual', 
                                         paste0('predictions_avgscmjsccme_', YYYY, 
                                                '_', fold, '.csv')))
@@ -56,7 +56,7 @@ read_predSet_cams <- function(YYYY, fold) {
 
 # 1b Readin prediction datasets
 preds.conus.allYYYY <- bind_rows(
-  read_predSet_cams(2010, 'all'))
+  read_predSet_merra(2010, 'all'))
 
 
 preds.conus.allYYYY  <- preds.conus.allYYYY # %>% 
@@ -65,15 +65,15 @@ preds.conus.allYYYY  <- preds.conus.allYYYY # %>%
 preds.conus.2010 <- preds.conus.allYYYY %>% filter(time == 2010)
 
 # repeat for NYS
-preds.nys.2010 <- read_predSet_cams(2010, 'NYS')
+preds.nys.2010 <- read_predSet_merra(2010, 'NYS')
 preds.nys.NYSYYYY <- bind_rows(
-  read_predSet_cams(2010, 'NYS'))
+  read_predSet_merra(2010, 'NYS'))
 
 
 
 
 ####******************************
-#### 2: Plot CAMS Predictions ####
+#### 2: Plot MERRA Predictions ####
 ####******************************
  
 # 2a CONUS 
@@ -90,10 +90,10 @@ valueVec.wSD <- c(round(p.min,2), round(p.1,2),  round(p.2,2),
 png(here::here(dir.proj, 'outputs_merra', 'a1a_predictions_conus_2010_2015.png'), 
     height = 600, width = 600)
 cowplot::plot_grid(
-  plotSpatialOneBNEParameter(dta = preds.conus.2010, parameter = 'merra_pred', 
+ plotOneParameterSpatial(dta = preds.conus.2010, parameter = 'merra_pred', 
                              mainTitle = '2010 MERRA Predictions', 
                              valueScale = valueVec.wSD, legYN = 'legY'),  
-  makeNiceHistogram(preds.conus.2010, 'merra_pred', mainTitle = '2010 MERRA ',
+  plotOneParameterHist(preds.conus.2010, 'merra_pred', mainTitle = '2010 MERRA ',
                     xRange = c(0, 25), binCount = 60),
   nrow = 2, ncol = 1, rel_heights = 4:2)
 dev.off()
@@ -111,16 +111,16 @@ valueVec.wSD <- c(round(p.min,2), round(p.1,2),  round(p.2,2),
 png(here::here(dir.proj, 'outputs_merra', 'a1b_predictions_nys_2010_2015.png'), 
     height = 600, width = 600)
 cowplot::plot_grid(
-  plotSpatialOneBNEParameter(dta = preds.nys.2010, parameter = 'merra_pred', 
+ plotOneParameterSpatial(dta = preds.nys.2010, parameter = 'merra_pred', 
                              mainTitle = '2010 MERRA Predictions'), 
-  makeNiceHistogram(preds.nys.2010, 'merra_pred', mainTitle = '2010 MERRA ',
+  plotOneParameterHist(preds.nys.2010, 'merra_pred', mainTitle = '2010 MERRA ',
                     xRange = c(0, 25), binCount = 60),
   nrow = 2, ncol = 1, rel_heights = 4:2)
 dev.off()
 
 
 ####************************
-#### 3: Plot CAMS Error ####
+#### 3: Plot MERRA Error ####
 ####************************
 
 # 3a Read AQS data 
@@ -145,10 +145,6 @@ aqs <- aqs %>%
   mutate(err_av = av_pred - obs_pm2_5, err_gs = gs_pred - obs_pm2_5, err_cm = cmaq_outs_pred - obs_pm2_5, 
          err_js = js_pred - obs_pm2_5, err_cc =  caces_pred - obs_pm2_5, err_me = merra_pred - obs_pm2_5)
 
-# remove one spot that is super high 
-aqs.sm <- aqs %>% filter(merra_pred < 100)
-aqs.bg <- aqs %>% filter(merra_pred > 100)
-
 # 3c aggregate error 
 aqs.agg <- aqs %>% 
   group_by(lat, lon) %>% 
@@ -165,36 +161,22 @@ aqs.agg <- aqs %>%
             me_cc = mean(err_cc),
             me_me = mean(err_me))
 
-aqs.agg.sm <- aqs.sm %>% 
-  group_by(lat, lon) %>% 
-  summarize(rmse_av = sqrt(mean(err_av^2)), 
-            rmse_gs = sqrt(mean(err_gs^2)),
-            rmse_cm = sqrt(mean(err_cm^2)),
-            rmse_js = sqrt(mean(err_js^2)),
-            rmse_cc = sqrt(mean(err_cc^2)),
-            rmse_me = sqrt(mean(err_me^2)), 
-            me_av = mean(err_av),
-            me_gs = mean(err_gs),
-            me_cm = mean(err_cm),
-            me_js = mean(err_js),
-            me_cc = mean(err_cc),
-            me_me = mean(err_me))
 # 3e create error scale
-errorScale <- c(round(min(aqs$err_ca),2), 0, 5, 10, 15)
+errorScale <- c(round(min(aqs$err_me),2), 0, 5, 10, 15)
 
 # 3f bring in conus outline shapefile
 conus <- st_read(here::here('data_ancillary', 'formatted', 'spatial_outlines', 
                             'conus.shp'))
 
 # 3g create conus plot
-png(here::here(dir.proj, 'outputs_merra', 'a2b_annual_error_conus.png'), 
+png(here::here(dir.proj, 'outputs', 'test_annual_merra','a2b_annual_error_conus.png'), 
     height = 600, width = 600)
 cowplot::plot_grid(
-  plotSpatialOneBNEParameter(dta = filter(aqs.sm, year == 2010), parameter = 'err_me', 
-                             mainTitle = '2010 MERRA Error', plotOutline = conus,
+ plotOneParameterSpatial(dta = filter(aqs, year == 2010), parameterName = 'err_me', 
+                             mainTitle = '2010 MERRA Error', borderObj = conus,
                              valueScale = errorScale, legYN = 'legY'),
-  makeNiceHistogram(filter(aqs.sm, year == 2010), 'err_me', mainTitle = '2010 MERRA Error',
-                    xRange = c(-15, 20), binCount = 60),
+  plotOneParameterHist(filter(aqs, year == 2010), 'err_me', mainTitle = '2010 MERRA Error',
+                    valueRange = c(-15, 20), binWidth = 1),
   nrow = 2, ncol = 1, rel_heights = 4:2)
 dev.off()
 
@@ -219,13 +201,47 @@ nys <- usa %>% filter(NAME == 'New York')
 png(here::here(dir.proj, 'outputs_merra', 'a2b_annual_error_nys.png'), 
     height = 600, width = 600)
 cowplot::plot_grid(
-  plotSpatialOneBNEParameter(dta = filter(aqs.nys, year == 2010), parameter = 'err_me', 
+ plotOneParameterSpatial(dta = filter(aqs.nys, year == 2010), parameter = 'err_me', 
                              mainTitle = '2010 MERRA Error', plotOutline = nys,
                              valueScale = errorScale, legYN = 'legY', pointSize = 2),
-  makeNiceHistogram(filter(aqs.nys, year == 2010), 'err_me', mainTitle = '2010 MERRA Error',
+  plotOneParameterHist(filter(aqs.nys, year == 2010), 'err_me', mainTitle = '2010 MERRA Error',
                     xRange = c(-15, 20), binCount = 60),
   nrow = 2, ncol = 1, rel_heights = 4:2)
 dev.off()
+
+
+# Look at relative ranking of models. 
+# if a model isn't in the top half of ranking (by accuracy) for at least 5% of observations 
+# we would throw it out. We use median for ranking; mean is too dependent on 
+# which models are included; an extreme model can throw off the mean absolute error
+aqs <- aqs %>% 
+  rename(obs_pm25 = obs_pm2_5, pred_me = merra_pred, pred_av = av_pred, pred_gs = gs_pred, 
+         pred_cm = cmaq_outs_pred, pred_js = js_pred, pred_cc = caces_pred) %>%
+  dplyr::select(-starts_with('ae')) %>%
+  mutate(ae_me = abs(obs_pm25 - pred_me), ae_av = abs(obs_pm25 - pred_av), 
+         ae_gs = abs(obs_pm25 - pred_gs), ae_cm = abs(obs_pm25 - pred_cm), 
+         ae_js = abs(obs_pm25 - pred_js), ae_cc = abs(obs_pm25 - pred_cc)) 
+aqs$ae_median <- apply(dplyr::select(aqs,starts_with('ae')), 1, median)
+aqs <- aqs %>% 
+  mutate(below_median_ae_me = if_else(ae_me <= ae_median, 1, 0),
+         below_median_ae_av = if_else(ae_av <= ae_median, 1, 0),
+         below_median_ae_gs = if_else(ae_gs <= ae_median, 1, 0),
+         below_median_ae_cm = if_else(ae_cm <= ae_median, 1, 0), 
+         below_median_ae_js = if_else(ae_js <= ae_median, 1, 0), 
+         below_median_ae_cc = if_else(ae_cc <= ae_median, 1, 0))
+
+# compute percentage adding info, full and by season 
+percentMEaddInfo.annual <- 100*round(mean(aqs$below_median_ae_me), 2)
+percentAVaddInfo.annual <- 100*round(mean(aqs$below_median_ae_av), 2)
+percentGSaddInfo.annual <- 100*round(mean(aqs$below_median_ae_gs), 2)
+percentCMaddInfo.annual <- 100*round(mean(aqs$below_median_ae_cm), 2)
+percentJSaddInfo.annual <- 100*round(mean(aqs$below_median_ae_js), 2)
+percentCCaddInfo.annual <- 100*round(mean(aqs$below_median_ae_cc), 2)
+
+
+
+
+
 
 ####***************************************
 #### 4: Histogram of Prediction Models ####
@@ -234,11 +250,11 @@ dev.off()
 png(here::here(dir.proj, 'outputs_merra', 'a3_histogram.png'), 
     height = 400, width = 500)
 cowplot::plot_grid(
-  makeNiceHistogram(preds.conus.2010, 'merra_pred', mainTitle = '2010 MERRA ',
+  plotOneParameterHist(preds.conus.2010, 'merra_pred', mainTitle = '2010 MERRA ',
                     xRange = c(0, 25), binCount = 60),
-  makeNiceHistogram(preds.conus.2010, 'cmaq_outs_pred', mainTitle = '2010 CMAQ Fusion',
+  plotOneParameterHist(preds.conus.2010, 'cmaq_outs_pred', mainTitle = '2010 CMAQ Fusion',
                     xRange = c(0, 25), binCount = 60),
-  makeNiceHistogram(preds.conus.2010, 'js_pred', mainTitle = '2010 Schwartz Model',
+  plotOneParameterHist(preds.conus.2010, 'js_pred', mainTitle = '2010 Schwartz Model',
                     xRange = c(0, 25), binCount = 60),
 
   

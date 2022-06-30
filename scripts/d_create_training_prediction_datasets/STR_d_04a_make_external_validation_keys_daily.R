@@ -272,7 +272,7 @@ rk <- data.frame(
 nc_close(rk.ras)
 
 #### ------------------------ ####
-####  7. create keys for AQS  ####
+####  7. create keys for EV  ####
 #### ------------------------ ####
 
 # 7.a. clean environment 
@@ -286,7 +286,7 @@ gc()
 # this allows us to effectively filter the daily base models before doing the 
 # spatial join 
 
-# 7.b. read daily AQS
+# 7.b. read daily EV
 ev.daily <- read_csv(here::here('str_uncert_analysis', 
                           'data', 'external_validation', 'inputs', 
                           'ev_data_unassigned.csv'), col_types = 'nncncc') 
