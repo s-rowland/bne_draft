@@ -62,7 +62,13 @@ other_outputs/*
 examine_MERRA/*
 str_uncertainty_factor_analysis_ISEE/*
 str_app_conus_uncert/*
-str_uncert_analysis/*
+str_uncert_analysis/code/a*
+str_uncert_analysis/code/e*
+str_uncert_analysis/code/f*
+str_uncert_analysis/code/i*
+str_uncert_analysis/code/k*
+str_uncert_analysis/data/*
+str_uncert_analysis/outputs/*
 str_eastMA_app/*
 str_testing/*
 

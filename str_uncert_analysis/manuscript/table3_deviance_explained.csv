@@ -1,0 +1,12 @@
+expVarName,prop_dev_SD,prop_dev_SDScaled
+Predicted Concentration (ug/m^3),0.084,0.081
+Population Density (persons/1km^2),0.003,0.001
+Distance to Nearest Monitor (m),0.025,0.014
+Elevation (m),0.017,0.014
+Wintertime Mean Temperature (C),0.005,0.004
+Summertime Mean Temperature (C),0.009,0.008
+Wind Speed (m/s),0.011,0.009
+Precipitation (mm),0.007,0.006
+Albedo (%),0.005,0.003
+Cloud Cover (%),0.006,0.006
+Mixing Layer Height (m),0.005,0.004
