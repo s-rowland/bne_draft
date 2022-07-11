@@ -2,7 +2,7 @@
 # Authors:
 # Lawrence Chillrud <lgc2139@cumc.columbia.edu>
 # Sebastian Rowland <sr3463@cumc.columbia.edu>
-# Date: 03/17/23
+# Date: 03/17/23 # Robbie: Should be 2022?
 #
 # Contents:
 #  N. notes
@@ -19,7 +19,7 @@
 ####       N. notes     ####
 #### ------------------ ####
 
-
+# Robbie: Perhaps a few more notes here?
 #yyyy <- 2010
 
 
@@ -28,6 +28,7 @@
 #### -------------- ####
 
 # 0.a. load packages, etc
+# Robbie: I haven't said this exhaustively every time this has appears but might be worth doing a source script for the below
 if(!exists('ran_a_00')){
   here::i_am('README.md')
   source(here::here('scripts', 'a_set_up', 
@@ -39,9 +40,9 @@ if(!exists('ran_a_00')){
 for (yyyy in 2005:2016) {
 # 0.b set up parallelization
 ### code to paralized the processing among multiple cores
-cores <- ceiling(parallel::detectCores() -2) # use half of the available cores
+cores <- ceiling(parallel::detectCores() -2) # use half of the available cores # Robbie: this doesn't seem to be half but max-2. Should this be '/' instead?
 myCluster <- snow::makeCluster(cores)
-doSNOW::registerDoSNOW(myCluster)
+doSNOW::registerDoSNOW(myCluster) # Robbie: doSNOW wasn't in the list of packages in a_00
 
 
 #### ------------------- ####
@@ -96,10 +97,10 @@ path.merra <- here::here('inputs','pm25',  'base_models', 'daily', 'raw', 'me',
 
 
 maxDoY <- 365 
-if (yyyy %in% c(2004, 2008, 2012, 2016)) {maxDoY <- 366}
+if (yyyy %in% c(2004, 2008, 2012, 2016)) {maxDoY <- 366} # Robbie: OK this answers my question above I think about leap years
   
 # 0.c progress bar
-pb <- txtProgressBar(min = 0, max = 10, width = 25, style = 3)
+pb <- txtProgressBar(min = 0, max = 10, width = 25, style = 3) # Robbie: Very cool should probably incorporate nice little touches like this into my code 
 progress <- function(p) setTxtProgressBar(pb, p)
 opts <- list(progress=progress)
 

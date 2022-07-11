@@ -37,6 +37,7 @@ excludedAreas <- c('Alaska', 'Hawaii', 'Puerto Rico',
                    'American Samoa', 'United States Virgin Islands')
 
 # 1.b. load the base map from our shapefile
+# Robbie: File missing for line below
 usa <- st_read(here::here('ancillary_data', 'raw', 'census', 'cb_2015_us_state_500k', 
                           'cb_2015_us_state_500k.shp'))
 
@@ -52,6 +53,8 @@ conus <- conusStates %>%
   st_cast()   
 
 # 1.e. transform geographical coordinates to Lambert Azimuth Equal Area Projection
+# Robbie: Referred to in a_00 but might be worth explaining why you used this one very briefly (or at least to a link
+# which explains why)
 conus <- st_transform(conus, crs=st_crs(projCRS))
 
 # 1.f. save conus shapefile 

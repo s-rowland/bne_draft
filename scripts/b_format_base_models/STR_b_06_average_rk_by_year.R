@@ -56,7 +56,7 @@ for (yyyy in 2010:2016) {
 
   # 1.b. inner loop of days within the year
   rk.yyyy <- foreach(
-    julian_day = 1:365, 
+    julian_day = 1:365, # Robbie: what about leap years?
     .combine = 'rbind'
   ) %dopar% {
     

@@ -1,3 +1,5 @@
+# Robbie: just noticed a few of these have the same description below which need to be updated/included
+
 # File: STR_b_03_average_rk_by_year.R
 # Author: Sebastian Rowland <sr3463@cumc.columbia.edu>
 # Date: 01/14/2022
@@ -125,7 +127,7 @@ me.exterior <- me %>%
   filter(! id%in% me.region$id) 
 
 
-me.exterior$nn <- unlist(nngeo::st_nn(me.exterior, me.region, k=1))
+me.exterior$nn <- unlist(nngeo::st_nn(me.exterior, me.region, k=1)) # Robbie: I don't think nngeo is in the list of packages in a_00 
 me.exterior$region <- me.region$region[me.exterior$nn]
 
 me.region <- me.region %>%

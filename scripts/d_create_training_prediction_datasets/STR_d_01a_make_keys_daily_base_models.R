@@ -56,6 +56,8 @@ bbox.conus <- list(xMin = sf::st_bbox(conus)$xmin[[1]],
 #### ----------------------- ####
 
 # 1.a. read in the raster for one month
+# Robbie: A question more for myself really but how did you make completely sure that each of these rasters were aligned with conus correctly?
+# Robbie: Did you check visually each time? I always find that a challenge
 av.ras <- raster::raster(here::here('inputs', 'pm25', 'base_models', 'monthly', 'raw', 'av', 
                                     'V5GL02.HybridPM25.NorthAmerica.201001-201001.nc'))
 
@@ -89,7 +91,8 @@ cm05 <- cm05 %>%
 # 3.a. readin in cmaq data
 cm07 <- read_csv(here::here('inputs', 'pm25', 'base_models', 'daily','raw', 'cmout', 
                             '2007_pm25_daily_average.txt')) 
-# 3.b. rename columns and get the locations mfor just one day
+# 3.b. rename columns and get the locations for just one day
+# Robbie: I assume the locations stay the same through the year then?
 cm07 <- cm07 %>% 
   rename(lat = Latitude, lon = Longitude, 
          pred_cm = 'pm25_daily_average(ug/m3)')  %>% 
@@ -101,7 +104,7 @@ cm07 <- cm07 %>%
 # 3.a. readin in cmaq data
 cm08 <- read_csv(here::here('inputs', 'pm25', 'base_models', 'daily','raw', 'cmout', 
                             '2008_pm25_daily_average.txt')) 
-# 3.b. rename columns and get the locations mfor just one day
+# 3.b. rename columns and get the locations for just one day
 cm08 <- cm08 %>% 
   rename(lat = Latitude, lon = Longitude, 
          pred_cm = 'pm25_daily_average(ug/m3)')  %>% 
@@ -149,7 +152,7 @@ cm13 <- cm13 %>%
 # 3.a. readin in cmaq data
 cm15 <- read_csv(here::here('inputs', 'pm25', 'base_models', 'daily','raw', 'cmout', 
                             '2015_pm25_daily_average.txt')) 
-# 3.b. rename columns and get the locations mfor just one day
+# 3.b. rename columns and get the locations mfor just one day # Robbie: replace 'mfor' with 'for' throughout this script
 cm15 <- cm15 %>% 
   rename(lat = Latitude, lon = Longitude, 
          pred_cm = Prediction)  %>% 

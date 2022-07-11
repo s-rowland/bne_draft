@@ -30,6 +30,8 @@ if(!exists('ran_a_00')){
 #### ------------------- ####
 
 # 1.a. create refGrids for the three principal areas of interest: CONUS, NYS, and select cities
+# Robbie: No inputs/  folder here. Did I miss this as something I had to put into place from your files you sent? I don't see
+# Robbie: the files right now...
 createRefGridNoJS(AOI = 'conus', makePlot = TRUE, targetDir = 'inputs/pm25/reference_grids')
 createRefGridNoJS(AOI = 'NYS', makePlot = TRUE, targetDir = 'inputs/pm25/reference_grids')
 createRefGridNoJS(AOI = 'cities', makePlot = TRUE, targetDir = 'inputs/pm25/reference_grids')

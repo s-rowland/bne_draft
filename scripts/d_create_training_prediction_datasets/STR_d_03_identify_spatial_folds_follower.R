@@ -1,3 +1,6 @@
+# Robbie: It would help if there was a kind of master Rscript which shows the order in which these are done (I assume in order of letter and numbers but would also help visualise what's going on)
+# Robbie: Maybe the README would do this job
+
 # File: STR_h_01b_identify_spatial_folds_follower.R
 # Authors:
 # Sebastian Rowland <sr3463@cumc.columbia.edu>

@@ -1,7 +1,10 @@
+# Robbie: A brief description of the script would go well here
+
 pad0 <- function(x){ stringr::str_pad(x, 2, 'left', '0')}
 
 library(foreach)
 
+# Robbie: Having seen this routine a couple of times in these scripts might it be worth having a source file for the below and elsewhere throughout?
 #yyyy <- 2016
 # 0.e set up parallelization
 # 0.e.i get the number of cores
@@ -20,7 +23,7 @@ doParallel::registerDoParallel(cl = my.cluster)
 #check if it is registered (optional)
 foreach::getDoParRegistered()
 
-
+# Robbie: A brief description here and for all of the below would be useful
 prefix <- "https://beta.sedac.ciesin.columbia.edu/downloads/data/aqdh/aqdh-pm2-5-concentrations-contiguous-us-1-km-2000-2016/aqdh-pm2-5-concentrations-contiguous-us-1-km-2000-2016-"
 suffix <- "-rds.zip"
 wd <- paste0(here::here('inputs', 'pm25', 'base_models', 'daily', 'raw', 'js'), '/')

@@ -8,7 +8,7 @@
 #  N. notes
 #  0. preparation
 #  1. create keys
-#  1. make daily training data for each year
+#  1. make daily training data for each year # Robbie: needs to be renumerated
 #  2. combined yearly daily training data 
 #  3. fill in missing JS
 #  4. identify spatial folds
@@ -40,7 +40,7 @@ source(here::here('scripts', 'd_create_training_prediction_datasets',
 #### ------------------------------------------- ####
 ####  1. make daily training data for each year  ####
 #### ------------------------------------------- ####
-
+# Robbie: Just thinking of these years, is it worth putting these as objects in the a_00 script (this applies to other years too if they vary)
 for (activeYear in 2008:2016) {
   yyyy <- activeYear 
   source(here::here('scripts', 'd_create_training_prediction_datasets', 
@@ -63,7 +63,7 @@ training.full <-  foreach(
 ) %do% {
   dta <- read_csv(here::here('inputs', 'pm25', 'training_datasets', 'daily_yearly', 
                              fileNames))
-  if (str_sub("training_2005.csv", 10, 13) %in% c(2008, 2012, 2016)) {
+  if (str_sub("training_2005.csv", 10, 13) %in% c(2008, 2012, 2016)) { # Robbie: explain because of leap year 
     dta$max_doy <- 366
   } else {dta$max_doy <- 365}
   dta
@@ -91,7 +91,7 @@ source(here::here('scripts', 'd_create_training_prediction_datasets',
                   'STR_d_01d_fill_in_js_prediction_dataset_daily.R'))
 
 #### --------------------------- ####
-####  4. identify spatial folds  ####
+####  4. identify spatial folds  #### # Robbie: said before but perhaps we can quickly discuss what spatial folds are
 #### --------------------------- ####
 
 # 4.a. identify parameters

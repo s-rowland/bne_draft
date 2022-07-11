@@ -32,6 +32,8 @@ if(!exists('ran_a_00')){
 #### 1. AVERAGE ACROSS THE YEARS  ####
 #### ---------------------------- ####
 
+# Robbie: can you briefly explain what 'ins' and 'outs' are here?
+
 # 1.a. aggregate cmaq ins for all of the years
 purrr::map2('ins', c(2010:2016), getAnnualAverageCMAQ)
 

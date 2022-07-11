@@ -29,7 +29,7 @@ if(!exists('ran_a_00')){
 
 
 # 0.b. declare the Area of Interest
-AOI <- 'conus01deg'
+AOI <- 'conus01deg' # Robbie: is there a data dictionary that might help explain these different objects a little?
 
 #### ---------------- ####
 ####  1. create keys  ####

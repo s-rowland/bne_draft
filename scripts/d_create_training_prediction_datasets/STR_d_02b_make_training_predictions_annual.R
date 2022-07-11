@@ -71,6 +71,7 @@ key.aqs.rk <- read_fst(here::here('inputs', 'pm25', 'keys',
 if (AOI == 'conus') {AOI2 <- 'Conus'}
 if (AOI == 'conus01deg') {AOI2 <- 'Conus01deg'}
 
+# Robbie: could make into a function if you so wish to help minimize repeats?
 key.refGridConus.av <- read_fst(here::here('inputs', 'pm25', 'keys', 
                                            paste0('key_nn_refGrid', AOI2, '_avAnnual.fst'))) %>% 
   arrange(ref_lat) %>% 

@@ -20,6 +20,7 @@ if(!exists("ran_a_00")){
 # 0.b. install Cole's package 
 #p_load(remotes)
 #remotes::install_github("geomarker-io/addPmData")
+# Robbie: again just a brief description of Cole's package would be useful here
 library(addPmData)
 
 #### --------------- ####
@@ -27,6 +28,7 @@ library(addPmData)
 #### --------------- ####
 
 # 1.a. get list of available files
+# Robbie: Empty here for me so not run
 cbH3file.list <- list.files(here::here('inputs', 'pm25', 'base_models', 
                                        'raw', 'pm25-brokamp'))
 

@@ -1,3 +1,5 @@
+# Robbie: Wasn't totally sure what this script did to be honest. Might be worth a quick discussion on Zoom one time.
+
 # Identify Spatial Folds
 # Prepare BNE Inputs
 # Bayesian Nonparametric Ensemble 
@@ -84,6 +86,7 @@ rm(epaRegion)
 
 # 3a Set Threshold 
 # in km 
+# Robbie: Can you explain what the threshold means here please?
 threshold <- 10000
 
 ####***********************************************

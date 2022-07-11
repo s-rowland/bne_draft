@@ -25,6 +25,20 @@ ran_a_00 <- "ran_a_00"
 #### ------------------ ####
 
 # 1.a. load packages
+# Robbie: Maybe this could be a type of function which loads packages if they're already installed, or if not installs them and then loads
+# Robbie: Potentially via something like...
+
+# list.of.packages = X # below
+
+# # check if list of packages is installed. If not, it will install ones not yet installed
+# new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+# if(length(new.packages)) invisible(install.packages(new.packages,repos = "https://cloud.r-project.org"))
+
+# load packages
+# invisible(lapply(list.of.packages, require, character.only = TRUE, quietly=TRUE))
+
+# Robbie: Not necessary but just a thought as would have had to individually load packages otherwise
+
 sapply(
        X = c("tidyverse", "lubridate", "magrittr", "janitor", # tidyverse packages
        "sf", "raster", "rgdal", "sp", "stars", "ncdf4", # spatial packages
@@ -47,6 +61,7 @@ sapply(
 
 # 2a. set the projection string 
 # US National Atlas Equal Area
+# Robbie: can you explain why you used these briefly here?
 projCRS<- "epsg:2163"
 projCRS.ras <- paste0('+init=', projCRS)
 plotCRS <- "epsg:4326"
@@ -83,6 +98,8 @@ rm(a, source_myFunction, myFunctions, myStableFunctions, myUnstableFunctions)
 
 # 4.a. make the CONUS outline shapefile 
 # if it has not already been made
+# Robbie: Threw up this error when run (missing shapefile in project)
+# Error: Cannot open "/Users/rmiparks/git/bne_draft/ancillary_data/raw/census/cb_2015_us_state_500k/cb_2015_us_state_500k.shp"; The file doesn't seem to exist.
 if(!file.exists(here::here('ancillary_data', 'formatted', 'spatial_outlines', 'conus.shp'))){
         source(here::here('scripts', 'a_set_up', 'a_01_make_conus_outline.R'))
 }

@@ -20,6 +20,7 @@
 
 
 # This need to get totally re-written
+# Robbie: OK so won't look at this for now?
 
 ####********************
 #### 0: Preparation ####

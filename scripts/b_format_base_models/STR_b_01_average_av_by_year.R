@@ -49,6 +49,7 @@ foreach::getDoParRegistered()
 
 # 1.g. get conus bounding box
 # 1.g.i bring in conus shapefile
+# Robbie: I don't seem to ahve a folder with ancillary_data
 conus <- sf::st_read(here::here('ancillary_data', 'formatted', 'spatial_outlines', 
                                 'conus.shp')) %>% 
   sf::st_transform(., crs=st_crs('epsg:4326'))
@@ -89,8 +90,8 @@ for (yyyy in 2011:2016) {
    av.conus.coords <- raster::coordinates(av.conus)
    av <- data.frame(lon = av.conus.coords[,"x"], 
                     lat = av.conus.coords[,"y"], 
-                    pred_av = raster::extract(av.conus, av.conus.coords)) %>% 
-     na.omit()
+                    pred_av = raster::extract(av.conus, av.conus.coords)) %>% # Robbie: are there NA values in any of the rasters? If so they need to be dealt with explicitly here with na.rm=TRUE
+     na.omit() # Robbie: I see here that you removed NA values, but is that because you left them in for the extract function? You can avoid this
     
     # 1.g. return dataframe
     av
@@ -99,7 +100,7 @@ for (yyyy in 2011:2016) {
   
   # 1.h. take average and save results. 
   av.yyyy %>% 
-    filter(complete.cases(.)) %>% 
+    filter(complete.cases(.)) %>% # Robbie: why only complete cases necessary here? are there missing values (related to comment above) that spit out NAs?
     group_by(lat, lon) %>% 
     summarize(pred_av = mean(pred_av)) %>% 
     fst::write_fst(here::here('inputs', 'pm25', 'base_models', 'annual', 'formatted', 'av',
@@ -107,5 +108,5 @@ for (yyyy in 2011:2016) {
 }
 
 # 1.g. end parallelization
-stopCluster(my.cluster)
+stopCluster(my.cluster) # Robbie: very cool suite of functions I should probably get to know these!!!
   

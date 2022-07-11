@@ -117,8 +117,8 @@ aqs <- foreach(
  # 2.e. correct datum 
  aqs.daily <- aqs.daily %>% 
    filter(datum == 'NAD83') %>% 
-   sf::st_as_sf(coords = c("lon", "lat"), crs = sf::st_crs("epsg:4269")) %>%
-   sf::st_transform(crs = sf::st_crs("epsg:4326")) %>%
+   sf::st_as_sf(coords = c("lon", "lat"), crs = sf::st_crs("epsg:4269")) %>% # Robbie: How do you know these are the correct projections
+   sf::st_transform(crs = sf::st_crs("epsg:4326")) %>% # Robbie: As above
    cbind(., sf::st_coordinates(.)) %>%
    dplyr::rename(lon = X, lat = Y) %>% 
    tibble::as_tibble() %>%
@@ -167,12 +167,12 @@ aqs.annual <- read_csv(here::here('inputs', 'pm25', 'ground_truth', 'raw', 'annu
     filter(sample_duration %in% c('24 HOUR', '24-HR BLK AVG')) %>% 
     filter(as.numeric(observation_percent) >= 75) %>%
     filter(event_type %in% c('Events Included', 'No Events')) %>%
-    distinct()
+    distinct() # Robbie: were there many duplicates? Maybe a brief stat here of what happened? Nice to have, not essential
   
   # 3.c. add state initials and restrict to conus
   aqs.annual <- aqs.annual %>% 
     inner_join(states.df, by = c('state_name')) %>% 
-    filter(!(state %in% c('AK', 'HI')))
+    filter(!(state %in% c('AK', 'HI'))) # Robbie: I always feel bad for people in these states...
   
   # 3.d. correct datum 
   aqs.annual <- aqs.annual %>% 
@@ -198,7 +198,7 @@ aqs.annual <- read_csv(here::here('inputs', 'pm25', 'ground_truth', 'raw', 'annu
       month(as.POSIXct(date_local, format = "%Y-%m-%d")) %in% c(12, 1, 2) ~ 'winter', 
       month(as.POSIXct(date_local, format = "%Y-%m-%d")) %in% c(3, 4, 5) ~ 'spring', 
       month(as.POSIXct(date_local, format = "%Y-%m-%d")) %in% c(6, 7, 8) ~ 'summer', 
-      month(as.POSIXct(date_local, format = "%Y-%m-%d")) %in% c(9, 10,11) ~ 'fall')) %>% 
+      month(as.POSIXct(date_local, format = "%Y-%m-%d")) %in% c(9, 10, 11) ~ 'fall')) %>% 
     mutate(count_winter = if_else(season == 'winter', 1, 0), 
            count_spring = if_else(season == 'spring', 1, 0), 
            count_summer = if_else(season == 'summer', 1, 0), 
@@ -210,6 +210,7 @@ aqs.annual <- read_csv(here::here('inputs', 'pm25', 'ground_truth', 'raw', 'annu
               count_summer = sum(count_summer), 
               count_fall = sum(count_fall)) 
   # 3.f.ii. determine if each seasonal count is at least 3/16 of to total 
+  # Robbie: Understood now why you did this from the manuscript thanks!
   aqs.annual.check <- aqs.annual.check %>% 
     mutate(min_seasonal_obs = (3/16) * count_tot) %>% 
     filter(count_winter >= min_seasonal_obs & 

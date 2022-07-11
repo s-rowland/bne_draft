@@ -27,13 +27,14 @@
 #}
 
 # 0.b. install Cole's package 
+# Robbie: Explanation of what Cole's package is here briefly?
 #p_load(remotes)
 remotes::install_github("geomarker-io/addPmData")
 library(addPmData)
 safe_harbor_h3 <- readRDS(here::here('ancillary_data', 'raw', 'brokamp_objects', 
-                                     'safe_harbor_h3.rds'))
+                                     'safe_harbor_h3.rds')) # Robbie: ancillary data missing
 safe_hex_lookup <- readRDS(here::here('ancillary_data', 'raw', 'brokamp_objects', 
-                                     'safe_hex_lookup.rds'))
+                                     'safe_hex_lookup.rds')) # Robbie: ancillary data missing
 
 
 # 0.e set up parallelization
@@ -41,7 +42,7 @@ safe_hex_lookup <- readRDS(here::here('ancillary_data', 'raw', 'brokamp_objects'
 # we subtract one to reserve a core for non-lbic tasks
 n.cores <- parallel::detectCores() - 1
 # 0.e.ii create the cluster
-my.cluster <- parallel::makeCluster(
+my.cluster <- parallel::makeCluster( # Robbie: again very cool functions!
   n.cores, 
   type = "FORK"
 )
@@ -59,10 +60,12 @@ foreach::getDoParRegistered()
 
 
 # 1a establish refGrid 
+# Robbie: this is missing
 refGridConus <- fst::read_fst(here::here('inputs', 'pm25', 'reference_grids',  
                                          paste0('refGrid_', 'conus', '.fst')))
 
 # 1b. breka up refGrid in preparation for foreach 
+# Robbie: perhaps you can put the packages below into the a_00 script?
 library(dplyr) 
 library(tidyr) 
 library(magrittr)
@@ -72,6 +75,7 @@ refGridConus <- refGridConus %>%
  dplyr::mutate(group = row_number() %% 1000, 
          id = row_number())
 
+# Robbie: description of what this does below briefly here?
 refGridConus.list <- split(refGridConus, refGridConus$group)
 # dta <- refGridConus.list[[1]]
 ee <- foreach(

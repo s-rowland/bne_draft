@@ -41,7 +41,7 @@ if(!exists('ran_a_00')){
 
 # 0.b set up parallelization
 ### code to paralized the processing among multiple cores
-cores <- ceiling(parallel::detectCores() -2) # use half of the available cores
+cores <- ceiling(parallel::detectCores() -2) # use half of the available cores # Robbie: Should this be / 2?
 myCluster <- snow::makeCluster(cores)
 doSNOW::registerDoSNOW(myCluster)
 

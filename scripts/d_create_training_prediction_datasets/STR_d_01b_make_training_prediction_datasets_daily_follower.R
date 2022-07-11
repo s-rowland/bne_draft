@@ -1,3 +1,6 @@
+# Robbie: A lot of this code seems to repeat. Maybe too much work but in general perhaps more sources/functions could help?
+# Robbie: Would potentially prevent making errors from copying and pasting
+
 # File: STR_d_02_make_training_predictions_JS.R
 # Authors:
 # Lawrence Chillrud <lgc2139@cumc.columbia.edu>
@@ -24,7 +27,7 @@
 ####       N. notes     ####
 #### ------------------ ####
 
-
+# Robbie: to fill in even if briefly
 #yyyy <- 2010
 
 
@@ -50,7 +53,7 @@ doSNOW::registerDoSNOW(myCluster)
 ####  1. general set up  ####
 #### ------------------- ####
 
-# 1.a. declare the AOI 
+# 1.a. declare the AOI Robbie: AOI is 'Area of interest'?
 AOI <- 'conus'
 
 # 1.b. bring in aqs data
@@ -157,7 +160,7 @@ preds <- key.refGridConus.js %>%
   arrange(ref_lon)
 
 # 1.f. establish progress bar:
-
+# Robbie: there is no progress bar here... I think at least! Tidy up?
 
 # 1.g. get conus bounding box
 # 1.g.i bring in conus shapefile
