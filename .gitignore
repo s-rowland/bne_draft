@@ -44,9 +44,6 @@
 #### ---------------------- ####
 
 # Data and outputs 
-BNE_inputs/*
-BNE_outputs/*
-BNE_plots/*
 ancillary_data/*
 
 external_validation_data/*
@@ -55,6 +52,9 @@ external_validation_data/*
 **/*.nc
 **/*.csv
 **/*.rds
+**/*.fst
+**/*.zip
+**/*.png
 
 s3_downloads/*
 outputs/*

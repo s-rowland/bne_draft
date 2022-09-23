@@ -1,7 +1,7 @@
 # bne_draft
 
 Robbie: I'm sure you will but just a reminder to add a README description here!
-# Sebastian: Breif README added here. 
+# Sebastian: Brief README added here. 
 # There is a larger convetions doc that explains more of how to use the code. 
 
 
@@ -33,3 +33,6 @@ Key folders are:
 * str_uncert_analysis: data, code, and results to analyze potential expalantory variables, using uncertainty generated from scripts code.
 
 Many details can be found in the conventions document, found in scripts/j_create_documentation
+
+Notes 
+* .keep files are added to directories to maintain the folder structure within git
