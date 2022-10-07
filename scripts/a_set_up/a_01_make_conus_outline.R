@@ -52,9 +52,15 @@ conus <- conusStates %>%
   summarise(m = mean(q)) %>% 
   st_cast()   
 
-# 1.e. transform geographical coordinates to Lambert Azimuth Equal Area Projection
+# 1.e. transform geographical coordinates to US National Atlas Equal Area Projection
 # Robbie: Referred to in a_00 but might be worth explaining why you used this one very briefly (or at least to a link
 # which explains why)
+
+# Sebastian: The CRS is just used for visualization, and I chose it somewhat arbitrarily. 
+# Solution: I added a little description.
+
+# National Equal Atlas Projection was chosen based on author preference; 
+# if you prefer a different projection, you can set the projCRS in a_00.
 conus <- st_transform(conus, crs=st_crs(projCRS))
 
 # 1.f. save conus shapefile 

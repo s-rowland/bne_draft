@@ -28,8 +28,11 @@ if(!exists('ran_a_00')){
 }
 
 
-# 0.b. declare the Area of Interest
-AOI <- 'conus01deg' # Robbie: is there a data dictionary that might help explain these different objects a little?
+# 0.b. declare the Area of Interest (AOI)
+AOI <- 'conus' # 'conus01deg' 
+# Robbie: is there a data dictionary that might help explain these different objects a little?
+# Sebastian: Some of these are described in the bne conventions doc in the j_create_documentation folder 
+# I'll add a bit of description there. 
 
 #### ---------------- ####
 ####  1. create keys  ####

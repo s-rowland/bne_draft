@@ -13,9 +13,6 @@
 #### N. notes  ####
 #### --------- ####
 
-# N.1 daily criteria: 
-
-
 #### ------------------------------------------ ####
 ####  0. import packages and set global objects ####
 #### ------------------------------------------ ####
@@ -117,12 +114,21 @@ aqs <- foreach(
  # 2.e. correct datum 
  aqs.daily <- aqs.daily %>% 
    filter(datum == 'NAD83') %>% 
+   # note: datum NAD83 refers to "North American Datum of 1983" 
+   # and the corresponding crs code is: 4269 
+   # from Overview of Refernce Coordinate Systems by NCEAS
+   #http://www.nceas.ucsb.edu/sites/default/files/2020-04/OverviewCoordinateReferenceSystems.pdf
    sf::st_as_sf(coords = c("lon", "lat"), crs = sf::st_crs("epsg:4269")) %>% # Robbie: How do you know these are the correct projections
    sf::st_transform(crs = sf::st_crs("epsg:4326")) %>% # Robbie: As above
+   # Sebastian: description added
    cbind(., sf::st_coordinates(.)) %>%
    dplyr::rename(lon = X, lat = Y) %>% 
    tibble::as_tibble() %>%
    dplyr::select(-geometry) %>% 
+   # note: datum WGS84 refers to "World Geodetic System of 1984" 
+   # and the corresponding crs code is: 4326
+   # from Overview of Refernce Coordinate Systems by NCEAS
+   #http://www.nceas.ucsb.edu/sites/default/files/2020-04/OverviewCoordinateReferenceSystems.pdf
    bind_rows(aqs.daily%>%filter(datum=='WGS84')) # combined with points already recorded in epsg:4326
  
 # 2.f. keep only relevant variables 
@@ -166,13 +172,15 @@ aqs.annual <- read_csv(here::here('inputs', 'pm25', 'ground_truth', 'raw', 'annu
     filter(metric_used == 'Daily Mean') %>%
     filter(sample_duration %in% c('24 HOUR', '24-HR BLK AVG')) %>% 
     filter(as.numeric(observation_percent) >= 75) %>%
-    filter(event_type %in% c('Events Included', 'No Events')) %>%
-    distinct() # Robbie: were there many duplicates? Maybe a brief stat here of what happened? Nice to have, not essential
+    filter(event_type %in% c('Events Included', 'No Events')) # Robbie: were there many duplicates? Maybe a brief stat here of what happened? Nice to have, not essential
+  # Sebastian: actually, there weren't any duplicates - just checked. 
+  # I think I added the distinct() comment by default. I removed it since it doesn't do anything. 
   
   # 3.c. add state initials and restrict to conus
   aqs.annual <- aqs.annual %>% 
     inner_join(states.df, by = c('state_name')) %>% 
     filter(!(state %in% c('AK', 'HI'))) # Robbie: I always feel bad for people in these states...
+  # Sebastian: Yes, as well as territories like Puerto Rico, Guam, etc. 
   
   # 3.d. correct datum 
   aqs.annual <- aqs.annual %>% 
@@ -193,6 +201,7 @@ aqs.annual <- read_csv(here::here('inputs', 'pm25', 'ground_truth', 'raw', 'annu
   # 3.f. restrict to monitors whose observations are evenly distributed across season
   # at least 3/16th of obs within each season
   # 3.f.i determine total and seasonal number of daily obs for each monitors 
+  # see methods of manuscript for further description
   aqs.annual.check <- aqs.daily %>% 
     mutate(season = case_when(
       month(as.POSIXct(date_local, format = "%Y-%m-%d")) %in% c(12, 1, 2) ~ 'winter', 

@@ -43,6 +43,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Glossary
 
+* *AOI* Area of Interest. Determines the location and density of the reference grid used to create the prediction dataset. Possible values (so far) are: conus, NYS (New York State), cities (select cities), and conus01deg (conus with 0.01 degreee resolution)
 * *AQS:* Air Quality System. Air pollution monitoring system of the United States 
 Environmental Protection Agency. Considered the ground truth for the US-based 
 application
@@ -52,7 +53,7 @@ Note that the base grid is only used to generate predictions - the base grid is 
 used for training 
 * *BNE:* Bayesian Non-parametric Ensemble. The likelihood function of the model and the 
 algorithm used to estimate the model parameters.
-*CONUS:* Contiguous United States. Also known as the conterminous United States or 
+* *CONUS:* Contiguous United States. Also known as the conterminous United States or 
 "the Lower 48." Refers to the US territory belonging to 48 states (excluding 
 Alaska and Hawa'ii) and Washington, DC. The US-based application is focused only 
 on CONUS because the spatial discontinuity over Canada and the oceans causes issues. 
@@ -99,6 +100,7 @@ the analysis on their own, if they had the same data. Reproducibility
 is an important principle for developing robust and transparent science and reliable results. 
 Reproducibility supports iterating over code, detecting errors in code, and 
 having the methods section of the manuscript reflect the process. 
+* *projCRS* The crs used for generating plots. Can be modified in a_00_import_packages_set_global_objects.R
 * *Run:* A single instance of training BNE and generating predictions. In contrast, 
 a test would be running BNE multiple times, with different parameters / conditions, 
 and comparing results
@@ -209,10 +211,8 @@ once you put them back together.
     e) format_external_validation_data 
     f) run_BNE 
     g) summarize_BNE_outputs
-    h) perform_cross_validation 
-    i) perform_external_validation
     j) create_documentation
-    k) depreciated 
+    z) depreciated 
         * former_code
         * internal_workflow
 * Researcher-Specific Folders

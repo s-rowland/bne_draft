@@ -1,14 +1,15 @@
 # Robbie: just noticed a few of these have the same description below which need to be updated/included
+# Sebastian: Thanks, will modify
 
-# File: STR_b_03_average_rk_by_year.R
+# File: STR_b_05_me_truncation_guides.R
 # Author: Sebastian Rowland <sr3463@cumc.columbia.edu>
 # Date: 01/14/2022
 #
 # Contents:
 #  N. Notes
 #  0. Import Packages and Global Objects
-#  1. Define Function to Get Annual Average
-#  2. Average Across the Years
+#  1. make epa region polygons
+#  2. assign epa region to merra cells
 
 #### ------------------- ####
 ####       N. NOTES      ####
@@ -30,13 +31,11 @@ if(!exists('ran_a_00')){
                     'a_00_import_packages_set_global_objects.R'))
 }
   
-
-
-# 0.e set up parallelization
-# 0.e.i get the number of cores
+# 0.b set up parallelization
+# 0.b.i get the number of cores
 # we subtract one to reserve a core for non-lbic tasks
 n.cores <- parallel::detectCores() - 1
-# 0.e.ii create the cluster
+# 0.b.ii create the cluster
 my.cluster <- parallel::makeCluster(
   n.cores, 
   type = "FORK"
@@ -44,25 +43,25 @@ my.cluster <- parallel::makeCluster(
 #check cluster definition (optional)
 print(my.cluster)
 
-# 0.e.iii register it to be used by %dopar%
+# 0.b.iii register it to be used by %dopar%
 doParallel::registerDoParallel(cl = my.cluster)
 #check if it is registered (optional)
 foreach::getDoParRegistered()
 
-# 1.g. get conus bounding box
-# 1.g.i bring in conus shapefile
+# 0.c. get conus bounding box
+# 0.c.i bring in conus shapefile
 conus <- sf::st_read(here::here('ancillary_data', 'formatted', 'spatial_outlines', 
                                 'conus.shp')) %>% 
   sf::st_transform(., crs=st_crs('epsg:4326'))
-# 1.g.ii get the bounding box 
+# 0.c.ii get the bounding box 
 bbox.conus <- list(xMin = sf::st_bbox(conus)$xmin[[1]], 
                    xMax = sf::st_bbox(conus)$xmax[[1]], 
                    yMin = sf::st_bbox(conus)$ymin[[1]], 
                    yMax = sf::st_bbox(conus)$ymax[[1]])
 
-#### ------------------------- ####
+#### ----------------------------- ####
 ####  1. make epa region polygons  ####
-#### ------------------------- ####
+#### ----------------------------- ####
 
 # 1.a. bring in state shapefile 
 excludedAreas <- c('Alaska', 'Hawaii', 'Puerto Rico', 
@@ -90,9 +89,9 @@ regions <- states %>%
 # 1.d. plot to confirm success
  #plot(regions)
 
-#### ------------------------- ####
+#### ------------------------------------ ####
 ####  2. assign epa region to merra cells ####
-#### ------------------------- ####
+#### ------------------------------------ ####
 
 # 2a. bring in one merra 
 me.ras <- raster(here::here('inputs','pm25',  'base_models', 'daily', 'raw', 'me', 
@@ -127,7 +126,11 @@ me.exterior <- me %>%
   filter(! id%in% me.region$id) 
 
 
-me.exterior$nn <- unlist(nngeo::st_nn(me.exterior, me.region, k=1)) # Robbie: I don't think nngeo is in the list of packages in a_00 
+me.exterior$nn <- unlist(nngeo::st_nn(me.exterior, me.region, k=1)) 
+# Robbie: I don't think nngeo is in the list of packages in a_00 
+# Sebastian: correct. nngeo could not be installed on Harmattan, so adding nngeo to the list 
+# of packages breaks the code on Harmattan. 
+# I added a comment in the README and to a_00
 me.exterior$region <- me.region$region[me.exterior$nn]
 
 me.region <- me.region %>%
@@ -162,12 +165,13 @@ me.region <- me.region %>%
   inner_join(aqs.cap, by = 'region') 
 
 me.region <- me.region %>% 
-  sf::st_transform(crs=sf::st_crs(plotCRS)) %>%
+  sf::st_transform(crs=sf::st_crs(projCRS)) %>%
   mutate(lon = st_coordinates(.)[,1], 
          lat = st_coordinates(.)[,2]) %>%
   as.data.frame() %>% 
   dplyr::select(id, lat, lon, contains('cap')) 
 
+# 3.f save
 me.region %>%
   arrange(id) %>%
   write_csv(here::here('ancillary_data', 'formatted', 'processing_support', 

@@ -32,7 +32,14 @@ if(!exists('ran_a_00')){
 # 1.a. create refGrids for the three principal areas of interest: CONUS, NYS, and select cities
 # Robbie: No inputs/  folder here. Did I miss this as something I had to put into place from your files you sent? I don't see
 # Robbie: the files right now...
+
+# Sebastian: I added .keep files to all the empty / data containing folders so that 
+# the folders that would be empty in the git are still tracked by git.
+
 createRefGridNoJS(AOI = 'conus', makePlot = TRUE, targetDir = 'inputs/pm25/reference_grids')
+# note that these three areas of interest (AOI) are not used in the manuscript and 
+# were only used for internal analysis 
+
 createRefGridNoJS(AOI = 'NYS', makePlot = TRUE, targetDir = 'inputs/pm25/reference_grids')
 createRefGridNoJS(AOI = 'cities', makePlot = TRUE, targetDir = 'inputs/pm25/reference_grids')
 createRefGridNoJS(AOI = 'conus01deg', makePlot = TRUE, targetDir = 'inputs/pm25/reference_grids')

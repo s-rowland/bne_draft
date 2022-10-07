@@ -345,7 +345,7 @@ plotOneParameterSpatial <- function(
   if(is.data.frame(extraPointObj)){
     extraPointObj <- extraPointObj %>% 
       sf::st_as_sf(coords = c("lon", "lat"), crs=sf::st_crs("epsg:4326")) %>% 
-      sf::st_transform(crs=sf::st_crs(plotCRS))
+      sf::st_transform(crs=sf::st_crs(projCRS))
     extraPoint.gg <- ggplot2::geom_sf(data = extraPointObj, fill = extraPointCol, 
                                  color = extraPointCol, size = pointSize)
   } else {

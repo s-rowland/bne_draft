@@ -1,5 +1,5 @@
 # Task: Harmonize daily predictions and Potential Explanatory Variables
-# File: d_07_assignexpVar_annualBNE.R
+# File: d_06_assignexpVar_annualBNE.R
 # SubProject: Analysis of BNE PM2.5 Predictive Uncertainty
 # Project: Bayesian Nonparametric Ensemble 
 # Author: Sebastian T. Rowland <sr3463@cumc.columbia.edu>

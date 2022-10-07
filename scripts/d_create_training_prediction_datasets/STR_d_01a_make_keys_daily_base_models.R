@@ -58,6 +58,10 @@ bbox.conus <- list(xMin = sf::st_bbox(conus)$xmin[[1]],
 # 1.a. read in the raster for one month
 # Robbie: A question more for myself really but how did you make completely sure that each of these rasters were aligned with conus correctly?
 # Robbie: Did you check visually each time? I always find that a challenge
+# Sebastian: Good question.
+# Sebastian: Yeah, way back at the beginning I visually checked each one. 
+# Sebastian In general the spatial patterns of concentrations also indicate that these data are aligned
+
 av.ras <- raster::raster(here::here('inputs', 'pm25', 'base_models', 'monthly', 'raw', 'av', 
                                     'V5GL02.HybridPM25.NorthAmerica.201001-201001.nc'))
 
@@ -92,7 +96,10 @@ cm05 <- cm05 %>%
 cm07 <- read_csv(here::here('inputs', 'pm25', 'base_models', 'daily','raw', 'cmout', 
                             '2007_pm25_daily_average.txt')) 
 # 3.b. rename columns and get the locations for just one day
+# note that since these data are constructed by a model that uses the same locations 
+# for each year. 
 # Robbie: I assume the locations stay the same through the year then?
+# Sebastian: correct, I've visually checked this. 
 cm07 <- cm07 %>% 
   rename(lat = Latitude, lon = Longitude, 
          pred_cm = 'pm25_daily_average(ug/m3)')  %>% 
@@ -256,6 +263,7 @@ for (i in 1: length(baseModels)){
 #### ---------------------------- ####
 
 # 8.a. bring in the refGrids 
+# remember that NYS and Cities are not required for the manuscript
 refGridConus <- fst::read_fst(here::here('inputs', 'pm25', 'reference_grids',  
                                          paste0('refGrid_', 'conus', '.fst')))
 refGridNYS <- fst::read_fst(here::here('inputs', 'pm25', 'reference_grids',   

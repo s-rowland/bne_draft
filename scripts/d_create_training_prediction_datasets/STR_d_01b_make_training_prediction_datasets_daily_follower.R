@@ -1,7 +1,10 @@
 # Robbie: A lot of this code seems to repeat. Maybe too much work but in general perhaps more sources/functions could help?
 # Robbie: Would potentially prevent making errors from copying and pasting
+# Sebastian: Totally agree. Lawrence had set up a much nicer function, 
+# Sebastian: I moved away from his function so I could add this key-based 
+# approach, which was much faster. But then I never went back and integrated the two. 
 
-# File: STR_d_02_make_training_predictions_JS.R
+# File: STR_d_01b_make_training_prediction_datasets_daily_follower.R
 # Authors:
 # Lawrence Chillrud <lgc2139@cumc.columbia.edu>
 # Sebastian Rowland <sr3463@cumc.columbia.edu>
@@ -28,8 +31,10 @@
 #### ------------------ ####
 
 # Robbie: to fill in even if briefly
-#yyyy <- 2010
+# Sebastian: added in, thanks. 
 
+# This code assigns each centroid of the reference grid, and each training point 
+# predictions from the nearest grid centroid, for each prediction model.
 
 #### -------------- ####
 #### 0. preparation ####
@@ -53,7 +58,10 @@ doSNOW::registerDoSNOW(myCluster)
 ####  1. general set up  ####
 #### ------------------- ####
 
-# 1.a. declare the AOI Robbie: AOI is 'Area of interest'?
+# 1.a. declare the Area of Interest (AOI) 
+
+# Robbie: AOI is 'Area of interest'?
+# Sebastian: Correct, I added a comment
 AOI <- 'conus'
 
 # 1.b. bring in aqs data
@@ -67,7 +75,7 @@ training <- fst::read_fst(here::here('inputs', 'pm25', 'ground_truth', 'formatte
 key.aqs.av <- read_fst(here::here('inputs', 'pm25', 'keys', 
                                   'key_nn_aqsDaily_avDaily.fst'))
 # add cb
-if (yyyy ==2005 | yyyy == 2006) {
+if (yyyy == 2005 | yyyy == 2006) {
   key.aqs.cm <- read_fst(here::here('inputs', 'pm25', 'keys', 
                                     'key_nn_aqsDaily_cm05Daily.fst'))
 } else if (yyyy == 2007) {
@@ -159,21 +167,22 @@ preds <- key.refGridConus.js %>%
   arrange(ref_lat) %>% 
   arrange(ref_lon)
 
-# 1.f. establish progress bar:
-# Robbie: there is no progress bar here... I think at least! Tidy up?
 
-# 1.g. get conus bounding box
-# 1.g.i bring in conus shapefile
+# Robbie: there is no progress bar here... I think at least! Tidy up?
+# Sebastian: Agreed. Removed the line and renumbered.
+
+# 1.f. get conus bounding box
+# 1.f.i bring in conus shapefile
 conus <- sf::st_read(here::here('ancillary_data', 'formatted', 'spatial_outlines', 
                                 'conus.shp')) %>% 
   sf::st_transform(., crs=st_crs('epsg:4326'))
-# 1.g.ii get the bounding box 
+# 1.f.ii get the bounding box 
 bbox.conus <- list(xMin = sf::st_bbox(conus)$xmin[[1]], 
                    xMax = sf::st_bbox(conus)$xmax[[1]], 
                    yMin = sf::st_bbox(conus)$ymin[[1]], 
                    yMax = sf::st_bbox(conus)$ymax[[1]])
 
-# 1.h. bring in daily merra caps 
+# 1.g. bring in daily merra caps 
 activeCap <- paste0('cap_', yyyy)
 me_caps <- read_csv(here::here('ancillary_data', 'formatted', 'processing_support', 
                      'me_daily_caps.csv')) 
@@ -260,8 +269,6 @@ if  ( !(infix %in% list.files(wd))) {
 #### --------------------------------------------- ####
 
 # 3.a. set up loop
-
-
 maxDoY <- 365 
 if (yyyy %in% c(2004, 2008, 2012, 2016)) {maxDoY <- 366}
   

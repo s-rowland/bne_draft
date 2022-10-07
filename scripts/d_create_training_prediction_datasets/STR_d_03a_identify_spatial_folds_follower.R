@@ -1,7 +1,8 @@
 # Robbie: It would help if there was a kind of master Rscript which shows the order in which these are done (I assume in order of letter and numbers but would also help visualise what's going on)
 # Robbie: Maybe the README would do this job
+# Sebastian: Great idea, just added. 
 
-# File: STR_h_01b_identify_spatial_folds_follower.R
+# File: STR_d_03_identify_spatial_folds_follower.R
 # Authors:
 # Sebastian Rowland <sr3463@cumc.columbia.edu>
 # Date: 08/03/2022
@@ -57,6 +58,8 @@ threshold <- 10000
 ####  3. create folds from hierarchical cluster  ####
 #### ------------------------------------------- ####
 
+# we first identify which monitors are near each other via hierarchical clustering 
+# we then combine those closers to create folds that are similarly-sized
 # 3a Create hierarchial clusters (not the folds) 
 # 3a.i Calculate euclidean distance between all combination of points
 # we will use the projected locations in meters

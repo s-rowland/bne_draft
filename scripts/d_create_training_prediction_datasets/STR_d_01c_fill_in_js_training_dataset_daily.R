@@ -1,4 +1,4 @@
-# File: STR_d_03_fill_in_js_training_daily.R
+# File: STR_d_01c_fill_in_js_training_daily.R
 # Authors:
 # Sebastian Rowland <sr3463@cumc.columbia.edu>
 # Date: 03/17/23

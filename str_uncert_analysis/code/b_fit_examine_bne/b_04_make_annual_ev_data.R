@@ -86,7 +86,7 @@ ev.mean.ann <- ev.mean.mm %>%
   summarize(obs = sum(mean_obs_component))
 
 # we need to treat nyccas uniquely, because it is composed of multiple locations 
-# for each year - we average measurements aross locations.
+# for each year - we average measurements across locations.
 ev.mean.ann <- ev.mean.mm %>% 
   filter(project == 'nyccas') %>%
   mutate(mean_obs_component = mean_obs*daysInMonth/daysInYear) %>% 

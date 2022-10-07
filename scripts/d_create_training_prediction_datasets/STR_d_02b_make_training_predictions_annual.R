@@ -1,4 +1,4 @@
-# File: STR_d_02_make_training_predictions_JS.R
+# File: STR_d_02b_make_training_predictions_annual.R
 # Authors:
 # Lawrence Chillrud <lgc2139@cumc.columbia.edu>
 # Sebastian Rowland <sr3463@cumc.columbia.edu>
@@ -38,6 +38,13 @@ if(!exists('ran_a_00')){
                     'a_00_import_packages_set_global_objects.R'))
 }
 
+# 0.b small function to arrange by lat and lon
+arrange_lat_lon <- function(d) {
+  d %>% 
+    arrange(ref_lat) %>% 
+    arrange(ref_lon)
+}
+
 #### ------------------- ####
 ####  1. general set up  ####
 #### ------------------- ####
@@ -71,52 +78,47 @@ key.aqs.rk <- read_fst(here::here('inputs', 'pm25', 'keys',
 if (AOI == 'conus') {AOI2 <- 'Conus'}
 if (AOI == 'conus01deg') {AOI2 <- 'Conus01deg'}
 
-# Robbie: could make into a function if you so wish to help minimize repeats?
+# Robbie: could make into a function if you so wish to help minimize repeats? 
+# Sebastian: agreed; added a small helper function. 
+# I'm sure I could do a smarter list-based approach with even fewer repeats, 
+# but not priority.
+
 key.refGridConus.av <- read_fst(here::here('inputs', 'pm25', 'keys', 
                                            paste0('key_nn_refGrid', AOI2, '_avAnnual.fst'))) %>% 
-  arrange(ref_lat) %>% 
-  arrange(ref_lon)
+  arrange_lat_lon()
 
 key.refGridConus.cc <- read_fst(here::here('inputs', 'pm25', 'keys', 
                                            paste0('key_nn_refGrid', AOI2, '_ccAnnual.fst'))) %>% 
-  arrange(ref_lat) %>% 
-  arrange(ref_lon)
+  arrange_lat_lon()
 
 key.refGridConus.cm10 <- read_fst(here::here('inputs', 'pm25', 'keys', 
                                              paste0('key_nn_refGrid', AOI2, '_cm10Annual.fst'))) %>% 
-  arrange(ref_lat) %>% 
-  arrange(ref_lon)
+  arrange_lat_lon()
 
 key.refGridConus.cm15 <- read_fst(here::here('inputs', 'pm25', 'keys', 
                                              paste0('key_nn_refGrid', AOI2, '_cm15Annual.fst'))) %>% 
-  arrange(ref_lat) %>% 
-  arrange(ref_lon)
+  arrange_lat_lon()
 
 key.refGridConus.gs <- read_fst(here::here('inputs', 'pm25', 'keys', 
                                            paste0('key_nn_refGrid', AOI2, '_gsAnnual.fst'))) %>% 
-  arrange(ref_lat) %>% 
-  arrange(ref_lon)
+  arrange_lat_lon()
 
 key.refGridConus.js <- read_fst(here::here('inputs', 'pm25', 'keys', 
                                            paste0('key_nn_refGrid', AOI2, '_jsAnnual.fst'))) %>% 
-  arrange(ref_lat) %>% 
-  arrange(ref_lon)
+  arrange_lat_lon()
 
 key.refGridConus.me <- read_fst(here::here('inputs', 'pm25', 'keys', 
                                            paste0('key_nn_refGrid', AOI2, '_meAnnual.fst'))) %>% 
-  arrange(ref_lat) %>% 
-  arrange(ref_lon)
+  arrange_lat_lon()
 
 key.refGridConus.rk <- read_fst(here::here('inputs', 'pm25', 'keys', 
                                            paste0('key_nn_refGrid', AOI2, '_rkAnnual.fst'))) %>% 
-  arrange(ref_lat) %>% 
-  arrange(ref_lon)
+  arrange_lat_lon()
 
 # 1.d. generate refgrid 
 preds <- key.refGridConus.js %>% 
   dplyr::select(ref_lat, ref_lon) %>% 
-  arrange(ref_lat) %>% 
-  arrange(ref_lon)
+  arrange_lat_lon()
 
 # 1.f. get conus bounding box
 # 1.f.i bring in conus shapefile
